@@ -1,1 +1,1 @@
-# habit-tracker-monorepo
+# Group 9 — Activity & Workout Service
