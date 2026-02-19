@@ -5,7 +5,7 @@ from .models import Goal
 from .serialisers import GoalSerialiser
 
 class GoalViewSet(viewsets.ModelViewSet):
-    serialiser_class = GoalSerialiser
+    serializer_class = GoalSerialiser
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
