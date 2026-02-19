@@ -17,15 +17,24 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 # Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
 # Set up database
+
+```bash
 python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
+```
 
 # Run server
+
+```bash
 python manage.py runserver
+```
 
 # API Endpoints
 
