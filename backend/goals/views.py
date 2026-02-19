@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import Goal
@@ -9,7 +8,7 @@ class GoalViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Goal.objects.filter(user=self.request.user)
+        return Goal.objects.filter(user=self.request.user).order_by('-created_at')
 
-    def perform_create(self, serialiser):
-        serialiser.save(user=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
