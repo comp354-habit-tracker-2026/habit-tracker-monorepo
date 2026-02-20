@@ -7,7 +7,7 @@ Django REST API for the Habit and Exercise Tracker Portal.
 # Clone and navigate to backend
 ```bash
 git clone https://github.com/comp354-habit-tracker-2026/habit-tracker-monorepo.git
-cd habit-tracker-monorepo/backend
+cd habit-tracker-monorepo/apps/backend/group-8-backend
 ```
 
 # Create and activate virtual environment
