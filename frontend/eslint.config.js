@@ -1,21 +1,25 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import checkFile from 'eslint-plugin-check-file'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+import checkFile from 'eslint-plugin-check-file';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist', 'cypress/videos', 'cypress/screenshots', 'cypress/downloads', 'src/App.tsx']),
+  globalIgnores([
+    'dist',
+    'cypress/videos',
+    'cypress/screenshots',
+    'cypress/downloads',
+    'src/App.tsx',
+  ]),
+  js.configs.recommended,
+  tseslint.configs.recommended,
+  reactHooks.configs.flat.recommended,
+  reactRefresh.configs.recommended,
   {
     files: ['**/*.{ts,tsx}'],
-    extends: [
-      js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
     plugins: {
       'check-file': checkFile,
     },
@@ -54,4 +58,4 @@ export default defineConfig([
       },
     },
   },
-])
+]);

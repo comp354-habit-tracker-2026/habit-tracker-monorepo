@@ -13,7 +13,7 @@ export default defineConfig(() => {
     envDir: 'src/environments/',
     build: {
       target: 'esnext',
-      assetsDir: 'src/assets',
+      assetsDir: 'assets',
     },
   };
 });

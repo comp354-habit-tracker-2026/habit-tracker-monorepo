@@ -1,4 +1,6 @@
-import { Outlet } from 'react-router';
+import { Link, Outlet } from 'react-router';
+
+import { paths } from '@/config/paths';
 
 /**
  * Root layout for all authenticated /app/* routes.
@@ -10,11 +12,11 @@ function AppRoot() {
   return (
     <div className="app-root">
       <nav className="app-root__nav">
-        <a href="/app">Dashboard</a>
+        <Link to={paths.app.dashboard.getHref()}>Dashboard</Link>
         {' · '}
-        <a href="/app/habits">Habits</a>
+        <Link to={paths.app.habits.getHref()}>Habits</Link>
         {' · '}
-        <a href="/app/profile">Profile</a>
+        <Link to={paths.app.profile.getHref()}>Profile</Link>
       </nav>
       <main className="app-root__main">
         <Outlet />

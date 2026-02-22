@@ -6,7 +6,11 @@ import { useHabit } from '@/features/habits/hooks/use-habit';
 function HabitDetailRoute() {
   const { habitId } = useParams<{ habitId: string }>();
 
-  const habitQuery = useHabit({ habitId: habitId! });
+  const habitQuery = useHabit({ habitId });
+
+  if (!habitId) {
+    return <p>Habit not found.</p>;
+  }
 
   if (habitQuery.isLoading) return <p>Loading…</p>;
   if (habitQuery.isError) return <p>Failed to load habit.</p>;
