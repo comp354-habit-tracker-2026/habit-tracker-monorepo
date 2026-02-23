@@ -82,5 +82,25 @@ def _compute_bounds(points: List[TrackPoint]) -> Optional[Tuple[float,float,floa
     return (min(lats),min(lons),max(lats),max(lons))
 
 if __name__ == "__main__":
-    session = parse_gpx("../data/2026-01-25 11-16 AM We Ski Session.gpx")
-    print(session.points,session.start_time,session.track_name)
+    import json
+    import dataclasses
+
+    def to_dict(obj):
+        if dataclasses.is_dataclass(obj):
+            return {f.name: to_dict(getattr(obj, f.name)) for f in dataclasses.fields(obj)}
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        if isinstance(obj, list):
+            return [to_dict(i) for i in obj]
+        if isinstance(obj, tuple):
+            return tuple(to_dict(i) for i in obj)
+        return obj
+
+    output_dir = Path("../sessions")
+    output_dir.mkdir(exist_ok=True)
+
+    for gpx_file in sorted(Path("../data").glob("*.gpx")):
+        session = parse_gpx(gpx_file)
+        output_file = output_dir / (gpx_file.stem + ".json")
+        output_file.write_text(json.dumps(to_dict(session), indent=2), encoding="utf-8")
+        print(f"Written to {output_file}")
