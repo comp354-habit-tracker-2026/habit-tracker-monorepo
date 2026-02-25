@@ -2,7 +2,7 @@ Group 11 – Persistence & Data Access Layer
 
 Group 11 Scope
 
-Group 11 handles the service layer and the database for storing and retrieving data in the Persistence and Data Access Layer of the backend.
+Group 11 will take care of the repository/database access part in the system.
 
 
 What We Are Responsible For
@@ -55,9 +55,13 @@ Data Flow
 
 Database Decision (Checkpoint 1 Status)
 
-The database isn’t integrated yet. It will be integrated in the next milestone. CP1 is about structure, architecture, and repository interface.
+Group 11 will use PostgreSQL as the database for this project
+
+As the system has clearly defined parts such as User, Goal, Activity, a relational database will suit the system well. 
 
 Checkpoint 1 Status
+
+
 
 Group 11 has completed the following for CP1:
 - Architecture
