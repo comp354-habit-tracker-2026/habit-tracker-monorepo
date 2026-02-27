@@ -61,7 +61,6 @@ Repository methods may raise:
   "calories": 350
 }
 
-### Create Goal payload
 {
   "type": "weekly_distance",
   "targetValue": 20000,
