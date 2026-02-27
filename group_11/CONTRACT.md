@@ -60,9 +60,12 @@ Repository methods may raise:
   "distance_meters": 5200,
   "calories": 350
 }
-
+```
+### Create Goal payload
+```json
 {
   "type": "weekly_distance",
-  "targetValue": 20000,
-  "periodStart": "2026-02-24"
+  "target_value": 20000,
+  "period_start": "2026-02-24"
 }
+```
