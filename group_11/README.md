@@ -56,6 +56,7 @@ Data Flow
 Database Decision (Checkpoint 1 Status)
 
 Group 11 will use PostgreSQL as the database for this project
+Database schema draft: see group_11/SCHEMA.md
 
 As the system has clearly defined parts such as User, Goal, Activity, a relational database will suit the system well. 
 
