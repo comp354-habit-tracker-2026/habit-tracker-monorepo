@@ -10,10 +10,15 @@ We do not implement UI, business logic, or external API integrations.
 - Duration unit: seconds
 - Distance unit: meters
 
+## Naming Conventions
+- Repository interfaces and persistence models use snake_case in Python:
+  external_id, start_time, duration_seconds, distance_meters
+- API layer may use camelCase, and conversion (if needed) is handled outside Group 11.
+
 ## Dedup and Upsert Rule (Activities)
 An activity is uniquely identified by:
-- provider + externalId
-If the same provider and externalId appear again, update the existing record instead of creating a duplicate.
+- provider + external_id
+If the same provider and external_id appear again, update the existing record instead of creating a duplicate.
 
 ## Pagination
 listActivities uses limit and offset.
