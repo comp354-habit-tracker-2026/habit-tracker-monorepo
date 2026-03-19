@@ -60,7 +60,6 @@ POSTGRES_PORT=5432
 POSTGRES_IMAGE=postgres:16
 POSTGRES_RESTART_POLICY=always
 POSTGRES_CONTAINER_NAME=habit-postgres
-POSTGRES_DATA_PATH=./.docker/postgres-data
 EOF
 ```
 
@@ -80,7 +79,6 @@ Key variables used by Django/PostgreSQL:
 - `POSTGRES_IMAGE`
 - `POSTGRES_RESTART_POLICY`
 - `POSTGRES_CONTAINER_NAME`
-- `POSTGRES_DATA_PATH`
 
 ## Run With Docker Compose
 
@@ -100,6 +98,7 @@ Container behavior:
 - `api` waits for `postgres` healthcheck (`service_healthy`)
 - Migrations run automatically on container startup
 - API is served with Gunicorn (`config.wsgi:application`)
+- PostgreSQL data is stored in a standard Docker named volume (`postgres_data`)
 - Service/runtime values are loaded directly from `.env` via Compose `env_file`
 
 Useful commands:

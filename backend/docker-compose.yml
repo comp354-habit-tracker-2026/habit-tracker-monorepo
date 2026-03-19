@@ -34,4 +34,7 @@ services:
       retries: 10
       start_period: 5s
     volumes:
-      - ${POSTGRES_DATA_PATH:-./.docker/postgres-data}:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
