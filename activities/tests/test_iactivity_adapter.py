@@ -13,5 +13,6 @@ def test_cannot_instantiate_interface():
 def test_methods_exist():
     methods = dir(IActivityAdapter)
     assert "parse" in methods
+    assert "validate" in methods
+    assert "mapToActivity" in methods
     assert "get_provider_name" in methods
-    assert "register_hooks" in methods

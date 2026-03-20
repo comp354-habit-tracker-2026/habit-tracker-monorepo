@@ -5,13 +5,15 @@ class IActivityAdapter(ABC):
     """
     Interface / abstract class for all fitness app adapters.
 
-    Required methods:
+    
     - parse(raw_input_data: dict) -> Activity
         Convert raw provider data into standardized Activity.
     - get_provider_name() -> str
         Return the provider name or ID.
-
-    Optional methods:
+    - validate(raw_input_data) -> bool
+        Validate raw input data before parsing.
+    -mapToActivity(self, raw_input_data) -> Activity object
+        Convert raw input data into a standardized Activity object.
     - Optional method for hooks:
       register_hooks(hooks: dict)
         Register callback functions for monitoring parse events (start, success, failure).
@@ -21,8 +23,7 @@ class IActivityAdapter(ABC):
                 "on_success": callback_function,
                 "on_failure": callback_function
             }
-        - validate_raw_data(raw_input_data) -> bool
-        Validate raw input data before parsing.
+        
     """
 
     @abstractmethod
@@ -41,7 +42,12 @@ class IActivityAdapter(ABC):
         pass
 
     @abstractmethod
-    def validate_raw_data(self, raw_input_data):
+    def validate(self, raw_input_data):
         """Validate raw data before parsing."""
+        pass
+
+    @abstractmethod
+    def mapToActivity(self, raw_input_data):
+        """Convert raw input data into a standardized Activity object."""
         pass
 
