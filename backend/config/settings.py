@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'activities',
     'analytics',
     'notifications',
+    'data_integration',
 ]
 
 MIDDLEWARE = [
