@@ -1,0 +1,40 @@
+services:
+  api:
+    env_file:
+      - .env
+    container_name: ${API_CONTAINER_NAME:-habit-api}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:${API_PORT:-8000} --workers ${GUNICORN_WORKERS:-3}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${API_PORT:-8000}:${API_PORT:-8000}"
+    volumes:
+      - .:/app
+
+  postgres:
+    env_file:
+      - .env
+    container_name: ${POSTGRES_CONTAINER_NAME:-habit-postgres}
+    image: ${POSTGRES_IMAGE:-postgres:16}
+    restart: ${POSTGRES_RESTART_POLICY:-always}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-myuser} -d ${POSTGRES_DB:-habit_tracker_db}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
