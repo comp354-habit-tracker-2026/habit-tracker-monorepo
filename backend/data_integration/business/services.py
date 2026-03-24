@@ -15,6 +15,7 @@ class DataIntegrationService(BaseService):
                 "status": "active",
                 "metadata": {"source": "third_party_api"},
                 "last_synced_at": "2026-03-23T00:00:00Z",
+                "is_synced": True,
             },
             {
                 "id": "google-fit-backup",
@@ -24,6 +25,7 @@ class DataIntegrationService(BaseService):
                 "status": "paused",
                 "metadata": {"source": "third_party_api"},
                 "last_synced_at": None,
+                "is_synced": False,
             },
         ]
 
