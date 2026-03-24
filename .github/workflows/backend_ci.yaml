@@ -46,10 +46,11 @@ jobs:
         working-directory: ./backend
 
       - name: Run tests
-        run: pytest --cov --cov-branch --cov-report=html
+        run: pytest --cov --cov-branch --cov-report=html --cov-report=xml:coverage.xml
         working-directory: ./backend
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./backend/coverage.xml
