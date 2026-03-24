@@ -9,6 +9,26 @@ jobs:
   test:
     name: Run tests and collect coverage
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: habit_tracker_db
+          POSTGRES_USER: myuser
+          POSTGRES_PASSWORD: testpassword
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: habit_tracker_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: testpassword
     steps:
       - name: Checkout
         uses: actions/checkout@v4
