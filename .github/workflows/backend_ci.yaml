@@ -34,9 +34,9 @@ jobs:
       POSTGRES_PASSWORD: testpassword
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
