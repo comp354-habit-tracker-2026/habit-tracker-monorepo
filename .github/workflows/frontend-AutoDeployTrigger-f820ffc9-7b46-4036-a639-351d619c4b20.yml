@@ -42,5 +42,5 @@ jobs:
           containerAppName: frontend
           resourceGroup: habit-tracker-rg
           imageToBuild: habitregistry.azurecr.io/frontend:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
+          buildArguments: |
+            BUILD_MODE=prod
