@@ -4,19 +4,18 @@ name: Trigger auto deployment for frontend
 on:
   # Automatically trigger it when detected changes in repo
   push:
-    branches: 
-      [ main ]
+    branches: [main]
     paths:
-    - '**'
-    - '.github/workflows/frontend-AutoDeployTrigger-f820ffc9-7b46-4036-a639-351d619c4b20.yml'
+      - "frontend/**"
+      - ".github/workflows/frontend-AutoDeployTrigger-f820ffc9-7b46-4036-a639-351d619c4b20.yml"
 
-  # Allow manual trigger 
-  workflow_dispatch:      
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       id-token: write #This is required for requesting the OIDC JWT Token
       contents: read #Required when GH token is used to authenticate with private repo
 
@@ -34,7 +33,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}
+          appSourcePath: ${{ github.workspace }}/frontend
           _dockerfilePathKey_: _dockerfilePath_
           _targetLabelKey_: _targetLabel_
           registryUrl: habitregistry.azurecr.io
@@ -45,5 +44,3 @@ jobs:
           imageToBuild: habitregistry.azurecr.io/frontend:${{ github.sha }}
           _buildArgumentsKey_: |
             _buildArgumentsValues_
-
-
