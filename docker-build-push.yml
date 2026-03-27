@@ -1,0 +1,43 @@
+name: Build and Push to ACR (Raw Docker Commands)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Azure Container Registry
+        run: |
+          # Using the exact command requested for authentication
+          docker login -u github-action-token -p ${{ secrets.AZURE_TOKEN }} habitregistry.azurecr.io
+
+      - name: Build, Tag, and Push Backend Image
+        run: |
+          # Build the image from the backend directory
+          docker build -t habitregistry.azurecr.io/habit-tracker-backend:${{ github.sha }} ./backend
+          
+          # Tag the image as 'latest'
+          docker tag habitregistry.azurecr.io/habit-tracker-backend:${{ github.sha }} habitregistry.azurecr.io/habit-tracker-backend:latest
+          
+          # Push both tags to the registry
+          docker push habitregistry.azurecr.io/habit-tracker-backend:${{ github.sha }}
+          docker push habitregistry.azurecr.io/habit-tracker-backend:latest
+
+      - name: Build, Tag, and Push Frontend Image
+        run: |
+          # Build the image from the frontend directory
+          docker build -t habitregistry.azurecr.io/habit-tracker-frontend:${{ github.sha }} ./frontend
+          
+          # Tag the image as 'latest'
+          docker tag habitregistry.azurecr.io/habit-tracker-frontend:${{ github.sha }} habitregistry.azurecr.io/habit-tracker-frontend:latest
+          
+          # Push both tags to the registry
+          docker push habitregistry.azurecr.io/habit-tracker-frontend:${{ github.sha }}
+          docker push habitregistry.azurecr.io/habit-tracker-frontend:latest
