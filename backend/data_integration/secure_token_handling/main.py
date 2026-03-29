@@ -91,6 +91,10 @@ def save_provider_token_route(request: SaveProviderTokenRequest, database_sessio
     refresh_token = request.refresh_token.strip() if request.refresh_token else None
     access_token_expires_at = request.access_token_expires_at
 
+    # Check if provider_name is empty
+    if not provider_name:
+        raise HTTPException(status_code=400, detail="provider_name is required")
+
     # Check if access_token is empty
     if not access_token:
         raise HTTPException(status_code=400, detail="access_token is required")
@@ -238,3 +242,6 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+
+
+
