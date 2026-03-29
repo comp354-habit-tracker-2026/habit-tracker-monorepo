@@ -1,4 +1,5 @@
-.venv
+venv/
+.venv/
 .env
 .env.local
 .env.*.local
@@ -9,4 +10,6 @@ CLAUDE.md
 __pycache__/
 *.pyc
 dataset-generation/artifacts/
+.DS_Store
+
 .idea

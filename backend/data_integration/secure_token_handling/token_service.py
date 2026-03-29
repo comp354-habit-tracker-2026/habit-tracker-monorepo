@@ -88,9 +88,9 @@ class ProviderTokenManager:
 
     # Function that updates an existing provider token
     # Returns the token action used for audit logging
-    def update_existing_provider_token(self, existing_provider_token, encrypted_access_token: str, 
+    def update_existing_provider_token(self, existing_provider_token, encrypted_access_token: str,
             encrypted_refresh_token: str | None, token_last_4: str,access_token_expires_at) -> str:
-        
+
         existing_provider_token.encrypted_access_token = encrypted_access_token
         existing_provider_token.encrypted_refresh_token = encrypted_refresh_token
         existing_provider_token.access_token_expires_at = access_token_expires_at
@@ -102,12 +102,12 @@ class ProviderTokenManager:
 
     # Function that inserts a new provider token in the database
     # Returns the token action used for audit logging
-    def create_new_provider_token(self, user_id: int, provider_name: str, encrypted_access_token: str, encrypted_refresh_token: str | None, 
+    def create_new_provider_token(self, user_id: int, provider_name: str, encrypted_access_token: str, encrypted_refresh_token: str | None,
             token_last_4: str, access_token_expires_at) -> str:
-       
+
         new_provider_token = ProviderToken(user_id=user_id, provider_name=provider_name, encrypted_access_token=encrypted_access_token,
             encrypted_refresh_token=encrypted_refresh_token, token_last_4=token_last_4, token_status="ACTIVE", access_token_expires_at=access_token_expires_at)
-        
+
         self.database_session.add(new_provider_token)
         return "STORE_TOKEN"
 
@@ -390,12 +390,12 @@ class ProviderTokenManager:
                 if not refreshed_access_token:
                     return self.build_error_response(provider_name, "Token refresh failed")
 
-                return {"success": True, "message": "Token refreshed successfully", "provider_name": provider_name, 
+                return {"success": True, "message": "Token refreshed successfully", "provider_name": provider_name,
                         "access_token": refreshed_access_token, "token_last_4": existing_provider_token.token_last_4}
 
             access_token = self.decrypt_token(existing_provider_token.encrypted_access_token)
 
-            return {"success": True, "message": "Token returned successfully", "provider_name": provider_name, 
+            return {"success": True, "message": "Token returned successfully", "provider_name": provider_name,
                     "access_token": access_token, "token_last_4": existing_provider_token.token_last_4
             }
 
@@ -411,7 +411,7 @@ class ProviderTokenManager:
 
             # If token does not exist or is already revoked
             if not existing_provider_token or existing_provider_token.token_status == "REVOKED":
-                return {"success": True, "message": "No active provider token to revoke", "provider_name": provider_name, 
+                return {"success": True, "message": "No active provider token to revoke", "provider_name": provider_name,
                         "token_action": "REVOKE_TOKEN"}
 
             else:  # set token as revoked
@@ -422,7 +422,7 @@ class ProviderTokenManager:
 
                 self.record_token_event("REVOKE_TOKEN", user_id, provider_name)
 
-                return {"success": True, "message": "Provider token revoked successfully", "provider_name": provider_name, 
+                return {"success": True, "message": "Provider token revoked successfully", "provider_name": provider_name,
                         "token_action": "REVOKE_TOKEN"}
 
         except Exception:
