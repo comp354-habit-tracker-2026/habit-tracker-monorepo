@@ -113,9 +113,9 @@ Example request body for MapMyRun:
 }
 ```
 
-![Save token example 1](/images/save_token_1.png)
+![Save token example 1](images/save_token_1.png)
 
-![Save token example 2](/images/save_token_2.png)
+![Save token example 2](images/save_token_2.png)
 
 ### `POST /provider-tokens/revoke`
 
