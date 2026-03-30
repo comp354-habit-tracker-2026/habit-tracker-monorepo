@@ -1,8 +1,5 @@
 import importlib
 
-import config.settings as project_settings
-
-
 def test_allowed_hosts_include_platform_host_env_vars(monkeypatch):
     """Ensure platform-provided host env vars are appended to default hosts."""
     host_values = {
@@ -11,12 +8,18 @@ def test_allowed_hosts_include_platform_host_env_vars(monkeypatch):
         'HOSTNAME': 'runtime-host',
     }
 
-    monkeypatch.delenv('DJANGO_ALLOWED_HOSTS', raising=False)
-    for env_name, env_value in host_values.items():
-        monkeypatch.setenv(env_name, env_value)
+    project_settings = importlib.import_module('config.settings')
 
-    reloaded_settings = importlib.reload(project_settings)
+    with monkeypatch.context() as m:
+        m.delenv('DJANGO_ALLOWED_HOSTS', raising=False)
+        for env_name, env_value in host_values.items():
+            m.setenv(env_name, env_value)
 
-    for env_value in host_values.values():
-        assert env_value in reloaded_settings.default_allowed_hosts
-        assert env_value in reloaded_settings.ALLOWED_HOSTS
+        reloaded_settings = importlib.reload(project_settings)
+
+        for env_value in host_values.values():
+            assert env_value in reloaded_settings.default_allowed_hosts
+            assert env_value in reloaded_settings.ALLOWED_HOSTS
+
+    # Reload once more after env vars are restored to avoid leaking module state.
+    importlib.reload(project_settings)
