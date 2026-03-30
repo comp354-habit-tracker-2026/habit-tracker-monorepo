@@ -1,0 +1,22 @@
+# Tells the labeler WHICH label to apply based on WHICH files changed in a PR
+
+# If any file inside the frontend/ folder was changed → apply the "frontend" label
+frontend:
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/**'
+
+# If any file inside the backend/ folder was changed → apply the "backend" label
+backend:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/**'
+
+# If any file inside docs/ OR any .md file was changed → apply the "documentation" label
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: 'docs/**'
+    - any-glob-to-any-file: '*.md'
+
+# If any file inside .github/ was changed → apply the "CI/CD - group 25" label
+CI/CD - group 25:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**'
