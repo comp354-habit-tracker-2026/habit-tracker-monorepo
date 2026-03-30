@@ -33,7 +33,7 @@ default_allowed_hosts = [
     '0.0.0.0',
     # Allow Azure Container Apps generated FQDNs like
     # backend.<env-hash>.<region>.azurecontainerapps.io
-    'canadacentral.azurecontainerapps.io',
+    '.canadacentral.azurecontainerapps.io',
 ]
 
 # Some platforms expose the public hostname through env vars.
