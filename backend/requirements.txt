@@ -12,3 +12,4 @@ PyJWT==2.11.0
 pytest==9.0.2
 pytest-django==4.12.0
 sqlparse==0.5.5
+pytest-cov==7.0.0
