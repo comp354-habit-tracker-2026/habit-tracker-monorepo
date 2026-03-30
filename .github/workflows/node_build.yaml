@@ -7,8 +7,14 @@ name: Node.js CI
 on:
   push:
     branches: ["main"]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/node_build.yaml'
   pull_request:
     branches: ["main"]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/node_build.yaml'
 permissions:
   contents: read
 
