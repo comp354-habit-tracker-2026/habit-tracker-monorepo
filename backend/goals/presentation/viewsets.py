@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from core.presentation import UserScopedCreateMixin
 from goals.business import GoalService
 from goals.serializers import GoalSerializer
-from goals.models import Goal
 
 
 class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
