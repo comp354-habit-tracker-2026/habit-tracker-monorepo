@@ -1,0 +1,61 @@
+# Code owner file describing reviewers for a pull request.
+# Ownership based on assigned groups.
+
+# Backend reviewers are based on the architecture file:
+# habit-tracker-monorepo/backend/ARCHITECTURE.md
+
+# Frontend reviewers are based on the project description slides
+# as provided by the professor.
+
+# frontend code owners, groups 17-21
+
+# dashboard
+/frontend/src/app/routes/app/dashboard.tsx @comp354-habit-tracker-2026/group-17 @comp354-habit-tracker-2026/group-18
+
+# mobile UI
+# will work on entirety of frontend along with group 17
+
+# visualizations
+# no current documentation on files owned
+
+# settings
+/frontend/src/app/routes/app/profile.tsx @comp354-habit-tracker-2026/group-20
+
+# accessibility
+# no code modified.
+
+# backend code owners, groups 1-16, 22-24
+
+# external data integration
+# this includes all teams 1-6
+# note capitalization is intentional to match repository
+/backend/data_integration/ @comp354-habit-tracker-2026/Group-01 @comp354-habit-tracker-2026/Group-02 @comp354-habit-tracker-2026/Group-03 @comp354-habit-tracker-2026/Group-04 @comp354-habit-tracker-2026/group-05 @comp354-habit-tracker-2026/group-06
+
+# user authentication and management
+/backend/users/ @comp354-habit-tracker-2026/group-07 @comp354-habit-tracker-2026/group-08
+
+# activity and workout service
+/backend/activities/ @comp354-habit-tracker-2026/group-09
+
+# core functionalities
+/backend/core/ @comp354-habit-tracker-2026/group-10 @comp354-habit-tracker-2026/group-11
+
+# analytics: statistics, trends, forecasting, health, and reports and insights
+# this includes all teams 12-16
+/backend/analytics/ @comp354-habit-tracker-2026/group-12 @comp354-habit-tracker-2026/group-13 @comp354-habit-tracker-2026/group-14 @comp354-habit-tracker-2026/group-15 @comp354-habit-tracker-2026/group-16
+
+# goal definition and achievement detection
+/backend/activities/ @comp354-habit-tracker-2026/group-22 @comp354-habit-tracker-2026/group-23
+
+# notifications
+/backend/notifications/ @comp354-habit-tracker-2026/group-24
+
+# CI/CD code owners, groups 25-27
+
+# CI
+codecov.yml @comp354-habit-tracker-2026/group-25 @comp354-habit-tracker-2026/group-27
+/.github/workflows/ @comp354-habit-tracker-2026/group-25 @comp354-habit-tracker-2026/group-27
+/.github/CODEOWNERS @comp354-habit-tracker-2026/group-25 @comp354-habit-tracker-2026/group-27
+
+# testing
+/frontend/cypress/ @comp354-habit-tracker-2026/group-26
