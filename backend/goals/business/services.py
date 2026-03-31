@@ -18,10 +18,13 @@ class GoalService(BaseService):
             return min(Decimal("100"), (current_value / target_value) * 100)
         return Decimal("0")
 
-    def delete_goal(self, goal_id: int, user):
-        """
-        Delete a goal by ID for the given user.
-        Raises Goal.DoesNotExist if not found or not owned by user.
-        """
-        goal = Goal.objects.get(id=goal_id, user=user) # pylint: disable=no-member
+    def delete_goal(self, goal_id, user):
+        if not str(goal_id).isdigit():
+            return "invalid_id"
+        goal = Goal.objects.filter(id=goal_id).first()  # pylint: disable=no-member
+        if goal is None:
+            return "not_found"
+        if goal.user != user:
+            return "forbidden"
         goal.delete()
+        return "deleted"

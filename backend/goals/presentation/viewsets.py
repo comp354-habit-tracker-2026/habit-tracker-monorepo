@@ -27,14 +27,15 @@ class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
         """
         DELETE /api/v1/goals/{id}/
         Deletes a goal belonging to the authenticated user.
-        Returns 204 No Content on success, 404 if not found.
         """
         pk = kwargs.get('pk')
-        goal = Goal.objects.filter(id=pk, user=request.user).first() # pylint: disable=no-member
-        if goal is None:
-            return Response(
-                {"detail": "Goal not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        goal.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        result = self.service.delete_goal(pk, request.user)
+
+        if result == "deleted":
+            return Response({"detail": "Goal deleted successfully."}, status=status.HTTP_200_OK)
+        if result == "not_found":
+            return Response({"detail": "Goal not found."}, status=status.HTTP_404_NOT_FOUND)
+        if result == "forbidden":
+            return Response({"detail": "You do not have permission to delete this goal."}, status=status.HTTP_403_FORBIDDEN)
+        if result == "invalid_id":
+            return Response({"detail": "Invalid goal ID format."}, status=status.HTTP_400_BAD_REQUEST)
