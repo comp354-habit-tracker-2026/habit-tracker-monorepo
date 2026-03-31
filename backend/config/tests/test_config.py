@@ -1,8 +1,8 @@
 """
 Tests for Django configuration and environment variables.
 
-Validates that all configuration values are correctly loaded from
-environment variables and use sensible defaults.
+Validates that required configuration values are correctly loaded from
+environment variables and corresponding .env file entries.
 """
 
 import os
