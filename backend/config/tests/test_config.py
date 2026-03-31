@@ -80,7 +80,7 @@ class EnvironmentVariableEnvFileTests(SimpleTestCase):
 
         env_path = os.path.join(
             os.path.dirname(__file__),
-            '../.env'
+            '../../.env'
         )
 
         if os.path.exists(env_path):
