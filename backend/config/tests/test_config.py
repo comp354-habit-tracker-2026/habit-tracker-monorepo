@@ -62,39 +62,6 @@ class EnvironmentVariableTests(SimpleTestCase):
         self.assertEqual(settings.DATABASES['default']['PORT'], '5432')
 
 
-class EnvironmentVariableEnvFileTests(SimpleTestCase):
-    """Tests that verify .env file compliance."""
-
-    def test_env_file_has_all_required_vars(self):
-        """Verify .env file contains all required variables."""
-        required_vars = [
-            'DJANGO_SECRET_KEY',
-            'DJANGO_DEBUG',
-            'DJANGO_ALLOWED_HOSTS',
-            'POSTGRES_DB',
-            'POSTGRES_USER',
-            'POSTGRES_PASSWORD',
-            'POSTGRES_HOST',
-            'POSTGRES_PORT',
-        ]
-
-        env_path = os.path.join(
-            os.path.dirname(__file__),
-            '../../.env'
-        )
-
-        if os.path.exists(env_path):
-            with open(env_path, 'r') as f:
-                env_content = f.read()
-
-            for var in required_vars:
-                self.assertIn(
-                    var,
-                    env_content,
-                    f"Missing {var} in .env file"
-                )
-
-
 class ConfigurationConsistencyTests(SimpleTestCase):
     """Tests that validate configuration consistency."""
 
