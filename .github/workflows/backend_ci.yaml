@@ -15,6 +15,9 @@ jobs:
     permissions:
       contents: read
     env:
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      DJANGO_DEBUG: ${{ vars.DJANGO_DEBUG }}
+      DJANGO_ALLOWED_HOSTS: ${{ vars.DJANGO_ALLOWED_HOSTS }}
       POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
       POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
       POSTGRES_DB: ${{ vars.POSTGRES_DB }}
