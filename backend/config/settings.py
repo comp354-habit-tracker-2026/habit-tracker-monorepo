@@ -27,9 +27,24 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-dev-only-change-me'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
 
+default_allowed_hosts = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    # Allow Azure Container Apps generated FQDNs like
+    # backend.<env-hash>.<region>.azurecontainerapps.io
+    '.canadacentral.azurecontainerapps.io',
+]
+
+# Some platforms expose the public hostname through env vars.
+for env_host_var in ('WEBSITE_HOSTNAME', 'CONTAINER_APP_HOSTNAME', 'HOSTNAME'):
+    env_host = os.getenv(env_host_var)
+    if env_host:
+        default_allowed_hosts.append(env_host)
+
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
+    for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(default_allowed_hosts)).split(',')
     if host.strip()
 ]
 
