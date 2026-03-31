@@ -3,12 +3,12 @@
 # -----------------------------------------------
 
 # Any change in the frontend/ folder
-Frontend:
+frontend:
   - changed-files:
     - any-glob-to-any-file: 'frontend/**'
 
 # Any change in the backend/ folder
-Backend:
+backend:
   - changed-files:
     - any-glob-to-any-file: 'backend/**'
 
@@ -74,36 +74,3 @@ frontend/cypress:
 frontend/public:
   - changed-files:
     - any-glob-to-any-file: 'frontend/public/**'
-
-# -----------------------------------------------
-# PR SIZE LABELS
-# Based on total lines changed
-# -----------------------------------------------
-
-XS:
-  - changed-files:
-      - any-glob-to-any-file: '**'
-    max-lines-changed: 10
-
-S:
-  - changed-files:
-      - any-glob-to-any-file: '**'
-    min-lines-changed: 11
-    max-lines-changed: 50
-
-M:
-  - changed-files:
-      - any-glob-to-any-file: '**'
-    min-lines-changed: 51
-    max-lines-changed: 200
-
-L:
-  - changed-files:
-      - any-glob-to-any-file: '**'
-    min-lines-changed: 201
-    max-lines-changed: 500
-
-XL:
-  - changed-files:
-      - any-glob-to-any-file: '**'
-    min-lines-changed: 501
