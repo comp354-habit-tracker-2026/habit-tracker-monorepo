@@ -1,3 +1,5 @@
+// just a placeholder for now replace with real data when available
+
 export type ActivitySource = 'we-ski' | 'map-my-run' | 'my-whoosh';
 export type ActivitySourceFormat = 'gpx' | 'xlsx' | 'fit';
 export type ActivityType = 'ski' | 'bike-ride' | 'cycling' | 'run' | 'walk';
