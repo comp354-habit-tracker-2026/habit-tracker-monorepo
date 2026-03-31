@@ -1,22 +1,109 @@
-# Tells the labeler WHICH label to apply based on WHICH files changed in a PR
+# -----------------------------------------------
+# BASIC AREA LABELS
+# -----------------------------------------------
 
-# If any file inside the frontend/ folder was changed → apply the "frontend" label
-frontend:
+# Any change in the frontend/ folder
+Frontend:
   - changed-files:
     - any-glob-to-any-file: 'frontend/**'
 
-# If any file inside the backend/ folder was changed → apply the "backend" label
-backend:
+# Any change in the backend/ folder
+Backend:
   - changed-files:
     - any-glob-to-any-file: 'backend/**'
 
-# If any file inside docs/ OR any .md file was changed → apply the "documentation" label
+# Any markdown or docs change anywhere in the repo
 documentation:
   - changed-files:
+    - any-glob-to-any-file: '**/*.md'
     - any-glob-to-any-file: 'docs/**'
-    - any-glob-to-any-file: '*.md'
 
-# If any file inside .github/ was changed → apply the "CI/CD - group 25" label
+# Any CI/CD or GitHub Actions change
 CI/CD - group 25:
   - changed-files:
     - any-glob-to-any-file: '.github/**'
+
+# -----------------------------------------------
+# BACKEND SUBSYSTEM LABELS
+# -----------------------------------------------
+
+analytics:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/analytics/**'
+
+activities:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/activities/**'
+
+users:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/users/**'
+
+goals:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/goals/**'
+
+notifications:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/notifications/**'
+
+data-integration:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/data_integration/**'
+
+core:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/core/**'
+
+data:
+  - changed-files:
+    - any-glob-to-any-file: 'backend/data/**'
+
+# -----------------------------------------------
+# FRONTEND SUBSYSTEM LABELS
+# -----------------------------------------------
+
+frontend/src:
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/src/**'
+
+frontend/cypress:
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/cypress/**'
+
+frontend/public:
+  - changed-files:
+    - any-glob-to-any-file: 'frontend/public/**'
+
+# -----------------------------------------------
+# PR SIZE LABELS
+# Based on total lines changed
+# -----------------------------------------------
+
+XS:
+  - changed-files:
+    - any-glob-to-any-file: '**'
+  max-lines-changed: 10
+
+S:
+  - changed-files:
+    - any-glob-to-any-file: '**'
+  min-lines-changed: 11
+  max-lines-changed: 50
+
+M:
+  - changed-files:
+    - any-glob-to-any-file: '**'
+  min-lines-changed: 51
+  max-lines-changed: 200
+
+L:
+  - changed-files:
+    - any-glob-to-any-file: '**'
+  min-lines-changed: 201
+  max-lines-changed: 500
+
+XL:
+  - changed-files:
+    - any-glob-to-any-file: '**'
+  min-lines-changed: 501
