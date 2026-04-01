@@ -9,6 +9,43 @@ from urllib.request import Request, urlopen
 from data_integration.business.strava_activity_factory import StravaActivityFactory
 from data_integration.business.strava_activity_summary import StravaActivitySummary
 
+class StravaAuthService:
+    TOKEN_URL = "https://www.strava.com/oauth/token"
+
+    def __init__(self, client_id: str, client_secret: str):
+        self.client_id = client_id
+        self.client_secret = client_secret
+
+    def authenticate_user(self, auth_code: str) -> dict[str, Any]:
+        """Exchanges the temporary code for access and refresh tokens."""
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "code": auth_code,
+            "grant_type": "authorization_code",
+        }
+        return self._send_request(payload)
+
+    def refresh_token(self, refresh_token: str) -> dict[str, Any]:
+        """Uses a refresh token to get a new access token."""
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        }
+        return self._send_request(payload)
+
+    def _send_request(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Internal helper to handle the urllib POST and JSON parsing."""
+        data = urlencode(payload).encode("utf-8")
+        request = Request(self.TOKEN_URL, data=data, method="POST")
+        with urlopen(request) as response:
+            return json.loads(response.read().decode("utf-8"))
+
+    # Compatibility wrapper for the specific camelCase requirement
+    def authenticateUser(self, authCode: str) -> dict[str, Any]:
+        return self.authenticate_user(authCode)
 
 class StravaActivityFetcher:
     """Adapter for fetching summary activities from the Strava API."""

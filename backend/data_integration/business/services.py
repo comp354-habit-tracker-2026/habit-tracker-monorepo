@@ -1,9 +1,11 @@
 from core.business import BaseService
-from data_integration.data import StravaActivityFetcher
+# business/services.py
+
 
 
 class DataIntegrationService(BaseService):
     def __init__(self, strava_fetcher=None):
+        from data_integration.data.strava import StravaActivityFetcher
         self.strava_fetcher = strava_fetcher or StravaActivityFetcher()
 
     def get_user_integrations(self, user, params):
