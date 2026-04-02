@@ -1,3 +1,3 @@
-from .strava import StravaActivityFetcher
+from .strava import StravaActivityFetcher, StravaAuthService
 
-__all__ = ["StravaActivityFetcher"]
+__all__ = ["StravaActivityFetcher", "StravaAuthService"]

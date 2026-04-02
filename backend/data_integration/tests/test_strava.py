@@ -1,5 +1,7 @@
 from datetime import date, datetime, timezone
 from unittest.mock import Mock, patch
+from rest_framework.test import APIClient
+from rest_framework import status
 
 import pytest
 
@@ -8,7 +10,7 @@ from data_integration.business import (
     StravaActivityFactory,
     StravaActivitySummary,
 )
-from data_integration.data import StravaActivityFetcher
+from data_integration.data import StravaActivityFetcher, StravaAuthService  
 
 
 RAW_ACTIVITY = {
@@ -130,3 +132,84 @@ def json_bytes(payload):
     import json
 
     return json.dumps(payload).encode("utf-8")
+
+#==================================================================
+#Auth tests
+
+@patch("data_integration.data.strava.urlopen")
+def test_strava_auth_connect_success(mock_urlopen):
+    """Tests successful exchange of code for tokens (Covers try block)"""
+    client = APIClient()
+    
+    # Setup Mock Response
+    mock_response = Mock()
+    mock_response.read.return_value = json_bytes({
+        "access_token": "mock_access_token",
+        "refresh_token": "mock_refresh_token"
+    })
+    mock_urlopen.return_value = context_manager(mock_response)
+
+    url = "/api/v1/data-integrations/strava/connect/"
+    response = client.post(url, {"code": "strava_code_123"}, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["access_token"] == "mock_access_token"
+
+
+def test_strava_auth_connect_missing_code():
+    """Tests the validation 'if not code' (Covers 400 error branch)"""
+    client = APIClient()
+    url = "/api/v1/data-integrations/strava/connect/"
+    
+    # Sending empty payload
+    response = client.post(url, {}, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "Code is required" in response.data["error"]
+
+
+@patch("data_integration.data.strava.urlopen")
+def test_strava_auth_refresh_success(mock_urlopen):
+    """Tests successful token refresh (Covers Refresh method)"""
+    client = APIClient()
+    
+    mock_response = Mock()
+    mock_response.read.return_value = json_bytes({"access_token": "new_token"})
+    mock_urlopen.return_value = context_manager(mock_response)
+
+    url = "/api/v1/data-integrations/strava/refresh/"
+    response = client.post(url, {"refresh_token": "old_token"}, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["access_token"] == "new_token"
+
+
+@patch("data_integration.data.strava.urlopen")
+def test_strava_auth_server_error(mock_urlopen):
+    """Tests when Strava or network fails (Covers 'except' block)"""
+    client = APIClient()
+    
+    # Force an exception when urlopen is called
+    mock_urlopen.side_effect = Exception("Connection Timeout")
+
+    url = "/api/v1/data-integrations/strava/refresh/"
+    response = client.post(url, {"refresh_token": "any_token"}, format="json")
+
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+    assert "Connection Timeout" in response.data["error"]
+
+
+def test_strava_service_camel_case_wrapper():
+    """
+    Specifically tests the 'authenticateUser' camelCase wrapper 
+    to ensure 100% coverage on the Service class lines.
+    """
+    
+    service = StravaAuthService(client_id="123", client_secret="abc")
+    
+    # Mock the internal snake_case method so we don't actually trigger network
+    with patch.object(service, 'authenticate_user', return_value={"status": "ok"}) as mock_method:
+        result = service.authenticateUser("some_code")
+        
+        assert result["status"] == "ok"
+        mock_method.assert_called_once_with("some_code")
