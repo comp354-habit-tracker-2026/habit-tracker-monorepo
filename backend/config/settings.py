@@ -139,7 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # this is a temp value that just sorta made sense
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24), # this is a temp value that just sorta made sense
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7), # likewise
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
