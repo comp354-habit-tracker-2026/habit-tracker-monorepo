@@ -4,9 +4,7 @@ import pytest
 from core.business import train_model as tm
 from core.business.train_model import train_model, model_path
 
-# --------------------
-# TRAIN MODEL TESTS
-# --------------------
+#chatgpt
 
 def test_train_model_success():
     X = np.array([[1], [2], [3]])

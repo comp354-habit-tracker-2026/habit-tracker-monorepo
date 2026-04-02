@@ -6,9 +6,7 @@ from core.business import train_model as tm
 from core.business.train_model import train_model
 from core.business.predict_model import predict, model_path
 
-# --------------------
-# Fixture to ensure a trained model exists
-# --------------------
+#chatgpt
 @pytest.fixture(autouse=True)
 def ensure_model_exists():
     if not os.path.exists(model_path):
