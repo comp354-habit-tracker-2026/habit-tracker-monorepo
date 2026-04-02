@@ -5,23 +5,23 @@
 # Any change in the frontend/ folder
 frontend:
   - changed-files:
-    - any-glob-to-any-file: 'frontend/**'
+      - any-glob-to-any-file: 'frontend/**'
 
 # Any change in the backend/ folder
 backend:
   - changed-files:
-    - any-glob-to-any-file: 'backend/**'
+      - any-glob-to-any-file: 'backend/**'
 
 # Any markdown or docs change anywhere in the repo
 documentation:
   - changed-files:
-    - any-glob-to-any-file: '**/*.md'
-    - any-glob-to-any-file: 'docs/**'
+      - any-glob-to-any-file: '**/*.md'
+      - any-glob-to-any-file: 'docs/**'
 
 # Any CI/CD or GitHub Actions change
 CI/CD - group 25:
   - changed-files:
-    - any-glob-to-any-file: '.github/**'
+      - any-glob-to-any-file: '.github/**'
 
 # -----------------------------------------------
 # BACKEND SUBSYSTEM LABELS
@@ -29,35 +29,35 @@ CI/CD - group 25:
 
 analytics:
   - changed-files:
-    - any-glob-to-any-file: 'backend/analytics/**'
+      - any-glob-to-any-file: 'backend/analytics/**'
 
 activities:
   - changed-files:
-    - any-glob-to-any-file: 'backend/activities/**'
+      - any-glob-to-any-file: 'backend/activities/**'
 
 users:
   - changed-files:
-    - any-glob-to-any-file: 'backend/users/**'
+      - any-glob-to-any-file: 'backend/users/**'
 
 goals:
   - changed-files:
-    - any-glob-to-any-file: 'backend/goals/**'
+      - any-glob-to-any-file: 'backend/goals/**'
 
 notifications:
   - changed-files:
-    - any-glob-to-any-file: 'backend/notifications/**'
+      - any-glob-to-any-file: 'backend/notifications/**'
 
 data-integration:
   - changed-files:
-    - any-glob-to-any-file: 'backend/data_integration/**'
+      - any-glob-to-any-file: 'backend/data_integration/**'
 
 core:
   - changed-files:
-    - any-glob-to-any-file: 'backend/core/**'
+      - any-glob-to-any-file: 'backend/core/**'
 
 data:
   - changed-files:
-    - any-glob-to-any-file: 'backend/data/**'
+      - any-glob-to-any-file: 'backend/data/**'
 
 # -----------------------------------------------
 # FRONTEND SUBSYSTEM LABELS
@@ -65,12 +65,12 @@ data:
 
 frontend/src:
   - changed-files:
-    - any-glob-to-any-file: 'frontend/src/**'
+      - any-glob-to-any-file: 'frontend/src/**'
 
 frontend/cypress:
   - changed-files:
-    - any-glob-to-any-file: 'frontend/cypress/**'
+      - any-glob-to-any-file: 'frontend/cypress/**'
 
 frontend/public:
   - changed-files:
-    - any-glob-to-any-file: 'frontend/public/**'
+      - any-glob-to-any-file: 'frontend/public/**'

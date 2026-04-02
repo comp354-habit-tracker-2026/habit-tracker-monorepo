@@ -1,10 +1,13 @@
 # Actions workflow — it defines WHEN and HOW the labeler runs
 
-name: Label Pull Requests  
+name: Label Pull Requests
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
     # Trigger this workflow when a PR is:
     # - opened (brand new PR)
     # - synchronize (new commits pushed to existing PR)
@@ -12,14 +15,13 @@ on:
 
 jobs:
   label:
-    runs-on: ubuntu-latest  # Run this on GitHub's servers using Ubuntu
+    runs-on: ubuntu-latest
 
     permissions:
-      contents: read         # Needs to read your repo files
-      pull-requests: write   # Needs to write labels onto pull requests
+      contents: read
+      pull-requests: write
 
     steps:
       - uses: actions/labeler@v5  # Use GitHub's official labeler action (version 5)
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          

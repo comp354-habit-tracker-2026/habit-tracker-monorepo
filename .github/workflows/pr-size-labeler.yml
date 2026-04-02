@@ -13,7 +13,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: codelytv/pr-size-labeler@v1
+      - uses: codelytv/pr-size-labeler@4ec67706cd878fbc1c8db0a5dcd28b6bb412e85a
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_max_size: 10
@@ -21,3 +21,9 @@ jobs:
           m_max_size: 200
           l_max_size: 500
           fail_if_xl: false
+
+          xs_label: 'XS'
+          s_label: 'S'
+          m_label: 'M'
+          l_label: 'L'
+          xl_label: 'XL'
