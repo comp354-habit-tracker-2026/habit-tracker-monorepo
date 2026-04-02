@@ -1,6 +1,7 @@
 from core.business import BaseService
 from analytics.data import AnalyticsRepository
-from .predict_model import predict
+from core.business.predict_model import predict
+
 
 import numpy as np
 
