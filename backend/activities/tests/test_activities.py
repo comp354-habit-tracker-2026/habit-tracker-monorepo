@@ -163,3 +163,14 @@ class TestActivities:
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    def test_retrieve_activity_detail_success(self, authenticated_client, create_activity):
+        """Test retrieving full details of an owned activity (Acceptance Criteria: 200 OK)"""
+        raw_data = {"heart_rate": 160, "steps": 5000}
+        activity = create_activity(
+            authenticated_client.user, 
+            activity_type='Cycling', 
+            raw_data=raw_data
+        )
+
+
