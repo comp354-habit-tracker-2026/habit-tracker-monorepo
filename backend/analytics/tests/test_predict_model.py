@@ -1,7 +1,7 @@
 import os
 import importlib.util
 import numpy as np
-
+#chatGPT
 # Load predict_model.py directly (bypass Django)
 CURRENT_DIR = os.path.dirname(__file__)
 FILE_PATH = os.path.abspath(
