@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from users.serializers import RegisterSerializer
+from users.serializers import RegisterSerializer, ProfileUpdateSerializer
 
 User = get_user_model()
 
@@ -11,3 +11,18 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
+
+
+# For Profile Update (Issue #105)
+class ProfileUpdateView(generics.RetrieveUpdateAPIView):
+    """
+    GET: Retrieve the authenticated user's profile
+    PATCH/PUT: Update the authenticated user's profile
+    """
+    serializer_class = ProfileUpdateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        # Requirement: Users can only update their own profile.
+        # This returns the user associated with the JWT token.
+        return self.request.user
