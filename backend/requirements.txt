@@ -14,3 +14,5 @@ pytest-django==4.12.0
 sqlparse==0.5.5
 pytest-cov==7.0.0
 joblib==1.4.2
+numpy==1.26.4
+scikit-learn==1.4.2
