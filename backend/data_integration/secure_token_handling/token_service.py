@@ -23,6 +23,20 @@ token_encryptor = Fernet(FERNET_KEY.encode())  # make an encryption tool which i
 USE_FAKE_REFRESH = os.getenv("USE_FAKE_REFRESH", "false").lower() == "true" # for testing refresh logic without actually calling the provider's refresh endpoint (set USE_FAKE_REFRESH=true in .env to use this) -> it will just generate a new fake token instead of calling the real refresh endpoint of the provider, but it will still go through the same database update and response flow as a real refresh would -> this is just for testing the refresh flow without needing valid provider credentials or waiting for the token to expire
 
 # This class manages provider tokens using the database session
+def _log_permission_check(user_id: int, provider_name: str, scope: str, caller_service: str, allowed: bool,
+                          reason: str):
+    print({
+        "timestamp": datetime.now().isoformat(),
+        "caller_service": caller_service,
+        "user_id": user_id,
+        "provider_name": provider_name,
+        "scope": scope,
+        "allowed": allowed,
+        "reason": reason
+        # NOTE: no tokens or secrets logged here
+    })
+
+
 class ProviderTokenManager:
     # Constructor
     # Saves the current database session inside the object so all methods can use it
@@ -72,9 +86,9 @@ class ProviderTokenManager:
 
     # Function that updates an existing provider token
     # Returns the token action used for audit logging
-    def update_existing_provider_token(self, existing_provider_token, encrypted_access_token: str, 
+    def update_existing_provider_token(self, existing_provider_token, encrypted_access_token: str,
             encrypted_refresh_token: str | None, token_last_4: str,access_token_expires_at) -> str:
-        
+
         existing_provider_token.encrypted_access_token = encrypted_access_token
         existing_provider_token.encrypted_refresh_token = encrypted_refresh_token
         existing_provider_token.access_token_expires_at = access_token_expires_at
@@ -86,12 +100,12 @@ class ProviderTokenManager:
 
     # Function that inserts a new provider token in the database
     # Returns the token action used for audit logging
-    def create_new_provider_token(self, user_id: int, provider_name: str, encrypted_access_token: str, encrypted_refresh_token: str | None, 
+    def create_new_provider_token(self, user_id: int, provider_name: str, encrypted_access_token: str, encrypted_refresh_token: str | None,
             token_last_4: str, access_token_expires_at) -> str:
-       
+
         new_provider_token = ProviderToken(user_id=user_id, provider_name=provider_name, encrypted_access_token=encrypted_access_token,
             encrypted_refresh_token=encrypted_refresh_token, token_last_4=token_last_4, token_status="ACTIVE", access_token_expires_at=access_token_expires_at)
-        
+
         self.database_session.add(new_provider_token)
         return "STORE_TOKEN"
 
@@ -372,12 +386,12 @@ class ProviderTokenManager:
                 if not refreshed_access_token:
                     return self.build_error_response(provider_name, "Token refresh failed")
 
-                return {"success": True, "message": "Token refreshed successfully", "provider_name": provider_name, 
+                return {"success": True, "message": "Token refreshed successfully", "provider_name": provider_name,
                         "access_token": refreshed_access_token, "token_last_4": existing_provider_token.token_last_4}
 
             access_token = self.decrypt_token(existing_provider_token.encrypted_access_token)
 
-            return {"success": True, "message": "Token returned successfully", "provider_name": provider_name, 
+            return {"success": True, "message": "Token returned successfully", "provider_name": provider_name,
                     "access_token": access_token, "token_last_4": existing_provider_token.token_last_4
             }
 
@@ -393,7 +407,7 @@ class ProviderTokenManager:
 
             # If token does not exist or is already revoked
             if not existing_provider_token or existing_provider_token.token_status == "REVOKED":
-                return {"success": True, "message": "No active provider token to revoke", "provider_name": provider_name, 
+                return {"success": True, "message": "No active provider token to revoke", "provider_name": provider_name,
                         "token_action": "REVOKE_TOKEN"}
 
             else:  # set token as revoked
@@ -404,9 +418,36 @@ class ProviderTokenManager:
 
                 self.record_token_event("REVOKE_TOKEN", user_id, provider_name)
 
-                return {"success": True, "message": "Provider token revoked successfully", "provider_name": provider_name, 
+                return {"success": True, "message": "Provider token revoked successfully", "provider_name": provider_name,
                         "token_action": "REVOKE_TOKEN"}
 
         except Exception:
             self.database_session.rollback()
             return self.build_error_response(provider_name, "Database revoke failed")
+
+    def verify_provider_token(self, user_id: int, provider_name: str, scope: str = "",
+                              caller_service: str = "") -> dict:
+
+        # --- WAITING ON (#11) ---
+        # consent = self.database_session.query(UserConsent).filter_by(...).first()
+        # if not consent: return {"allowed": False, "reason": "CONSENT_NOT_FOUND", ...}
+        # if consent.status == "REVOKED": return {"allowed": False, "reason": "CONSENT_REVOKED", ...}
+        # if consent.expires_at < datetime.now(): return {"allowed": False, "reason": "CONSENT_EXPIRED", ...}
+
+        # --- WAITING ON USERS TABLE OWNER ---
+        # if user.is_deleted: return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
+
+        # --- WHAT WE CAN CHECK NOW ---
+        token = self.database_session.query(ProviderToken).filter_by(
+            user_id=user_id, provider_name=provider_name
+        ).first()
+
+        if not token or token.token_status != "ACTIVE":
+            result = {"allowed": False, "reason": "NO_ACTIVE_TOKEN", "user_id": user_id, "provider_name": provider_name}
+        else:
+            result = {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
+
+        _log_permission_check(user_id, provider_name, scope, caller_service, result["allowed"], result["reason"])
+
+        return result
+

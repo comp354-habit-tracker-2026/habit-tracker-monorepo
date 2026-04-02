@@ -1,11 +1,12 @@
-from datetime import datetime, timedelta
-import os
-import requests
-from dotenv import load_dotenv
-from cryptography.fernet import Fernet
-from sqlalchemy.orm import Session
-from token_model import ProviderToken
 
+from datetime import datetime
+import os
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from fastapi import FastAPI, Depends, HTTPException, Header
+from database import Base, database_connection, open_database_session
+from token_service import ProviderTokenManager
 # Load values from .env into environment variables
 load_dotenv()  # this is to keep the test api key in local .env
 
@@ -80,7 +81,7 @@ def root():
     tags=["Provider Tokens"],
     summary="Save provider token"
 )
-def save_provider_token_route(request: SaveProviderTokenRequest, database_session: Session = Depends(open_database_session),
+def save_provider_token_route(request: SaveProviderTokenRequest, database_session: Session = Depends(open_database_session), 
             _: None = Depends(check_api_key)):
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
@@ -144,10 +145,7 @@ def verify_permission(
     _: None = Depends(check_api_key)
 ):
     user_id = request.user_id
-    provider_name = request.provider_name.strip().lower()
-
-    if provider_name not in ALLOWED_PROVIDERS:
-        raise HTTPException(status_code=400, detail="provider_name is invalid")
+    provider_name = normalize_provider_name(request.provider_name)
 
     consent = database_session.query(UserConsent).filter_by(
         user_id=user_id, provider_name=provider_name
