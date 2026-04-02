@@ -59,3 +59,20 @@ def test_train_model_mismatch_length():
     y = np.array([1])  # mismatch
     result = train_model(X, y)
     assert "Error" in result
+
+def test_train_model_mismatch_length():
+    from importlib.util import spec_from_file_location, module_from_spec
+
+    train_path = os.path.abspath(
+        os.path.join(CURRENT_DIR, "..", "business", "train_model.py")
+    )
+    spec_train = spec_from_file_location("train_model", train_path)
+    train_module = module_from_spec(spec_train)
+    spec_train.loader.exec_module(train_module)
+
+    train_model = train_module.train_model
+
+    X = np.array([[1], [2]])
+    y = np.array([1])  # mismatch length
+    result = train_model(X, y)
+    assert "Error" in result

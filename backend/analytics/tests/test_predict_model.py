@@ -96,3 +96,26 @@ def test_predict_horizon_one():
     result = predict(np.array([4]), horizon=1)
     assert result["status"] == "success"
     assert len(result["predictions"]) == 1
+
+def test_predict_multi_step_input():
+    from importlib.util import spec_from_file_location, module_from_spec
+    import numpy as np
+
+    # Train model first
+    train_path = os.path.abspath(
+        os.path.join(CURRENT_DIR, "..", "business", "train_model.py")
+    )
+    spec_train = spec_from_file_location("train_model", train_path)
+    train_module = module_from_spec(spec_train)
+    spec_train.loader.exec_module(train_module)
+
+    train_model = train_module.train_model
+
+    X = np.array([[1], [2], [3]])  # single feature
+    y = np.array([2, 4, 6])
+    train_model(X, y)
+
+    # Use the **correct shape for last input**
+    result = predict(np.array([4]), horizon=3)
+    assert result["status"] == "success"
+    assert len(result["predictions"]) == 3
