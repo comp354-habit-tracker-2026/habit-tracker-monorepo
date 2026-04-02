@@ -24,7 +24,8 @@ token_encryptor = Fernet(FERNET_KEY.encode())  # make an encryption tool which i
 USE_FAKE_REFRESH = os.getenv("USE_FAKE_REFRESH", "false").lower() == "true" # for testing refresh logic without actually calling the provider's refresh endpoint (set USE_FAKE_REFRESH=true in .env to use this) -> it will just generate a new fake token instead of calling the real refresh endpoint of the provider, but it will still go through the same database update and response flow as a real refresh would -> this is just for testing the refresh flow without needing valid provider credentials or waiting for the token to expire
 
 # This class manages provider tokens using the database session
-def _log_permission_check(user_id: int, provider_name: str, scope: str, caller_service: str, allowed: bool, reason: str):
+def _log_permission_check(user_id: int, provider_name: str, scope: str, caller_service: str, allowed: bool,
+                          reason: str):
     print({
         "timestamp": datetime.now().isoformat(),
         "caller_service": caller_service,
@@ -678,3 +679,30 @@ class ProviderTokenManager:
         except Exception:
             self.database_session.rollback()
             return self.build_error_response(provider_name, "Database revoke failed")
+
+    def verify_provider_token(self, user_id: int, provider_name: str, scope: str = "",
+                              caller_service: str = "") -> dict:
+
+        # --- WAITING ON (#11) ---
+        # consent = self.database_session.query(UserConsent).filter_by(...).first()
+        # if not consent: return {"allowed": False, "reason": "CONSENT_NOT_FOUND", ...}
+        # if consent.status == "REVOKED": return {"allowed": False, "reason": "CONSENT_REVOKED", ...}
+        # if consent.expires_at < datetime.now(): return {"allowed": False, "reason": "CONSENT_EXPIRED", ...}
+
+        # --- WAITING ON USERS TABLE OWNER ---
+        # if user.is_deleted: return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
+
+        # --- WHAT WE CAN CHECK NOW ---
+        token = self.database_session.query(ProviderToken).filter_by(
+            user_id=user_id, provider_name=provider_name
+        ).first()
+
+        if not token or token.token_status != "ACTIVE":
+            result = {"allowed": False, "reason": "NO_ACTIVE_TOKEN", "user_id": user_id, "provider_name": provider_name}
+        else:
+            result = {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
+
+        _log_permission_check(user_id, provider_name, scope, caller_service, result["allowed"], result["reason"])
+
+        return result
+
