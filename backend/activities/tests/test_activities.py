@@ -172,5 +172,13 @@ class TestActivities:
             activity_type='Cycling', 
             raw_data=raw_data
         )
+        
+        response = authenticated_client.get(f'/api/v1/activities/{activity.id}/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['id'] == activity.id
+        assert response.data['activity_type'] == 'Cycling'
+        # Verification of "Full activity details including raw_data"
+        assert response.data['raw_data'] == raw_data
 
 
