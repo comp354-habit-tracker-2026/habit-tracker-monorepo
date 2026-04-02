@@ -1,10 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Header
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import Base, database_connection, open_database_session
-from token_service import save_provider_token, revoke_provider_token
-from fastapi import FastAPI, Depends, HTTPException, Header
-import os 
+from token_service import save_provider_token, revoke_provider_token, verify_provider_token
+from token_model import ProviderToken
+import os
 
 # Install first libraries the in the requirement.txt
 # WHEN RUNNING TYPE IN TERMINAL:  
@@ -35,6 +35,11 @@ class SaveProviderTokenRequest(BaseModel): # pydantic library --> for data valid
 
 # Class for the request body when revoking a provider token
 class RevokeProviderTokenRequest(BaseModel):
+    user_id: int
+    provider_name: str
+
+
+class VerifyPermissionRequest(BaseModel):
     user_id: int
     provider_name: str
 
@@ -90,6 +95,36 @@ def revoke_provider_token_route(request: RevokeProviderTokenRequest, database_se
 
     # Call the revoke function from provider_token_logic.py
     return revoke_provider_token(database_session=database_session, user_id=user_id, provider_name=provider_name)
+
+
+@app.post("/api/permissions/verify")
+def verify_permission(
+    request: VerifyPermissionRequest,
+    database_session: Session = Depends(open_database_session),
+    _: None = Depends(check_api_key)
+):
+    user_id = request.user_id
+    provider_name = request.provider_name.strip().lower()
+
+    if provider_name not in ALLOWED_PROVIDERS:
+        raise HTTPException(status_code=400, detail="provider_name is invalid")
+
+    consent = database_session.query(UserConsent).filter_by(
+        user_id=user_id, provider_name=provider_name
+    ).first()
+
+    if not consent or consent.status != "ACTIVE":
+        return {"allowed": False, "reason": "NO_CONSENT", "user_id": user_id, "provider_name": provider_name}
+
+    token = database_session.query(ProviderToken).filter_by(
+        user_id=user_id, provider_name=provider_name
+    ).first()
+
+    if not token or token.token_status != "ACTIVE":
+        return {"allowed": False, "reason": "NO_ACTIVE_TOKEN", "user_id": user_id, "provider_name": provider_name}
+
+    # Both checks passed
+    return {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
 
 if __name__ == "__main__":
     import uvicorn

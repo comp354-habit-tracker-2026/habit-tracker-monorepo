@@ -135,3 +135,22 @@ def revoke_provider_token(database_session: Session, user_id: int, provider_name
     except Exception:
         database_session.rollback()
         return build_error_response(provider_name, "Database revoke failed")
+
+
+def verify_provider_token(database_session: Session, user_id: int, provider_name: str) -> dict:
+    token = find_provider_token(database_session, user_id, provider_name)
+
+    if not token or token.token_status != "ACTIVE":
+        return {
+            "allowed": False,
+            "reason": "NO_ACTIVE_TOKEN",
+            "user_id": user_id,
+            "provider_name": provider_name
+        }
+
+    return {
+        "allowed": True,
+        "reason": "APPROVED",
+        "user_id": user_id,
+        "provider_name": provider_name
+    }
