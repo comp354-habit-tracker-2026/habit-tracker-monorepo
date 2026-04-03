@@ -14,3 +14,6 @@ class AnalyticsService(BaseService):
 
     def forecast_preview(self, user):
         return self.repository.forecast_preview(user)
+
+    def inactivity_evaluation(self, user):
+        return self.repository.inactivity_evaluation(user)

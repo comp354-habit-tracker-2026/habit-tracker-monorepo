@@ -16,3 +16,14 @@ class AnalyticsOverviewView(APIView):
             "forecast": service.forecast_preview(request.user),
         }
         return Response(data)
+
+
+class HealthIndicatorsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsService()
+        data = {
+            "inactivity_evaluation": service.inactivity_evaluation(request.user),
+        }
+        return Response(data)
