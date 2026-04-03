@@ -1,6 +1,9 @@
 // just a placeholder for now replace with real data when available
 
 import type {
+  ActivityAggregate,
+  ActivityBreakdownItem,
+  ActivityBreakdownMetric,
   ActivityDetail,
   ActivityListItem,
   ActivityStreamPayload,
@@ -140,3 +143,80 @@ export const mockActivityStreams: ActivityStreamPayload = {
     elevationM: [204, 204, 205, 205, 206, 206, 207],
   },
 };
+
+export const mockActivityAggregates: ActivityAggregate[] = [
+  {
+    activity_type: 'cycling',
+    total_distance: 412.8,
+    total_duration: 5580,
+    average_speed: 29.4,
+    average_heart_rate: 152,
+    total_calories: 12840,
+    activity_count: 22,
+  },
+  {
+    activity_type: 'walking',
+    total_distance: 84.3,
+    total_duration: 2140,
+    average_speed: 5.2,
+    average_heart_rate: 108,
+    total_calories: 4210,
+    activity_count: 26,
+  },
+  {
+    activity_type: 'run',
+    total_distance: 120.5,
+    total_duration: 540,
+    average_speed: 9.5,
+    average_heart_rate: 145,
+    total_calories: 3500,
+    activity_count: 18,
+  },
+  {
+    activity_type: 'snowboarding',
+    total_distance: 62.1,
+    total_duration: 1780,
+    average_speed: 14.8,
+    average_heart_rate: 132,
+    total_calories: 4960,
+    activity_count: 9,
+  },
+  {
+    activity_type: 'ski',
+    total_distance: 77.4,
+    total_duration: 1960,
+    average_speed: 12.6,
+    average_heart_rate: 136,
+    total_calories: 5820,
+    activity_count: 11,
+  },
+];
+
+const activityColors: Record<string, string> = {
+  cycling: '#2e86ab',
+  walking: '#7d8f69',
+  run: '#c73e1d',
+  snowboarding: '#7b2cbf',
+  ski: '#f18f01',
+};
+
+export function mapActivityAggregatesToPieData(
+  aggregates: ActivityAggregate[],
+  metric: ActivityBreakdownMetric,
+): ActivityBreakdownItem[] {
+  return aggregates.map((activity) => ({
+    label: activity.activity_type,
+    value: activity[metric],
+    color: activityColors[activity.activity_type] ?? '#8884d8',
+  }));
+}
+
+export const mockPieChartByCount = mapActivityAggregatesToPieData(
+  mockActivityAggregates,
+  'activity_count',
+);
+
+export const mockPieChartByDistance = mapActivityAggregatesToPieData(
+  mockActivityAggregates,
+  'total_distance',
+);

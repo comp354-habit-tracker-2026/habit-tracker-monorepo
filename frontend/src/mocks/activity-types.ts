@@ -78,3 +78,25 @@ export type ActivityStreamPayload = {
   activityType: ActivityType;
   streams: ActivityStreams;
 };
+
+export type ActivityAggregate = {
+  activity_type: ActivityType;
+  total_distance: number;
+  total_duration: number;
+  average_speed: number;
+  average_heart_rate?: number;
+  total_calories: number;
+  activity_count: number;
+};
+
+export type ActivityBreakdownMetric =
+  | 'activity_count'
+  | 'total_distance'
+  | 'total_duration'
+  | 'total_calories';
+
+export type ActivityBreakdownItem = {
+  label: string;
+  value: number;
+  color: string;
+};
