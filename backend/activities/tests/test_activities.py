@@ -163,3 +163,41 @@ class TestActivities:
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    def test_retrieve_activity_detail_success(self, authenticated_client, create_activity):
+        """Test retrieving full details of an owned activity (Acceptance Criteria: 200 OK)"""
+        raw_data = {"heart_rate": 160, "steps": 5000}
+        activity = create_activity(
+            authenticated_client.user, 
+            activity_type='Cycling', 
+            raw_data=raw_data
+        )
+        
+        response = authenticated_client.get(f'/api/v1/activities/{activity.id}/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['id'] == activity.id
+        assert response.data['activity_type'] == 'Cycling'
+        # Verification of "Full activity details including raw_data"
+        assert response.data['raw_data'] == raw_data
+
+
+    def test_retrieve_other_user_activity_returns_404(self, authenticated_client, create_user, create_activity):
+        """Test ownership validation (Acceptance Criteria: 404 Not Found)"""
+        other_user = create_user(username='other_person', email='otherp@example.com')
+        other_activity = create_activity(other_user, activity_type='Private Run')
+        
+        # Try to access an existing ID that belongs to someone else
+        response = authenticated_client.get(f'/api/v1/activities/{other_activity.id}/')
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_retrieve_activity_unauthorized(self, api_client, create_user, create_activity):
+        """Test unauthenticated access (Acceptance Criteria: 401 Unauthorized)"""
+        user = create_user(username='auth_user', email='auth@example.com')
+        activity = create_activity(user)
+        
+        # Use the unauthenticated api_client
+        response = api_client.get(f'/api/v1/activities/{activity.id}/')
+        
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
