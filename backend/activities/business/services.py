@@ -41,7 +41,5 @@ class ActivityService(BaseService):
 
             self.repository.delete(activity)  
 
-    def test_delete_nonexistent_activity_returns_404(self, authenticated_client):
-        response = authenticated_client.delete('/api/v1/activities/99999/')
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+   
 

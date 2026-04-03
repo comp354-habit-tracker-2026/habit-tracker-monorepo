@@ -201,3 +201,29 @@ class TestActivities:
         response = api_client.get(f'/api/v1/activities/{activity.id}/')
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+    def test_delete_own_activity_success(self, authenticated_client, create_activity):
+        """Test successful deletion of an owned activity (Ticket #100)"""
+        activity = create_activity(authenticated_client.user)
+        
+        # Requirement: Returns 200 OK after successful deletion
+        response = authenticated_client.delete(f'/api/v1/activities/{activity.id}/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['message'] == "Activity successfully deleted"
+        # Verify it's actually gone from the database
+        assert not Activity.objects.filter(id=activity.id).exists()
+
+    def test_delete_other_user_activity_returns_403(self, authenticated_client, create_user, create_activity):
+        other_user = create_user(username='other_owner', email='otherowner@test.com')
+        other_activity = create_activity(other_user)
+
+        response = authenticated_client.delete(f'/api/v1/activities/{other_activity.id}/')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Activity.objects.filter(id=other_activity.id).exists()
+
+    def test_delete_nonexistent_activity_returns_404(self, authenticated_client):
+        response = authenticated_client.delete('/api/v1/activities/99999/')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
