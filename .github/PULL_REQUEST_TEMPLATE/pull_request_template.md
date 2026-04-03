@@ -8,6 +8,7 @@
 - 
 -
 -
+
 ---
 
 ### QA Checklist
@@ -20,10 +21,10 @@
 ### DevOps Checklist
 - [ ] **Pipelines:** GitHub Actions automated builds and deployment workflows execute successfully.
 - [ ] **Secrets Management:** Environment variables and secrets are handled securely without exposing them in the repository.
-- [ ] **Performance:** Automated performance or load tests have not degraded from the baseline.
 
 ### Related Issues:
 -
-### Validation Steps:
+
+### Validation Steps (Provide step-by-step instructions to clearly describe how to verify each item in the Definition of Done for the related issue):
 1. 
 2.
