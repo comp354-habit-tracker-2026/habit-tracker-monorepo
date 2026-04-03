@@ -19,7 +19,6 @@
 
 ### DevOps Checklist
 - [ ] **Pipelines:** GitHub Actions automated builds and deployment workflows execute successfully.
-- [ ] **Container Registry:** Image builds and pushes to the Azure container registry are verified.
 - [ ] **Secrets Management:** Environment variables and secrets are handled securely without exposing them in the repository.
 - [ ] **Performance:** Automated performance or load tests have not degraded from the baseline.
 
