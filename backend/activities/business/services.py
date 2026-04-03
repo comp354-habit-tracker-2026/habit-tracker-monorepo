@@ -24,7 +24,6 @@ class ActivityService(BaseService):
                 code="duplicate_external_activity",
             )
 
-
     def delete_activity(self, activity_id, user):
             """
             Business logic for deleting an activity.
