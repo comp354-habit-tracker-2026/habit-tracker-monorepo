@@ -20,10 +20,6 @@ class AnalyticsService(BaseService):
 
     def forecast_preview(self, user):
 
-        return self.repository.forecast_preview(user)
-
-        return self.repository.forecast_preview(user)
->>>>>>> d5689ca51542bf7da3732abd2fe57f6959fd4ef4
         #this info is to be changed when the dataset is connected, just hardcoded to be able to output
         X_last=np.array([1,2,3])
         return predict(X_last, horizon=3)
