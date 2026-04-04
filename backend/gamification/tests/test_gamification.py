@@ -620,3 +620,51 @@ class SerializerTest(TestCase):
         data = MilestoneSerializer(ms).data
         self.assertEqual(data['name'], 'Ser MS')
         self.assertEqual(data['points'], 25)
+
+
+# ---------------------------------------------------------------------------
+# Seed command tests
+# ---------------------------------------------------------------------------
+
+from django.core.management import call_command
+from io import StringIO
+
+
+class SeedGamificationTest(TestCase):
+
+    def test_seed_creates_badges_and_milestones(self):
+        out = StringIO()
+        call_command('seed_gamification', stdout=out)
+        output = out.getvalue()
+        self.assertIn('Seeded', output)
+        self.assertGreater(Badge.objects.count(), 0)
+        from gamification.models import Milestone
+        self.assertGreater(Milestone.objects.count(), 0)
+
+    def test_seed_is_idempotent(self):
+        call_command('seed_gamification', stdout=StringIO())
+        count1 = Badge.objects.count()
+        call_command('seed_gamification', stdout=StringIO())
+        count2 = Badge.objects.count()
+        self.assertEqual(count1, count2)
+
+    def test_seed_clear_flag(self):
+        call_command('seed_gamification', stdout=StringIO())
+        out = StringIO()
+        call_command('seed_gamification', '--clear', stdout=out)
+        self.assertIn('Cleared', out.getvalue())
+
+
+# ---------------------------------------------------------------------------
+# views.py re-export coverage
+# ---------------------------------------------------------------------------
+
+class ViewsReExportTest(TestCase):
+
+    def test_views_exports_all_viewsets(self):
+        from gamification import views
+        self.assertTrue(hasattr(views, 'BadgeViewSet'))
+        self.assertTrue(hasattr(views, 'MilestoneViewSet'))
+        self.assertTrue(hasattr(views, 'StreakViewSet'))
+        self.assertTrue(hasattr(views, 'SummaryViewSet'))
+        self.assertTrue(hasattr(views, 'EvaluateViewSet'))
