@@ -1,3 +1,4 @@
+# Generated with assistance from Claude (Anthropic LLM)
 from datetime import date, timedelta
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -430,3 +431,192 @@ class GetActivityMetricTest(TestCase):
         activity = _mock_activity()
         result = GamificationService._get_activity_metric(activity, 'unknown')
         self.assertIsNone(result)
+
+
+# ---------------------------------------------------------------------------
+# API / Integration tests – covers viewsets, serializers, URLs
+# ---------------------------------------------------------------------------
+
+from django.contrib.auth import get_user_model
+from rest_framework.test import APIClient
+
+User = get_user_model()
+
+
+class BadgeAPITest(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser', email='test@test.com', password='testpass123',
+        )
+        self.client.force_authenticate(user=self.user)
+        self.badge = Badge.objects.create(
+            name='Test Badge', badge_type='single', activity_type='running',
+            threshold=Decimal('10'), metric='distance', points=50,
+        )
+
+    def test_list_badges(self):
+        response = self.client.get('/api/v1/gamification/badges/')
+        self.assertEqual(response.status_code, 200)
+        # Response may be paginated (dict with 'results') or a plain list
+        results = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertGreaterEqual(len(results), 1)
+
+    def test_list_badges_unauthenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get('/api/v1/gamification/badges/')
+        self.assertEqual(response.status_code, 401)
+
+    def test_earned_badges_empty(self):
+        response = self.client.get('/api/v1/gamification/badges/earned/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
+
+    def test_earned_badges_with_badge(self):
+        from gamification.models import UserBadge
+        UserBadge.objects.create(user=self.user, badge=self.badge)
+        response = self.client.get('/api/v1/gamification/badges/earned/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['badge']['name'], 'Test Badge')
+
+    def test_badge_progress(self):
+        response = self.client.get('/api/v1/gamification/badges/progress/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+
+class MilestoneAPITest(TestCase):
+
+    def setUp(self):
+        from gamification.models import Milestone
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser2', email='test2@test.com', password='testpass123',
+        )
+        self.client.force_authenticate(user=self.user)
+        self.milestone = Milestone.objects.create(
+            name='Test Milestone', metric='total_distance',
+            threshold=Decimal('100'), points=100,
+        )
+
+    def test_list_milestones(self):
+        response = self.client.get('/api/v1/gamification/milestones/')
+        self.assertEqual(response.status_code, 200)
+        results = response.data.get('results', response.data) if isinstance(response.data, dict) else response.data
+        self.assertGreaterEqual(len(results), 1)
+
+    def test_reached_milestones_empty(self):
+        response = self.client.get('/api/v1/gamification/milestones/reached/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 0)
+
+    def test_milestone_progress(self):
+        response = self.client.get('/api/v1/gamification/milestones/progress/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+
+class StreakAPITest(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser3', email='test3@test.com', password='testpass123',
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_streak(self):
+        response = self.client.get('/api/v1/gamification/streaks/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['current_count'], 0)
+        self.assertEqual(response.data['longest_count'], 0)
+
+
+class SummaryAPITest(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser4', email='test4@test.com', password='testpass123',
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_get_summary(self):
+        response = self.client.get('/api/v1/gamification/summary/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('total_points', response.data)
+        self.assertIn('streak', response.data)
+        self.assertIn('earned_badges', response.data)
+        self.assertIn('reached_milestones', response.data)
+
+    def test_summary_unauthenticated(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get('/api/v1/gamification/summary/')
+        self.assertEqual(response.status_code, 401)
+
+
+class EvaluateAPITest(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='testuser5', email='test5@test.com', password='testpass123',
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_evaluate_no_activities(self):
+        response = self.client.post('/api/v1/gamification/evaluate/')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['error'], 'No activities found for user')
+
+    def test_evaluate_bad_activity_id(self):
+        response = self.client.post('/api/v1/gamification/evaluate/', {'activity_id': 99999}, format='json')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.data['error'], 'Activity not found')
+
+    def test_evaluate_with_activity(self):
+        from activities.models import Activity
+        activity = Activity.objects.create(
+            user=self.user, activity_type='running',
+            duration=30, date=date.today(),
+            distance=Decimal('5.00'),
+        )
+        response = self.client.post('/api/v1/gamification/evaluate/', {'activity_id': activity.pk}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('streak', response.data)
+        self.assertIn('new_badges', response.data)
+        self.assertIn('new_milestones', response.data)
+
+
+class SerializerTest(TestCase):
+
+    def test_badge_serializer(self):
+        from gamification.serializers import BadgeSerializer
+        badge = Badge.objects.create(
+            name='Ser Badge', badge_type='single', activity_type='',
+            threshold=Decimal('5'), metric='distance', points=10,
+        )
+        data = BadgeSerializer(badge).data
+        self.assertEqual(data['name'], 'Ser Badge')
+        self.assertEqual(data['points'], 10)
+
+    def test_streak_serializer(self):
+        from gamification.serializers import StreakSerializer
+        user = User.objects.create_user(username='seruser', email='s@t.com', password='p')
+        streak = Streak.objects.create(user=user, current_count=5, longest_count=10)
+        data = StreakSerializer(streak).data
+        self.assertEqual(data['current_count'], 5)
+        self.assertEqual(data['longest_count'], 10)
+
+    def test_milestone_serializer(self):
+        from gamification.serializers import MilestoneSerializer
+        from gamification.models import Milestone
+        ms = Milestone.objects.create(
+            name='Ser MS', metric='total_distance',
+            threshold=Decimal('50'), points=25,
+        )
+        data = MilestoneSerializer(ms).data
+        self.assertEqual(data['name'], 'Ser MS')
+        self.assertEqual(data['points'], 25)
