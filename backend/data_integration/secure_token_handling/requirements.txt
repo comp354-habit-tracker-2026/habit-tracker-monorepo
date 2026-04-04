@@ -1,6 +1,7 @@
-fastapi
-uvicorn
-sqlalchemy
-cryptography
-pydantic
-python-dotenv
+fastapi # for API development
+uvicorn # for running the FastAPI application
+sqlalchemy # for database interactions
+cryptography # for encryption and decryption of tokens
+pydantic # for data validation and settings management
+python-dotenv # for loading environment variables from a .env file
+requests    # for making HTTP requests to external services
