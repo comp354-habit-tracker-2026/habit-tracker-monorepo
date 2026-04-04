@@ -1,8 +1,25 @@
 // just a placeholder for now replace with real data when available
 
-export type ActivitySource = 'we-ski' | 'map-my-run' | 'my-whoosh';
-export type ActivitySourceFormat = 'gpx' | 'xlsx' | 'fit';
-export type ActivityType = 'ski' | 'bike-ride' | 'cycling' | 'run' | 'walk';
+export enum ActivitySource {
+  WeSki = 'we-ski',
+  MapMyRun = 'map-my-run',
+  MyWhoosh = 'my-whoosh',
+}
+
+export enum ActivitySourceFormat {
+  Gpx = 'gpx',
+  Xlsx = 'xlsx',
+  Fit = 'fit',
+}
+
+export enum ActivityType {
+  Ski = 'ski',
+  BikeRide = 'bike-ride',
+  Cycling = 'cycling',
+  Run = 'run',
+  Walking = 'walking',
+  Snowboarding = 'snowboarding',
+}
 
 export type ActivitySummary = {
   durationSeconds: number;
@@ -89,11 +106,12 @@ export type ActivityAggregate = {
   activity_count: number;
 };
 
-export type ActivityBreakdownMetric =
-  | 'activity_count'
-  | 'total_distance'
-  | 'total_duration'
-  | 'total_calories';
+export enum ActivityBreakdownMetric {
+  ActivityCount = 'activity_count',
+  TotalDistance = 'total_distance',
+  TotalDuration = 'total_duration',
+  TotalCalories = 'total_calories',
+}
 
 export type ActivityBreakdownItem = {
   label: string;
