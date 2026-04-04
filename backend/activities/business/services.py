@@ -1,5 +1,6 @@
 from core.business import BaseService, DomainValidationError
 from activities.data import ActivityRepository
+from rest_framework.exceptions import NotFound, PermissionDenied
 
 
 class ActivityService(BaseService):
@@ -23,3 +24,22 @@ class ActivityService(BaseService):
                 "Activity with this external ID already exists for this provider.",
                 code="duplicate_external_activity",
             )
+
+    def delete_activity(self, activity_id, user):
+            """
+            Business logic for deleting an activity.
+            In the future, this could trigger goal re-calculations or
+            notification cleanups.
+            """
+            activity = self.repository.get_by_id(activity_id)
+
+            if activity is None:
+                raise NotFound("Activity not found.")
+
+            if activity.user != user:
+                raise PermissionDenied("You do not have permission to delete this activity.")
+
+            self.repository.delete(activity)  
+
+   
+

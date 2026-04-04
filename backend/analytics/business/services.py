@@ -1,9 +1,11 @@
 from core.business import BaseService
 from analytics.data import AnalyticsRepository
+
 from core.business.predict_model import predict
 
 
 import numpy as np
+
 
 
 class AnalyticsService(BaseService):
@@ -17,8 +19,10 @@ class AnalyticsService(BaseService):
         return self.repository.trend_snapshot(user)
 
     def forecast_preview(self, user):
+
         #this info is to be changed when the dataset is connected, just hardcoded to be able to output
         X_last=np.array([1,2,3])
         return predict(X_last, horizon=3)
         #return self.repository.forecast_preview(user)
+
 

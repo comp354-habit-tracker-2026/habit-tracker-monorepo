@@ -28,3 +28,15 @@ class ActivityRepository(BaseRepository):
         if exclude_pk is not None:
             queryset = queryset.exclude(pk=exclude_pk)
         return queryset.exists()
+
+    def delete(self, instance):
+        """
+        Permanently removes the activity record from the database.
+        """
+        instance.delete()
+    
+    def get_by_id(self, activity_id):
+        try:
+            return self.model.objects.get(pk=activity_id)
+        except self.model.DoesNotExist:
+            return None
