@@ -21,7 +21,7 @@ const config: Config = {
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
   },
   
-  setupFilesAfterEnv: ["<rootDir>/jest/setupTests.ts"],
+  setupFilesAfterEnv: ["<rootDir>/jest/setup_tests.ts"],
 
   collectCoverageFrom: [
     "src/**/*.{ts,tsx}",
