@@ -668,3 +668,328 @@ class ViewsReExportTest(TestCase):
         self.assertTrue(hasattr(views, 'StreakViewSet'))
         self.assertTrue(hasattr(views, 'SummaryViewSet'))
         self.assertTrue(hasattr(views, 'EvaluateViewSet'))
+
+
+# ---------------------------------------------------------------------------
+# Model __str__ tests (covers models.py lines 48, 67, 85, 117, 136)
+# ---------------------------------------------------------------------------
+
+class ModelStrTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='struser', email='str@test.com', password='testpass123',
+        )
+
+    def test_badge_str(self):
+        badge = Badge.objects.create(
+            name='Str Badge', badge_type='single',
+            threshold=Decimal('10'), metric='distance',
+        )
+        self.assertEqual(str(badge), 'Str Badge')
+
+    def test_user_badge_str(self):
+        from gamification.models import UserBadge
+        badge = Badge.objects.create(
+            name='UB Badge', badge_type='single',
+            threshold=Decimal('10'), metric='distance',
+        )
+        ub = UserBadge.objects.create(user=self.user, badge=badge)
+        self.assertIn('UB Badge', str(ub))
+
+    def test_streak_str(self):
+        streak = Streak.objects.create(user=self.user, current_count=5, longest_count=10)
+        self.assertIn('5 day streak', str(streak))
+
+    def test_milestone_str(self):
+        from gamification.models import Milestone
+        ms = Milestone.objects.create(
+            name='MS Str', metric='total_distance',
+            threshold=Decimal('100'),
+        )
+        self.assertEqual(str(ms), 'MS Str')
+
+    def test_user_milestone_str(self):
+        from gamification.models import Milestone, UserMilestone
+        ms = Milestone.objects.create(
+            name='UM MS', metric='total_distance',
+            threshold=Decimal('100'),
+        )
+        um = UserMilestone.objects.create(user=self.user, milestone=ms)
+        self.assertIn('UM MS', str(um))
+
+
+# ---------------------------------------------------------------------------
+# Repository direct tests (covers repositories.py missing lines)
+# ---------------------------------------------------------------------------
+
+class RepositoryTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='repouser', email='repo@test.com', password='testpass123',
+        )
+
+    def test_badge_repo_get_all(self):
+        from gamification.data.repositories import BadgeRepository
+        Badge.objects.create(name='R1', badge_type='single', threshold=Decimal('1'), metric='distance')
+        repo = BadgeRepository()
+        self.assertGreaterEqual(repo.get_all_badges().count(), 1)
+
+    def test_badge_repo_has_badge(self):
+        from gamification.data.repositories import BadgeRepository
+        from gamification.models import UserBadge
+        badge = Badge.objects.create(name='R2', badge_type='single', threshold=Decimal('1'), metric='distance')
+        repo = BadgeRepository()
+        self.assertFalse(repo.has_badge(self.user, badge))
+        UserBadge.objects.create(user=self.user, badge=badge)
+        self.assertTrue(repo.has_badge(self.user, badge))
+
+    def test_badge_repo_award_badge(self):
+        from gamification.data.repositories import BadgeRepository
+        badge = Badge.objects.create(name='R3', badge_type='single', threshold=Decimal('1'), metric='distance')
+        repo = BadgeRepository()
+        obj, created = repo.award_badge(self.user, badge)
+        self.assertTrue(created)
+        obj2, created2 = repo.award_badge(self.user, badge)
+        self.assertFalse(created2)
+
+    def test_badge_repo_get_earned(self):
+        from gamification.data.repositories import BadgeRepository
+        from gamification.models import UserBadge
+        badge = Badge.objects.create(name='R4', badge_type='single', threshold=Decimal('1'), metric='distance')
+        repo = BadgeRepository()
+        self.assertEqual(repo.get_earned_badges(self.user).count(), 0)
+        UserBadge.objects.create(user=self.user, badge=badge)
+        self.assertEqual(repo.get_earned_badges(self.user).count(), 1)
+
+    def test_streak_repo(self):
+        from gamification.data.repositories import StreakRepository
+        repo = StreakRepository()
+        streak = repo.get_or_create_streak(self.user)
+        self.assertEqual(streak.current_count, 0)
+        streak.current_count = 5
+        repo.save_streak(streak)
+        streak2 = repo.get_or_create_streak(self.user)
+        self.assertEqual(streak2.current_count, 5)
+
+    def test_milestone_repo(self):
+        from gamification.data.repositories import MilestoneRepository
+        from gamification.models import Milestone
+        Milestone.objects.create(name='MR1', metric='total_distance', threshold=Decimal('50'))
+        repo = MilestoneRepository()
+        self.assertGreaterEqual(repo.get_all_milestones().count(), 1)
+
+    def test_milestone_repo_has_and_award(self):
+        from gamification.data.repositories import MilestoneRepository
+        from gamification.models import Milestone
+        ms = Milestone.objects.create(name='MR2', metric='total_distance', threshold=Decimal('50'))
+        repo = MilestoneRepository()
+        self.assertFalse(repo.has_milestone(self.user, ms))
+        obj, created = repo.award_milestone(self.user, ms)
+        self.assertTrue(created)
+        self.assertTrue(repo.has_milestone(self.user, ms))
+
+    def test_milestone_repo_get_reached(self):
+        from gamification.data.repositories import MilestoneRepository
+        from gamification.models import Milestone, UserMilestone
+        ms = Milestone.objects.create(name='MR3', metric='total_distance', threshold=Decimal('50'))
+        repo = MilestoneRepository()
+        self.assertEqual(repo.get_reached_milestones(self.user).count(), 0)
+        UserMilestone.objects.create(user=self.user, milestone=ms)
+        self.assertEqual(repo.get_reached_milestones(self.user).count(), 1)
+
+    def test_activity_stats_cumulative(self):
+        from gamification.data.repositories import ActivityStatsRepository
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('10.00'), calories=200,
+        )
+        repo = ActivityStatsRepository()
+        stats = repo.get_cumulative_stats(self.user)
+        self.assertEqual(stats['total_activities'], 1)
+        self.assertEqual(stats['total_distance'], Decimal('10.00'))
+
+    def test_activity_stats_cumulative_with_type(self):
+        from gamification.data.repositories import ActivityStatsRepository
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('10.00'),
+        )
+        Activity.objects.create(
+            user=self.user, activity_type='cycling', duration=60,
+            date=date.today(), distance=Decimal('25.00'),
+        )
+        repo = ActivityStatsRepository()
+        stats = repo.get_cumulative_stats(self.user, activity_type='running')
+        self.assertEqual(stats['total_activities'], 1)
+
+    def test_activity_stats_active_dates(self):
+        from gamification.data.repositories import ActivityStatsRepository
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        repo = ActivityStatsRepository()
+        dates = repo.get_active_dates(self.user)
+        self.assertIn(date.today(), dates)
+
+    def test_activity_stats_active_dates_with_since(self):
+        from gamification.data.repositories import ActivityStatsRepository
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        repo = ActivityStatsRepository()
+        dates = repo.get_active_dates(self.user, since=date.today() - timedelta(days=7))
+        self.assertIn(date.today(), dates)
+
+    def test_activity_stats_count_in_period(self):
+        from gamification.data.repositories import ActivityStatsRepository
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        repo = ActivityStatsRepository()
+        count = repo.get_activity_count_in_period(
+            self.user, 'running',
+            date.today() - timedelta(days=7), date.today(),
+        )
+        self.assertEqual(count, 1)
+
+    def test_activity_stats_single_max(self):
+        from gamification.data.repositories import ActivityStatsRepository
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=60,
+            date=date.today(), distance=Decimal('15.00'),
+        )
+        repo = ActivityStatsRepository()
+        max_val = repo.get_single_activity_max(self.user, 'running', 'distance')
+        self.assertEqual(max_val, Decimal('15.00'))
+
+
+# ---------------------------------------------------------------------------
+# Signal integration tests (covers signals.py lines 26-38, 56-66)
+# ---------------------------------------------------------------------------
+
+class SignalIntegrationTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='siguser', email='sig@test.com', password='testpass123',
+        )
+        Badge.objects.create(
+            name='Signal Badge', badge_type='single', activity_type='running',
+            threshold=Decimal('1'), metric='duration', points=10,
+        )
+
+    def test_signal_fires_on_activity_create(self):
+        """Creating an activity triggers the signal and awards the badge."""
+        from activities.models import Activity
+        from gamification.models import UserBadge
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        # Signal should have evaluated and awarded the badge
+        self.assertTrue(UserBadge.objects.filter(user=self.user).exists())
+
+    def test_signal_updates_streak_on_create(self):
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        streak = Streak.objects.get(user=self.user)
+        self.assertEqual(streak.current_count, 1)
+
+    def test_send_achievement_event_logs_when_no_notification_service(self):
+        from gamification.signals import _send_achievement_event
+        # Should not raise — gracefully logs instead
+        _send_achievement_event(self.user, 'badge_earned', {'badge_name': 'test'})
+
+
+# ---------------------------------------------------------------------------
+# Services progress tests (covers services.py lines 155-209)
+# ---------------------------------------------------------------------------
+
+class ServiceProgressTest(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='proguser', email='prog@test.com', password='testpass123',
+        )
+
+    def test_get_badge_progress(self):
+        Badge.objects.create(
+            name='Prog Badge', badge_type='single', activity_type='running',
+            threshold=Decimal('10'), metric='distance', points=50,
+        )
+        from activities.models import Activity
+        Activity.objects.create(
+            user=self.user, activity_type='running', duration=30,
+            date=date.today(), distance=Decimal('5.00'),
+        )
+        service = GamificationService()
+        progress = service.get_badge_progress(self.user)
+        self.assertGreaterEqual(len(progress), 1)
+        for p in progress:
+            self.assertIn('badge', p)
+            self.assertIn('progress_percentage', p)
+
+    def test_get_badge_progress_cumulative(self):
+        Badge.objects.create(
+            name='Cum Prog', badge_type='cumulative', activity_type='',
+            threshold=Decimal('100'), metric='distance', points=100,
+        )
+        service = GamificationService()
+        progress = service.get_badge_progress(self.user)
+        self.assertGreaterEqual(len(progress), 1)
+
+    def test_get_badge_progress_streak(self):
+        Badge.objects.create(
+            name='Str Prog', badge_type='streak', activity_type='',
+            threshold=Decimal('7'), metric='count', points=75,
+        )
+        service = GamificationService()
+        progress = service.get_badge_progress(self.user)
+        self.assertGreaterEqual(len(progress), 1)
+
+    def test_get_badge_progress_frequency(self):
+        Badge.objects.create(
+            name='Freq Prog', badge_type='frequency', activity_type='running',
+            threshold=Decimal('3'), metric='count', points=50,
+        )
+        service = GamificationService()
+        progress = service.get_badge_progress(self.user)
+        self.assertGreaterEqual(len(progress), 1)
+
+    def test_get_milestone_progress(self):
+        from gamification.models import Milestone
+        Milestone.objects.create(
+            name='Prog MS', metric='total_distance',
+            threshold=Decimal('100'), points=100,
+        )
+        service = GamificationService()
+        progress = service.get_milestone_progress(self.user)
+        self.assertGreaterEqual(len(progress), 1)
+        for p in progress:
+            self.assertIn('milestone', p)
+            self.assertIn('progress_percentage', p)
+
+    def test_get_user_summary(self):
+        service = GamificationService()
+        summary = service.get_user_summary(self.user)
+        self.assertIn('total_points', summary)
+        self.assertIn('streak', summary)
+        self.assertEqual(summary['total_points'], 0)
