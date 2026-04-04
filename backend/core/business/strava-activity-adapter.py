@@ -1,9 +1,10 @@
 from .activity_adapter_base import ActivityAdapter
+from .models import ActivitySource
 
 class StravaActivityAdapter(ActivityAdapter):
 
     def __init__(self):
-        super().__init__()
+        super().__init__(ActivitySource.STRAVA)
 
     @abstractmethod
     def parse(self, raw_input_data):
