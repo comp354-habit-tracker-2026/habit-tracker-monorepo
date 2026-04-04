@@ -1,13 +1,29 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal
+from enum import StrEnum
+
+class ActivitySource(StrEnum):
+    STRAVA = "Strava"
+    MAP_MY_RUN = "MapMyRun"
+    WE_SKI = "WeSki"
+    MY_WHOOSH = "MyWhoosh"
+
+class ActivityType(StrEnum):
+    RUN = "RUN"
+    RIDE = "RIDE"
+    SWIM = "SWIM"
+    SKI = "SKI"
+    SNOWBOARD = "SNOWBOARD"
+    WALK = "WALK"
+    WORKOUT = "WORKOUT"
+    OTHER = "OTHER"
 
 @dataclass
 class Activity:
     activity_id: str
     user_id: str
-    source: Literal["Strava", "MapMyRun", "WeSki", "MyWhoosh"]
-    activity_type: Literal["RUN", "RIDE", "SWIM", "SKI", "SNOWBOARD", "WALK", "WORKOUT", "OTHER"]
+    source: ActivitySource
+    activity_type: ActivityType
     start_time: datetime
     duration_minutes: float
     distance_meters: float
