@@ -1,16 +1,18 @@
+from django.db import transaction
+from activities.emit_event import emit_event
+
 class UserScopedCreateMixin:
     """Automatically assign the authenticated user on object creation."""
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-        transaction.on_commit(lambda: emit_event(
+        activity = serializer.save(user=self.request.user)
+        emit_event(
             event_type="activity.created",
             payload={
-            "activity_id": activity.id,
-            "user_id": self.request.user.id,
-            "activity_type": activity.activity_type,
+                "activity_id": str(activity.id),
+                "user_id":     str(self.request.user.id),
+                "provider":    activity.provider,
+                "timestamp":   activity.created_at.isoformat(),
             },
             idempotency_key=f"activity.created:{activity.id}",
-        )   
-    )
+        )
