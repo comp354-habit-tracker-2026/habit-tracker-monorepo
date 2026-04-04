@@ -134,9 +134,7 @@ class ProviderTokenManager:
             encrypted_access_token = self.encrypt_token(access_token)
             encrypted_refresh_token = self.encrypt_token(refresh_token) if refresh_token else None
         except Exception as e:
-            # Log the detailed exception server-side but do not expose it to the client
-            logging.exception("Encryption failed while saving provider token for provider '%s' and user '%s'.", provider_name, user_id)
-            return self.build_error_response(provider_name, "Encryption failed")
+            return self.build_error_response(provider_name, f"Encryption failed: {str(e)}")
 
         token_last_4 = self.get_token_last_4(access_token)
 
@@ -144,12 +142,9 @@ class ProviderTokenManager:
             existing_provider_token = self.find_provider_token(user_id, provider_name)
 
             if existing_provider_token:
-                token_action = self.update_existing_provider_token(
-                    existing_provider_token=existing_provider_token,
-                    encrypted_access_token=encrypted_access_token,
-                    encrypted_refresh_token=encrypted_refresh_token,
-                    token_last_4=token_last_4,
-                    access_token_expires_at=access_token_expires_at
+                token_action = self.update_existing_provider_token(existing_provider_token=existing_provider_token,
+                    encrypted_access_token=encrypted_access_token, encrypted_refresh_token=encrypted_refresh_token,
+                    token_last_4=token_last_4, access_token_expires_at=access_token_expires_at
                 )
             else:
                 token_action = self.create_new_provider_token(
@@ -168,9 +163,7 @@ class ProviderTokenManager:
 
         except Exception as e:
             self.database_session.rollback()
-            # Log the detailed exception server-side but do not expose it to the client
-            logging.exception("Database save failed while saving provider token for provider '%s' and user '%s'.", provider_name, user_id)
-            return self.build_error_response(provider_name, "Database save failed")
+            return self.build_error_response(provider_name, f"Database save failed: {str(e)}")
 
     # Function that checks if the access token is expired or about to expire within 5 minutes
     # Returns True if the token is expired or about to expire, otherwise returns False
@@ -380,11 +373,13 @@ class ProviderTokenManager:
     def get_valid_provider_token(self, user_id: int, provider_name: str):
         existing_provider_token = self.find_provider_token(user_id, provider_name)
 
+    # Function that refreshes a MapMyRun access token using the refresh token
+    # Returns the new access token if refresh is successful, otherwise returns None
+    def refresh_mapmyrun_token(self, existing_provider_token):
+        if not existing_provider_token.encrypted_refresh_token:
+            return None
         if not existing_provider_token:
             return self.build_error_response(provider_name, "Provider token not found")
-
-        if existing_provider_token.token_status == "REVOKED":
-            return self.build_error_response(provider_name, "Provider token is revoked")
 
         try:
             if self.is_access_token_expired(existing_provider_token):
