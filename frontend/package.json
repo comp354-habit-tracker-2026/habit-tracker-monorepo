@@ -22,6 +22,10 @@
     "cypress:ci": "start-server-and-test 'npm run dev' http://localhost:5173 cypress:run"
   },
   "dependencies": {
+    "@coreui/coreui": "^5.6.1",
+    "@coreui/coreui-pro": "^5.24.2",
+    "@coreui/react": "^5.10.0",
+    "@coreui/react-pro": "^5.24.1",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.5",
     "react": "^19.2.0",
