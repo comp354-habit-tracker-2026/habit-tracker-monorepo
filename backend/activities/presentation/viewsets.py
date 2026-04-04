@@ -1,3 +1,5 @@
+from rest_framework import viewsets, status  
+from rest_framework.response import Response 
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
@@ -21,3 +23,9 @@ class ActivityViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.service.get_user_queryset(self.request.user, self.request.query_params)
+    
+    # viewsets.py  ← only HTTP concerns here
+    def destroy(self, request, *args, **kwargs):
+        self.service.delete_activity(activity_id=kwargs['pk'], user=request.user)
+        return Response({"message": "Activity successfully deleted"}, status=status.HTTP_200_OK)
+
