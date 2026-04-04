@@ -3,6 +3,9 @@ from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from users.serializers import RegisterSerializer, ProfileUpdateSerializer
+from rest_framework.permissions import AllowAny
+
+from users.serializers import RegisterSerializer
 
 User = get_user_model()
 

@@ -2,6 +2,7 @@ from core.business import BaseService, DomainValidationError
 from activities.data import ActivityRepository
 from rest_framework.exceptions import NotFound, PermissionDenied
 
+
 class ActivityService(BaseService):
     def __init__(self, repository=None):
         self.repository = repository or ActivityRepository()

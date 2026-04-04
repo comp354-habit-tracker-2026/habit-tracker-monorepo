@@ -30,6 +30,29 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv('DJANGO_DEBUG').lower() == 'true'
+
+default_allowed_hosts = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    # Allow Azure Container Apps generated FQDNs like
+    # backend.<env-hash>.<region>.azurecontainerapps.io
+    '.canadacentral.azurecontainerapps.io',
+]
+
+# Some platforms expose the public hostname through env vars.
+for env_host_var in ('WEBSITE_HOSTNAME', 'CONTAINER_APP_HOSTNAME', 'HOSTNAME'):
+    env_host = os.getenv(env_host_var)
+    if env_host:
+        default_allowed_hosts.append(env_host)
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(default_allowed_hosts)).split(',')
     if host.strip()
 ]
 
@@ -57,6 +80,7 @@ INSTALLED_APPS = [
     'activities',
     'analytics',
     'notifications',
+    'data_integration',
 ]
 
 MIDDLEWARE = [
@@ -101,6 +125,11 @@ DATABASES = {
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'mypassword'),
         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
         'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'),
+        'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
@@ -140,6 +169,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=24), # this is a temp value that just sorta made sense
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # this is a temp value that just sorta made sense
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7), # likewise
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
