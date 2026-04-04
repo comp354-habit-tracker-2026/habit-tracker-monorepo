@@ -2,33 +2,28 @@ services:
   api:
     env_file:
       - .env
-    container_name: ${API_CONTAINER_NAME:-habit-api}
+    container_name: ${API_CONTAINER_NAME:?API_CONTAINER_NAME must be set}
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:${API_PORT:-8000} --workers ${GUNICORN_WORKERS:-3}"
+    command: sh -c "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$${API_PORT} --workers $${GUNICORN_WORKERS}"
     depends_on:
       postgres:
         condition: service_healthy
     ports:
-      - "${API_PORT:-8000}:${API_PORT:-8000}"
+      - "${API_PORT:?API_PORT must be set}:${API_PORT:?API_PORT must be set}"
     volumes:
       - .:/app
 
   postgres:
     env_file:
       - .env
-    container_name: ${POSTGRES_CONTAINER_NAME:-habit-postgres}
-    image: ${POSTGRES_IMAGE:-postgres:16}
-    restart: ${POSTGRES_RESTART_POLICY:-always}
+    image: ${POSTGRES_IMAGE}
+    restart: ${POSTGRES_RESTART_POLICY}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT}:5432"
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-myuser} -d ${POSTGRES_DB:-habit_tracker_db}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
