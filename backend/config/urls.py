@@ -24,6 +24,6 @@ urlpatterns = [
     path('api/v1/activities/', include('activities.urls')),
     path('api/v1/analytics/', include('analytics.urls')),
     path('api/v1/notifications/', include('notifications.urls')),
-    path('api/v1/data-integration/', include('data_integration.urls')),
+    path('api/v1/data-integrations/', include('data_integration.urls')),
     path('api/v1/gamification/', include('gamification.urls')),
 ]
