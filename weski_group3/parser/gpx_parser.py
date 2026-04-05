@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-
+from metrics import process_sessions
 from models import TrackPoint, ParsedSession
 
 NS = {"gpx":"http://www.topografix.com/GPX/1/1"}
@@ -104,3 +104,5 @@ if __name__ == "__main__":
         output_file = output_dir / (gpx_file.stem + ".json")
         output_file.write_text(json.dumps(to_dict(session), indent=2), encoding="utf-8")
         print(f"Written to {output_file}")
+
+process_sessions()
