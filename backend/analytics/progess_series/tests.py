@@ -7,7 +7,11 @@ from django.test import TestCase
 
 from activities.models import Activity
 from goals.models import Goal
-from analytics.progess_series.service import generate_progress_series
+from analytics.progess_series.service import (
+    InvalidGranularityError,
+    UnsupportedGoalTypeError,
+    generate_progress_series,
+)
 
 
 User = get_user_model()
@@ -18,6 +22,11 @@ class GoalProgressSeriesTests(TestCase):
         self.user = User.objects.create_user(
             username="elissar",
             email="elissar@example.com",
+            password="testpass123",
+        )
+        self.other_user = User.objects.create_user(
+            username="other-user",
+            email="other@example.com",
             password="testpass123",
         )
 
@@ -106,6 +115,7 @@ class GoalProgressSeriesTests(TestCase):
 
         self.assertEqual(result["actual_value"], 10.0)
         self.assertGreaterEqual(len(result["points"]), 1)
+        self.assertTrue(result["points"][0]["label"].startswith("week_of_"))
 
     def test_no_activities_returns_zero_series(self):
         activities = Activity.objects.filter(user=self.user)
@@ -186,3 +196,54 @@ class GoalProgressSeriesTests(TestCase):
 
         self.assertEqual(result["actual_value"], 2.0)
         self.assertEqual(result["percent_complete"], 66.67)
+
+    def test_invalid_granularity_raises_error(self):
+        activities = Activity.objects.filter(user=self.user).order_by("date")
+
+        with self.assertRaises(InvalidGranularityError):
+            generate_progress_series(self.goal, activities, "monthly")
+
+    def test_unsupported_goal_type_raises_error(self):
+        unsupported_goal = Goal.objects.create(
+            title="Unsupported goal",
+            description="Unsupported metric",
+            target_value=3,
+            current_value=0,
+            goal_type="pace",
+            status="active",
+            start_date=date(2026, 3, 1),
+            end_date=date(2026, 3, 7),
+            user=self.user,
+        )
+
+        Activity.objects.create(
+            activity_type="running",
+            duration=30,
+            date=date(2026, 3, 1),
+            user=self.user,
+            provider="strava",
+            distance=2,
+            calories=200,
+        )
+
+        activities = Activity.objects.filter(user=self.user).order_by("date")
+
+        with self.assertRaises(UnsupportedGoalTypeError):
+            generate_progress_series(unsupported_goal, activities, "daily")
+
+    def test_other_users_activities_are_ignored(self):
+        Activity.objects.create(
+            activity_type="running",
+            duration=30,
+            date=date(2026, 3, 1),
+            user=self.other_user,
+            provider="strava",
+            distance=25,
+            calories=200,
+        )
+
+        activities = Activity.objects.all().order_by("date")
+        result = generate_progress_series(self.goal, activities, "daily")
+
+        self.assertEqual(result["actual_value"], 0.0)
+        self.assertTrue(result["no_data"])
