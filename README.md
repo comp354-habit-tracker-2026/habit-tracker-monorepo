@@ -1,4 +1,4 @@
-# habit-tracker-monorepo## App-Filtered Goal Progress
+# App-Filtered Goal Progress
 
 This module implements support for app-filtered goal progress, allowing the system to compute progress and status based on activities from a specific source application.
 
@@ -31,9 +31,3 @@ The feature is designed with modularity and separation of concerns:
   Represents goal definitions, including target values and time ranges.
 
 This modular approach ensures low coupling and makes the feature easy to extend or integrate with other components (e.g., sport filtering or analytics services).
-
-### Example Usage
-
-```python
-filtered_activities = filter_by_app(activities, source_app="strava")
-progress = compute_progress(filtered_activities, goal)
