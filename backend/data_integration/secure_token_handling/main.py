@@ -149,6 +149,7 @@ def verify_permission(
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
 
+
     # --- WAITING ON (#11) ---
     # consent = database_session.query(UserConsent).filter_by(
     #     user_id=user_id, provider_name=provider_name
