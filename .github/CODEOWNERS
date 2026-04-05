@@ -1,0 +1,110 @@
+# Code owner file describing reviewers for a pull request.
+# Ownership based on assigned groups.
+
+# Basic ownerships are currently defined here
+# Backend reviewers are based on the architecture file:
+# habit-tracker-monorepo/backend/ARCHITECTURE.md
+# Frontend reviewers are based on the project description slides as provided by the professor.
+
+# Be mindful of capitalization for groups 1-4.
+# Replace {...} with specific folder or file for assigning ownership.
+# Further documentation on inserting ownership convered in README.md.
+
+# external data integration groups (1-6)
+
+# 1. external data integration: Strava
+# /backend/data_integration/{...} @comp354-habit-tracker-2026/Group-01
+
+# 2. external data integration: MapMyRun
+# /backend/data_integration/{...} @comp354-habit-tracker-2026/Group-02
+
+# 3. external data integration: We Ski
+# /backend/data_integration/{...} @comp354-habit-tracker-2026/Group-03
+
+# 4. external data integration: MyWhoosh
+# /backend/data_integration/{...} @comp354-habit-tracker-2026/Group-04
+
+# 5. external data integration adapter
+# /backend/data_integration/{...} @comp354-habit-tracker-2026/group-05
+
+# 6. external data integration normalization
+# /backend/data_integration/{...} @comp354-habit-tracker-2026/group-06
+
+
+# backend and platform groups (7-11)
+
+# 7. user authentication and management
+# /backend/users/{...} @comp354-habit-tracker-2026/group-07
+
+# 8. user management
+# /backend/users/{...} @comp354-habit-tracker-2026/group-08
+
+# 9. activity and workout service
+/backend/activities/ @comp354-habit-tracker-2026/group-09
+
+# 10. core functionalities: API gateway
+# /backend/core/{...} @comp354-habit-tracker-2026/group-10
+
+# 11. core functionalities: persistance
+# /backend/core/{...} @comp354-habit-tracker-2026/group-11
+
+
+# analytics and forecasting groups (12-16)
+
+# 12. analytics: statistics
+# /backend/analytics/{...} @comp354-habit-tracker-2026/group-12
+
+# 13. analytics: trends
+# /backend/analytics/{...} @comp354-habit-tracker-2026/group-13
+
+# 14. analytics: forecasting
+# /backend/analytics/{...} @comp354-habit-tracker-2026/group-14
+
+# 15. analytics: health
+# /backend/analytics/{...} @comp354-habit-tracker-2026/group-15
+
+# 16. analytics: reports and insights
+# /backend/analytics/{...} @comp354-habit-tracker-2026/group-16
+
+
+# frontend and UX groups (17-21)
+
+# 17. dashboard
+/frontend/src/app/routes/app/dashboard.tsx @comp354-habit-tracker-2026/group-17
+
+# 18. mobile UI
+# will work on entirety of frontend along with group 17
+
+# 19. visualizations
+# no current documentation on files owned.
+
+# 20. settings
+/frontend/src/app/routes/app/profile.tsx @comp354-habit-tracker-2026/group-20
+
+# 21. accessibility
+# no code modified.
+
+
+# goals and notifications groups (22-24)
+
+# 22. goal definition
+# /backend/activities/{...} @comp354-habit-tracker-2026/group-22
+
+# 23. achievement detection
+# /backend/activities/{...} @comp354-habit-tracker-2026/group-23
+
+# 24. notifications
+/backend/notifications/ @comp354-habit-tracker-2026/group-24
+
+
+# QA, devops and integration groups (25-27)
+
+# 25. CI
+codecov.yml @comp354-habit-tracker-2026/group-25
+/.github/workflows/ @comp354-habit-tracker-2026/group-25
+
+# 26. testing
+/frontend/cypress/ @comp354-habit-tracker-2026/group-26
+
+# 27. system integration
+# no current documentation on files owned.
