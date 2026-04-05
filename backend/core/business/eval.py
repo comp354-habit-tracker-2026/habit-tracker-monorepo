@@ -139,5 +139,5 @@ def main() -> None:
     save_report(results)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__":  #pragma: no cover
+    main() 

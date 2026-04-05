@@ -7,6 +7,7 @@ from core.business.eval import  (
     FunctionForecastModelWrapper,
     evaluate_model,
     save_report,
+    print_results,
 )
 
 
@@ -180,3 +181,29 @@ def test_save_report_creates_markdown_file(tmp_path) -> None:
     assert "| Model | MAE | RMSE | MAPE |" in content
     assert "| Baseline | 1.0000 | 2.0000 | 3.0000 |" in content
     assert "| Trained | 0.5000 | 1.5000 | 2.5000 |" in content
+
+def test_print_results_outputs_expected_text(capsys) -> None:
+    results = [
+        EvaluationResult(
+            model_name="Baseline",
+            metrics={"MAE": 1.0, "RMSE": 2.0, "MAPE": 3.0},
+        ),
+        EvaluationResult(
+            model_name="Trained",
+            metrics={"MAE": 0.5, "RMSE": 1.5, "MAPE": 2.5},
+        ),
+    ]
+
+    print_results(results)
+    captured = capsys.readouterr()
+
+    assert "Forecast Evaluation Results" in captured.out
+    assert "Model: Baseline" in captured.out
+    assert "MAE: 1.0000" in captured.out
+    assert "RMSE: 2.0000" in captured.out
+    assert "MAPE: 3.0000" in captured.out
+
+    assert "Model: Trained" in captured.out
+    assert "MAE: 0.5000" in captured.out
+    assert "RMSE: 1.5000" in captured.out
+    assert "MAPE: 2.5000" in captured.out
