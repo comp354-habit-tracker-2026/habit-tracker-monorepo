@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.eval import (
+from backend.analytics.presentation.eval import  (
     EvaluationResult,
     FunctionForecastModelWrapper,
     evaluate_model,

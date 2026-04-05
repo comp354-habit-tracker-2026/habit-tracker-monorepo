@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Protocol
 
-from src.metrics import compute_all_metrics
+from backend.analytics.presentation.metrics import compute_all_metrics
 from backend.core.business.predict_model import predict as trained_predict
 from backend.core.business.baseline_model import predict as baseline_predict
 

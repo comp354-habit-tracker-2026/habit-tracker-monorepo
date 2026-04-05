@@ -1,8 +1,12 @@
 import math
 import pytest
 
-from src.metrics import mae, rmse, mape, compute_all_metrics
-
+from backend.analytics.presentation.metrics import  (
+    mae,
+    rmse,
+    mape,
+    compute_all_metrics,
+)
 
 def test_mae_basic() -> None:
     y_true = [10.0, 20.0, 30.0]
