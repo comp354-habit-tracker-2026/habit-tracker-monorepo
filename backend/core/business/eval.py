@@ -129,9 +129,9 @@ def evaluate_all(
     ]
 
 
-def main() -> None:
+def main() -> None: #pragma: no cover
     # Example data only. Replace with real test-set loading later.
-    inputs = [100.0, 120.0, 130.0, 125.0]
+    inputs = [100.0, 120.0, 130.0, 125.0] 
     y_true = [128.0, 131.0, 135.0]
 
     results = evaluate_all(inputs, y_true)
