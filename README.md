@@ -48,3 +48,15 @@ Setting ownership through multiple lines will not add but override ownership.
 This will require a review from those 2 (or more) groups.
 
 Further documentation can be found [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+
+## PR Labeling Automation
+
+This repository uses GitHub Actions to automatically label pull requests.
+
+### How it works
+- Labels are applied based on changed files (e.g. frontend/, backend/)
+- A size label (XS, S, M, L, XL) is also added based on the number of lines changed
+
+### Purpose
+- Helps reviewers quickly understand the scope of a PR
+- Improves organization and review efficiency
