@@ -8,6 +8,7 @@ from django.views import View
 
 from activities.models import Activity
 from goals.models import Goal
+from .models import DemoGoal, DemoActivity
 
 from analytics.progess_series.service import (
     InvalidGranularityError,
@@ -16,34 +17,17 @@ from analytics.progess_series.service import (
     generate_progress_series,
 )
 
-
-@dataclass
-class DemoGoal:
-    id: int
-    title: str
-    goal_type: str
-    target_value: float
-    start_date: date
-    end_date: date
-    user_id: int
-
-
-@dataclass
-class DemoActivity:
-    date: date
-    distance: float = 0.0
-    duration: float = 0.0
-    calories: float = 0.0
-    user_id: int = 1
-
-
 class GoalProgressSeriesView(View):
+    """Return chart-ready goal progress data for the authenticated user."""
+
     def get(self, request, goal_id: int, *args, **kwargs):
-        granularity = request.GET.get("granularity", "daily")
+        granularity = request.GET.get("granularity", "daily").strip().lower()
         use_demo = request.GET.get("demo", "false").lower() == "true"
 
         try:
             if use_demo:
+                # Demo mode is useful while wiring the frontend before real goal
+                # records exist. It is intentionally isolated from DB reads.
                 goal = DemoGoal(
                     id=1,
                     title="Run 20 km this week",
@@ -53,15 +37,14 @@ class GoalProgressSeriesView(View):
                     end_date=date(2026, 3, 7),
                     user_id=1,
                 )
-
                 activities = [
                     DemoActivity(date=date(2026, 3, 1), distance=2.5, user_id=1),
                     DemoActivity(date=date(2026, 3, 2), distance=3.5, user_id=1),
                     DemoActivity(date=date(2026, 3, 4), distance=4.0, user_id=1),
                 ]
             else:
+                # goal progress data.
                 goal = Goal.objects.get(id=goal_id)
-
                 activities = Activity.objects.filter(
                     user=goal.user,
                     date__gte=goal.start_date,
@@ -73,7 +56,7 @@ class GoalProgressSeriesView(View):
                 activities=activities,
                 granularity=granularity,
             )
-            return JsonResponse(result, status=200)
+            return JsonResponse(result.to_dict(), status=200)
 
         except Goal.DoesNotExist:
             return JsonResponse(
@@ -83,18 +66,15 @@ class GoalProgressSeriesView(View):
                 },
                 status=404,
             )
-
         except InvalidGranularityError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
-
         except UnsupportedGoalTypeError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
-
         except ProgressSeriesError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
-
-        except Exception as exc:
+        except Exception:
+            # Avoid leaking internal exception details in production responses.
             return JsonResponse(
-                {"error": "Unexpected server error.", "details": str(exc)},
+                {"error": "Unexpected server error."},
                 status=500,
             )
