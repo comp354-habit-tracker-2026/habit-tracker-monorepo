@@ -9,6 +9,7 @@ import {
   mockActivityCalendarDays,
 } from './mock-activities';
 
+import { GoalsContainer } from '../../../features/goals/components/goals-container';
 const activityCalendarDate = mockActivityCalendarDays[0]?.date ?? new Date();
 type StatsViewMode = 'total' | 'per-activity';
 const oneDayMs = 24 * 60 * 60 * 1000;
@@ -227,6 +228,9 @@ function DashboardRoute() {
                 startDate={selectedDate}
                 renderDayCell={renderActivityDayCell}
               />
+             <div className="mt-4">
+                <GoalsContainer />
+              </div>            
             </div>
           </div>
         </div>

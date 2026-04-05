@@ -17,6 +17,15 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
 // ---------------------------------------------------------------------------
 // Response interceptor – normalise errors into a consistent shape so feature
 // code never has to inspect raw Axios errors.
