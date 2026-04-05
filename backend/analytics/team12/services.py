@@ -22,3 +22,6 @@ class Team12AnalyticsService:
             to_param=to_param,
             activity_type=activity_type,
         )
+
+    def activity_streaks(self, user):
+        return self.repository.activity_streaks(user)
