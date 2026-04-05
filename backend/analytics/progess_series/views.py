@@ -21,7 +21,7 @@ class GoalProgressSeriesView(View):
     """Return chart-ready goal progress data for the authenticated user."""
 
     def get(self, request, goal_id: int, *args, **kwargs):
-        granularity = request.GET.get("granularity", "daily").strip().lower()
+        granularity = request.GET.get("granularity", "daily")
         use_demo = request.GET.get("demo", "false").lower() == "true"
 
         try:
@@ -72,9 +72,9 @@ class GoalProgressSeriesView(View):
             return JsonResponse({"error": str(exc)}, status=400)
         except ProgressSeriesError as exc:
             return JsonResponse({"error": str(exc)}, status=400)
-        except Exception:
+        except Exception as exc:
             # Avoid leaking internal exception details in production responses.
             return JsonResponse(
-                {"error": "Unexpected server error."},
+                {"error": "Unexpected server error.", "details": str(exc)},
                 status=500,
             )
