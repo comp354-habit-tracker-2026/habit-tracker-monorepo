@@ -6,14 +6,13 @@ import { CreateGoalForm } from './create-goal-form';
 
 export const GoalsContainer = () => {
   const { data: goals, isLoading } = useGoals();
+  console.log('GOALS IN COMPONENT:', goals);
   const [filter, setFilter] = useState('all');
 
   if (isLoading) return <div>Loading goals...</div>;
 
   const filtered =
-    filter === 'all'
-      ? goals
-      : goals?.filter((g) => g.goal_type === filter);
+    filter === 'all' ? goals : goals?.filter((g) => g.goal_type === filter);
 
   return (
     <div className="mt-6">

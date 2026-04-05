@@ -3,8 +3,14 @@ type Props = {
   onChange: (value: string) => void;
 };
 
-const filters = ['all', 'streak', 'total', 'frequency'];
-
+const filters = [
+  'all',
+  'custom',
+  'distance',
+  'duration',
+  'frequency',
+  'calories',
+];
 export const GoalFilterTabs = ({ value, onChange }: Props) => {
   return (
     <div className="flex gap-2 mb-4">
