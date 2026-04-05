@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from typing import Callable, Protocol
 
 from analytics.presentation.metrics import compute_all_metrics
-from core.business.predict_model import predict as trained_predict
-from core.business.baseline_model import predict as baseline_predict
+from backend.core.business.predict_model import predict as trained_predict
+from backend.core.business.baseline_model import predict as baseline_predict
 
 
 class ForecastModel(Protocol):
