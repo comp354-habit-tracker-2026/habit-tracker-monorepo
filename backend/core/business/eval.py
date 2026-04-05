@@ -7,7 +7,8 @@ from typing import Callable, Protocol
 
 from core.business.metrics import compute_all_metrics
 from core.business.predict_model import predict as trained_predict
-from core.business.baseline_model import predict as baseline_predict
+
+#from core.business.baseline_model import predict as baseline_predict
 
 
 class ForecastModel(Protocol):
@@ -113,8 +114,8 @@ def evaluate_all(
     y_true: list[float],
 ) -> list[EvaluationResult]:
     baseline_model = FunctionForecastModelWrapper(
-        predict_function=baseline_predict,
-        model_label="Baseline model",
+        predict_function=trained_predict,
+        model_label="trained model (to be replaced with baseline)",
     )
 
     trained_model = FunctionForecastModelWrapper(
@@ -123,7 +124,7 @@ def evaluate_all(
     )
 
     return [
-        evaluate_model("Baseline", baseline_model, inputs, y_true),
+        evaluate_model("trained(to be replaced w baseline)", baseline_model, inputs, y_true),
         evaluate_model("Trained", trained_model, inputs, y_true),
     ]
 
