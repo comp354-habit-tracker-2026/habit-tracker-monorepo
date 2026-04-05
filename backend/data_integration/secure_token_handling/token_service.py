@@ -23,8 +23,7 @@ token_encryptor = Fernet(FERNET_KEY.encode())  # make an encryption tool which i
 USE_FAKE_REFRESH = os.getenv("USE_FAKE_REFRESH", "false").lower() == "true" # for testing refresh logic without actually calling the provider's refresh endpoint (set USE_FAKE_REFRESH=true in .env to use this) -> it will just generate a new fake token instead of calling the real refresh endpoint of the provider, but it will still go through the same database update and response flow as a real refresh would -> this is just for testing the refresh flow without needing valid provider credentials or waiting for the token to expire
 
 # This class manages provider tokens using the database session
-def _log_permission_check(user_id: int, provider_name: str, scope: str, caller_service: str, allowed: bool,
-                          reason: str):
+def _log_permission_check(self, user_id: int, provider_name: str, scope: str, caller_service: str, allowed: bool, reason: str):
     print({
         "timestamp": datetime.now().isoformat(),
         "caller_service": caller_service,

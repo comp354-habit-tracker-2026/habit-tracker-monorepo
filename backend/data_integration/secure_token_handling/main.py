@@ -1,12 +1,13 @@
-
+from fastapi import FastAPI, Depends, HTTPException, Header
 from datetime import datetime
-import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends, HTTPException, Header
 from database import Base, database_connection, open_database_session
-from token_service import ProviderTokenManager
+from token_service import ProviderTokenManager, verify_provider_token
+from token_model import ProviderToken
+import os
+
 # Load values from .env into environment variables
 load_dotenv()  # this is to keep the test api key in local .env
 
@@ -48,6 +49,7 @@ class RevokeProviderTokenRequest(BaseModel):
 class VerifyPermissionRequest(BaseModel):
     user_id: int
     provider_name: str
+    scope: str
 
 # Function that checks if api_key is valid or not
 # Returns 401 if the x-api-key value is wrong
@@ -81,7 +83,7 @@ def root():
     tags=["Provider Tokens"],
     summary="Save provider token"
 )
-def save_provider_token_route(request: SaveProviderTokenRequest, database_session: Session = Depends(open_database_session), 
+def save_provider_token_route(request: SaveProviderTokenRequest, database_session: Session = Depends(open_database_session),
             _: None = Depends(check_api_key)):
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
@@ -138,31 +140,37 @@ def get_provider_token_route(user_id: int, provider_name: str, database_session:
     return token_manager.get_valid_provider_token(user_id=user_id, provider_name=provider_name)
 
 
-@app.post("/api/permissions/verify")
+@app.post("/api/permissions/verify", tags=["Permissions"], summary="Verify user permission")
 def verify_permission(
     request: VerifyPermissionRequest,
     database_session: Session = Depends(open_database_session),
-    _: None = Depends(check_api_key)
+    _: None = Depends(check_api_key),
+    x_caller_service: str = Header(default="")
 ):
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
 
-    consent = database_session.query(UserConsent).filter_by(
-        user_id=user_id, provider_name=provider_name
-    ).first()
+    # --- WAITING ON (#11) ---
+    # consent = database_session.query(UserConsent).filter_by(
+    #     user_id=user_id, provider_name=provider_name
+    # ).first()
+    # if not consent:
+    #     return {"allowed": False, "reason": "CONSENT_NOT_FOUND", ...}
+    # if consent.status == "REVOKED":
+    #     return {"allowed": False, "reason": "CONSENT_REVOKED", ...}
+    # if consent.expires_at and consent.expires_at < datetime.now():
+    #     return {"allowed": False, "reason": "CONSENT_EXPIRED", ...}
 
-    if not consent or consent.status != "ACTIVE":
-        return {"allowed": False, "reason": "NO_CONSENT", "user_id": user_id, "provider_name": provider_name}
+    # --- WAITING ON USERS TABLE OWNER ---
+    # if user.is_deleted:
+    #     return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
 
-    token = database_session.query(ProviderToken).filter_by(
-        user_id=user_id, provider_name=provider_name
-    ).first()
-
-    if not token or token.token_status != "ACTIVE":
-        return {"allowed": False, "reason": "NO_ACTIVE_TOKEN", "user_id": user_id, "provider_name": provider_name}
-
-    # Both checks passed
-    return {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
+    token_manager = ProviderTokenManager(database_session)
+    return token_manager.verify_provider_token(
+        user_id=user_id,
+        provider_name=provider_name,
+        caller_service=x_caller_service
+    )
 
 if __name__ == "__main__":
     import uvicorn
