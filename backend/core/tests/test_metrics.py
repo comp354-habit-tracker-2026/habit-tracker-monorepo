@@ -1,7 +1,7 @@
 import math
 import pytest
 
-from analytics.presentation.metrics import  (
+from business.metrics import  (
     mae,
     rmse,
     mape,
