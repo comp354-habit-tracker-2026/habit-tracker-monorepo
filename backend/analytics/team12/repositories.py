@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 
 from activities.models import Activity
 
+from datetime import date, datetime, timedelta
+
 def get_week_start(date):
     return date - timedelta(days=date.weekday())
 
@@ -48,6 +50,51 @@ class Team12AnalyticsRepository:
                 total_duration=Sum("duration"),
             ).order_by("activity_type")
         ]
+
+        def activity_streaks(self, user):
+        # Assisted by ChatGPT for initial draft of streak calculation logic; reviewed and adapted by Omar.
+        activity_dates = list(
+            Activity.objects.filter(user=user)
+            .values_list("date", flat=True)
+            .order_by("date")
+        )
+
+        if not activity_dates:
+            return {
+                "current_streak": 0,
+                "longest_streak": 0,
+            }
+
+        distinct_dates = sorted(set(activity_dates))
+
+        longest_streak = 1
+        current_run = 1
+
+        for i in range(1, len(distinct_dates)):
+            if distinct_dates[i] == distinct_dates[i - 1] + timedelta(days=1):
+                current_run += 1
+                longest_streak = max(longest_streak, current_run)
+            else:
+                current_run = 1
+
+        today = date.today()
+        current_streak = 0
+
+        if distinct_dates[-1] == today:
+            current_streak = 1
+            cursor = today
+
+            for i in range(len(distinct_dates) - 2, -1, -1):
+                if distinct_dates[i] == cursor - timedelta(days=1):
+                    current_streak += 1
+                    cursor = distinct_dates[i]
+                elif distinct_dates[i] < cursor - timedelta(days=1):
+                    break
+
+        return {
+            "current_streak": current_streak,
+            "longest_streak": longest_streak,
+        }
 
     def weekly_summary(self, user, from_param, to_param, activity_type=None):
         try:
