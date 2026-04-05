@@ -3,15 +3,16 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from activities.models import Activity
+from activities.models import Activity, ConnectedAccount
 from datetime import date
-import json
 
 User = get_user_model()
+
 
 @pytest.fixture
 def api_client():
     return APIClient()
+
 
 @pytest.fixture
 def create_user():
@@ -25,141 +26,156 @@ def create_user():
         return User.objects.create_user(**defaults)
     return _create_user
 
+
 @pytest.fixture
-def authenticated_client(api_client, create_user):
+def create_connected_account():
+    """Creates a connected account (e.g. a user's linked Strava profile)."""
+    def _create(user, provider='strava', external_user_id='ext_123', **kwargs):
+        return ConnectedAccount.objects.create(
+            user=user,
+            provider=provider,
+            external_user_id=external_user_id,
+            **kwargs,
+        )
+    return _create
+
+
+@pytest.fixture
+def authenticated_client(api_client, create_user, create_connected_account):
     user = create_user()
     refresh = RefreshToken.for_user(user)
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
     api_client.user = user
+    # Give the test user a default connected account to create activities with
+    api_client.account = create_connected_account(user)
     return api_client
+
 
 @pytest.fixture
 def create_activity():
-    def _create_activity(user, **kwargs):
+    def _create_activity(account, **kwargs):
         defaults = {
             'activity_type': 'Running',
             'duration': 30,
             'date': date.today(),
-            'provider': 'manual'
         }
         defaults.update(kwargs)
-        return Activity.objects.create(user=user, **defaults)
+        return Activity.objects.create(account=account, **defaults)
     return _create_activity
+
 
 @pytest.mark.django_db
 class TestActivities:
-    def test_create_manual_activity(self, authenticated_client):
-        """Test creating a manual activity entry"""
+    def test_create_activity(self, authenticated_client):
+        """Test creating an activity linked to a connected account"""
         data = {
+            'account': authenticated_client.account.pk,
             'activity_type': 'Running',
             'duration': 45,
             'date': date.today().isoformat(),
             'distance': '10.5',
-            'calories': 450
+            'calories': 450,
         }
         response = authenticated_client.post('/api/v1/activities/', data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
-        assert Activity.objects.filter(activity_type='Running').exists()
-        
         activity = Activity.objects.get(activity_type='Running')
-        assert activity.provider == 'manual'  # Default provider
-        assert activity.distance is not None
+        assert activity.account == authenticated_client.account
         assert float(activity.distance) == 10.5
         assert activity.calories == 450
-        
-    def test_create_external_activity(self, authenticated_client):
-        """Test creating an activity from external provider"""
+
+    def test_create_activity_with_external_id(self, authenticated_client):
+        """Test creating an activity that came from an external provider"""
         raw_strava_data = {
             'id': 12345,
             'name': 'Morning Run',
             'distance': 5000,
             'moving_time': 1800,
-            'total_elevation_gain': 50
+            'total_elevation_gain': 50,
         }
-        
         data = {
+            'account': authenticated_client.account.pk,
             'activity_type': 'Running',
             'duration': 30,
             'date': date.today().isoformat(),
-            'provider': 'strava',
             'external_id': '12345',
             'distance': '5.0',
-            'raw_data': raw_strava_data  # Send as dict, not JSON string
+            'raw_data': raw_strava_data,
         }
         response = authenticated_client.post('/api/v1/activities/', data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
-        
         activity = Activity.objects.get(external_id='12345')
-        assert activity.provider == 'strava'
+        assert activity.account.provider == 'strava'
         assert activity.raw_data['id'] == 12345
-        
+
     def test_prevent_duplicate_external_activity(self, authenticated_client):
-        """Test that duplicate external activities are prevented"""
+        """Test that the same external activity cannot be imported twice"""
         data = {
+            'account': authenticated_client.account.pk,
             'activity_type': 'Running',
             'duration': 30,
             'date': date.today().isoformat(),
-            'provider': 'strava',
-            'external_id': '12345'
+            'external_id': '12345',
         }
-        
-        # Create first activity
         response1 = authenticated_client.post('/api/v1/activities/', data, format='json')
         assert response1.status_code == status.HTTP_201_CREATED
-        
-        # Try to create duplicate
+
         response2 = authenticated_client.post('/api/v1/activities/', data, format='json')
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
-        
+
     def test_list_activities_with_pagination(self, authenticated_client, create_activity):
-        """Test activities list is paginated"""
-        # Create 25 activities
+        """Test that the activity list is paginated"""
         for i in range(25):
             create_activity(
-                authenticated_client.user,
+                authenticated_client.account,
                 activity_type=f'Activity {i}',
-                date=date.today()
+                date=date.today(),
             )
-            
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert 'results' in response.data
         assert 'count' in response.data
         assert 'next' in response.data
         assert len(response.data['results']) == 20  # Default page size
-        
-    def test_list_activities_only_own(self, authenticated_client, create_user, create_activity):
-        """Test user can only see their own activities"""
+
+    def test_list_activities_only_own(self, authenticated_client, create_user,
+                                      create_connected_account, create_activity):
+        """Test that a user can only see their own activities, not other users'"""
         other_user = create_user(username='otheruser', email='other@example.com')
-        
-        # Create activities for different users
-        create_activity(other_user, activity_type='Swimming')
-        create_activity(authenticated_client.user, activity_type='Running')
-        
+        other_account = create_connected_account(other_user, external_user_id='other_ext')
+
+        create_activity(other_account, activity_type='Swimming')
+        create_activity(authenticated_client.account, activity_type='Running')
+
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 1
         assert response.data['results'][0]['activity_type'] == 'Running'
-        
-    def test_filter_activities_by_provider(self, authenticated_client, create_activity):
-        """Test filtering activities by provider"""
-        create_activity(authenticated_client.user, provider='manual')
-        create_activity(authenticated_client.user, provider='strava', external_id='123')
-        create_activity(authenticated_client.user, provider='mapmyrun', external_id='456')
-        
-        response = authenticated_client.get('/api/v1/activities/')
+
+    def test_filter_activities_by_provider(self, authenticated_client,
+                                            create_user, create_connected_account,
+                                            create_activity):
+        """Test filtering activities by provider (resolved through the connected account)"""
+        user = authenticated_client.user
+        strava_account = authenticated_client.account  # provider='strava'
+        mapmyrun_account = create_connected_account(
+            user, provider='mapmyrun', external_user_id='mmr_ext'
+        )
+
+        create_activity(strava_account)
+        create_activity(mapmyrun_account)
+
+        response = authenticated_client.get('/api/v1/activities/?provider=strava')
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 3
-        
+        assert response.data['count'] == 1
+
     def test_activity_date_filtering(self, authenticated_client, create_activity):
-        """Test activities can be filtered by date range"""
+        """Test filtering activities by date range"""
         from datetime import timedelta
-        
         today = date.today()
-        create_activity(authenticated_client.user, date=today - timedelta(days=7))
-        create_activity(authenticated_client.user, date=today)
-        create_activity(authenticated_client.user, date=today + timedelta(days=7))
-        
+        create_activity(authenticated_client.account, date=today - timedelta(days=7))
+        create_activity(authenticated_client.account, date=today)
+        create_activity(authenticated_client.account, date=today + timedelta(days=7))
+
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3

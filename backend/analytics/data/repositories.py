@@ -5,7 +5,7 @@ from activities.models import Activity
 
 class AnalyticsRepository:
     def activity_statistics(self, user):
-        queryset = Activity.objects.filter(user=user)
+        queryset = Activity.objects.filter(account__user=user)
         return {
             "total_distance": queryset.aggregate(value=Sum("distance"))["value"] or 0,
             "total_calories": queryset.aggregate(value=Sum("calories"))["value"] or 0,
