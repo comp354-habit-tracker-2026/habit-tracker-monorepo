@@ -2,7 +2,7 @@
 
 import pytest
 
-from presentation.eval import  (
+from business.eval import  (
     EvaluationResult,
     FunctionForecastModelWrapper,
     evaluate_model,
