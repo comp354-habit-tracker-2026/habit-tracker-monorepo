@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Protocol
 
-from business.metrics import compute_all_metrics
-from business.predict_model import predict as trained_predict
-from business.baseline_model import predict as baseline_predict
+from core.business.metrics import compute_all_metrics
+from core.business.predict_model import predict as trained_predict
+from core.business.baseline_model import predict as baseline_predict
 
 
 class ForecastModel(Protocol):
