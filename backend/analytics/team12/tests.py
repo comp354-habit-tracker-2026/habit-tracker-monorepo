@@ -6,6 +6,15 @@ from django.contrib.auth import get_user_model
 
 from activities.models import Activity
 from analytics.team12.services import Team12AnalyticsService
+from django.db.models.signals import post_save
+from activities.models import Activity
+from gamification.signals import evaluate_achievements_on_activity
+
+@pytest.fixture(autouse=True)
+def disable_activity_signals():
+    post_save.disconnect(evaluate_achievements_on_activity, sender=Activity)
+    yield
+    post_save.connect(evaluate_achievements_on_activity, sender=Activity)
 
 
 User = get_user_model()
@@ -23,7 +32,6 @@ def create_user(db):
         return User.objects.create_user(**defaults)
 
     return _create_user
-
 
 @pytest.fixture
 def team12_service():
@@ -91,3 +99,106 @@ class TestTeam12AnalyticsService:
         assert cycling_row["total_distance"] == Decimal("12")
         assert cycling_row["total_calories"] == 200
         assert cycling_row["total_duration"] == 30
+    
+    def test_weekly_summary(self, create_user, create_activity, team12_service):
+        user = create_user(username="team12user4", email="team12d@example.com")
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=30,
+            distance=5000,
+            date=date(2026, 1, 6),
+        )
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=60,
+            distance=10000,
+            date=date(2026, 1, 8),
+        )
+        create_activity(
+            user,
+            activity_type="Cycling",
+            duration=45,
+            distance=15000,
+            date=date(2026, 1, 15),
+        )
+
+        result = team12_service.weekly_summary(user, "2026-01", "2026-01")
+
+        assert len(result) == 5
+
+        week_1 = next(row for row in result if row["weekStart"] == "2026-01-05")
+        week_2 = next(row for row in result if row["weekStart"] == "2026-01-12")
+        empty_week = next(row for row in result if row["weekStart"] == "2026-01-19")
+
+        assert week_1["workoutCount"] == 2
+        assert week_1["totalDuration"] == 90
+        assert week_1["totalDistance"] == pytest.approx(15000.0)
+        assert week_1["avgSpeed"] == pytest.approx(6.0)
+        assert week_1["avgHR"] is None
+
+        assert week_2["workoutCount"] == 1
+        assert week_2["totalDuration"] == 45
+        assert week_2["totalDistance"] == pytest.approx(15000.0)
+        assert week_2["avgSpeed"] == pytest.approx(3.0)
+        assert week_2["avgHR"] is None
+
+        assert empty_week["workoutCount"] == 0
+        assert empty_week["totalDuration"] == 0
+        assert empty_week["totalDistance"] == 0
+        assert empty_week["avgSpeed"] == 0
+        assert empty_week["avgHR"] is None
+
+    def test_weekly_summary_with_activity_type_filter(self, create_user, create_activity, team12_service):
+        user = create_user(username="team12user5", email="team12e@example.com")
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=30,
+            distance=5000,
+            date=date(2026, 1, 6),
+        )
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=60,
+            distance=10000,
+            date=date(2026, 1, 8),
+        )
+        create_activity(
+            user,
+            activity_type="Cycling",
+            duration=45,
+            distance=15000,
+            date=date(2026, 1, 15),
+        )
+
+        result = team12_service.weekly_summary(user, "2026-01", "2026-01", activity_type="Running")
+
+        week_1 = next(row for row in result if row["weekStart"] == "2026-01-05")
+        week_2 = next(row for row in result if row["weekStart"] == "2026-01-12")
+
+        assert week_1["workoutCount"] == 2
+        assert week_1["totalDuration"] == 90
+        assert week_1["totalDistance"] == pytest.approx(15000.0)
+        assert week_1["avgSpeed"] == pytest.approx(6.0)
+        assert week_1["avgHR"] is None
+
+        assert week_2["workoutCount"] == 0
+        assert week_2["totalDuration"] == 0
+        assert week_2["totalDistance"] == 0
+        assert week_2["avgSpeed"] == 0
+        assert week_2["avgHR"] is None
+
+    def test_weekly_summary_invalid_date_format(self, create_user, team12_service):
+        user = create_user(username="team12user6", email="team12f@example.com")
+
+        with pytest.raises(ValueError, match="Invalid date format YYYY-MM"):
+            team12_service.weekly_summary(user, "2026/01", "2026-01")
+
+    def test_weekly_summary_invalid_date_range(self, create_user, team12_service):
+        user = create_user(username="team12user7", email="team12g@example.com")
+
+        with pytest.raises(ValueError, match="'to' must be >= 'from'"):
+            team12_service.weekly_summary(user, "2026-03", "2026-01")

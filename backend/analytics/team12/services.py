@@ -1,9 +1,8 @@
-from core.business import BaseService
 
 from analytics.team12.repositories import Team12AnalyticsRepository
 
 
-class Team12AnalyticsService(BaseService):
+class Team12AnalyticsService:
     def __init__(self, repository=None):
         self.repository = repository or Team12AnalyticsRepository()
 
@@ -15,3 +14,11 @@ class Team12AnalyticsService(BaseService):
 
     def activity_type_breakdown(self, user):
         return self.repository.activity_type_breakdown(user)
+
+    def weekly_summary(self, user, from_param, to_param, activity_type=None):
+        return self.repository.weekly_summary(
+            user=user,
+            from_param=from_param,
+            to_param=to_param,
+            activity_type=activity_type,
+        )
