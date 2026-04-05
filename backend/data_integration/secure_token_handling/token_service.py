@@ -9,7 +9,7 @@ from token_model import ProviderToken  # database model related
 # --- GENERATE A FERNET KEY (USING TERMINAL) ----
 # terminal: python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 # terminal: export FERNET_KEY="generated key pasted here"
-# -----------------------------------------------
+# -----------------------------------------------git config --global --edit
 
 # Load values from .env into environment variables
 load_dotenv()  # this is to keep the fernet key and provider secrets in local .env
