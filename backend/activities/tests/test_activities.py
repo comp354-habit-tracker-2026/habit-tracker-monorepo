@@ -179,3 +179,14 @@ class TestActivities:
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    def test_connected_account_str(self, authenticated_client):
+        """Test the string representation of a ConnectedAccount"""
+        account = authenticated_client.account
+        assert str(account) == f"{account.user} via {account.provider}"
+
+    def test_activity_str(self, authenticated_client, create_activity):
+        """Test the string representation of an Activity"""
+        activity = create_activity(authenticated_client.account)
+        expected = f"{activity.activity_type} - {activity.date} ({authenticated_client.account.provider})"
+        assert str(activity) == expected
