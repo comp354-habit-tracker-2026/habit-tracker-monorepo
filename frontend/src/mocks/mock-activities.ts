@@ -1,6 +1,16 @@
 // just a placeholder for now replace with real data when available
 
+
+import {
+  ActivityBreakdownMetric,
+  ActivitySource,
+  ActivitySourceFormat,
+  ActivityType,
+} from './activity-types';
+
 import type {
+  ActivityAggregate,
+  ActivityBreakdownItem,
   ActivityDetail,
   ActivityListItem,
   ActivityStreamPayload,
@@ -9,9 +19,9 @@ import type {
 export const mockActivities: ActivityListItem[] = [
   {
     id: 'weski_2026_01_25',
-    source: 'we-ski',
-    sourceFormat: 'gpx',
-    activityType: 'ski',
+    source: ActivitySource.WeSki,
+    sourceFormat: ActivitySourceFormat.Gpx,
+    activityType: ActivityType.Ski,
     title: 'Sommet Saint-Sauveur',
     startedAt: '2026-01-25T16:16:36Z',
     endedAt: '2026-01-25T17:54:55Z',
@@ -27,9 +37,9 @@ export const mockActivities: ActivityListItem[] = [
   },
   {
     id: 'mapmyrun_8700883871',
-    source: 'map-my-run',
-    sourceFormat: 'xlsx',
-    activityType: 'bike-ride',
+    source: ActivitySource.MapMyRun,
+    sourceFormat: ActivitySourceFormat.Xlsx,
+    activityType: ActivityType.BikeRide,
     title: 'Bike Ride',
     startedAt: '2025-11-04T14:00:00Z',
     endedAt: '2025-11-04T16:27:45Z',
@@ -46,9 +56,9 @@ export const mockActivities: ActivityListItem[] = [
   },
   {
     id: 'mywhoosh_r7whm',
-    source: 'my-whoosh',
-    sourceFormat: 'fit',
-    activityType: 'cycling',
+    source: ActivitySource.MyWhoosh,
+    sourceFormat: ActivitySourceFormat.Fit,
+    activityType: ActivityType.Cycling,
     title: 'Indoor Ride',
     startedAt: '2025-10-21T18:30:00Z',
     endedAt: '2025-10-21T19:42:00Z',
@@ -67,9 +77,9 @@ export const mockActivities: ActivityListItem[] = [
 
 export const mockActivityDetail: ActivityDetail = {
   id: 'weski_2026_01_25',
-  source: 'we-ski',
-  sourceFormat: 'gpx',
-  activityType: 'ski',
+  source: ActivitySource.WeSki,
+  sourceFormat: ActivitySourceFormat.Gpx,
+  activityType: ActivityType.Ski,
   title: 'Sommet Saint-Sauveur',
   startedAt: '2026-01-25T16:16:36Z',
   endedAt: '2026-01-25T17:54:55Z',
@@ -129,7 +139,7 @@ export const mockActivityDetail: ActivityDetail = {
 
 export const mockActivityStreams: ActivityStreamPayload = {
   id: 'mywhoosh_r7whm',
-  activityType: 'cycling',
+  activityType: ActivityType.Cycling,
   streams: {
     time: [0, 5, 10, 15, 20, 25, 30],
     distanceKm: [0, 0.04, 0.09, 0.14, 0.19, 0.24, 0.29],
@@ -140,3 +150,80 @@ export const mockActivityStreams: ActivityStreamPayload = {
     elevationM: [204, 204, 205, 205, 206, 206, 207],
   },
 };
+
+export const mockActivityAggregates: ActivityAggregate[] = [
+  {
+    activity_type: ActivityType.Cycling,
+    total_distance: 412.8,
+    total_duration: 5580,
+    average_speed: 29.4,
+    average_heart_rate: 152,
+    total_calories: 12840,
+    activity_count: 22,
+  },
+  {
+    activity_type: ActivityType.Walking,
+    total_distance: 84.3,
+    total_duration: 2140,
+    average_speed: 5.2,
+    average_heart_rate: 108,
+    total_calories: 4210,
+    activity_count: 26,
+  },
+  {
+    activity_type: ActivityType.Run,
+    total_distance: 120.5,
+    total_duration: 540,
+    average_speed: 9.5,
+    average_heart_rate: 145,
+    total_calories: 3500,
+    activity_count: 18,
+  },
+  {
+    activity_type: ActivityType.Snowboarding,
+    total_distance: 62.1,
+    total_duration: 1780,
+    average_speed: 14.8,
+    average_heart_rate: 132,
+    total_calories: 4960,
+    activity_count: 9,
+  },
+  {
+    activity_type: ActivityType.Ski,
+    total_distance: 77.4,
+    total_duration: 1960,
+    average_speed: 12.6,
+    average_heart_rate: 136,
+    total_calories: 5820,
+    activity_count: 11,
+  },
+];
+
+const activityColors: Partial<Record<ActivityType, string>> = {
+  [ActivityType.Cycling]: '#2e86ab',
+  [ActivityType.Walking]: '#7d8f69',
+  [ActivityType.Run]: '#c73e1d',
+  [ActivityType.Snowboarding]: '#7b2cbf',
+  [ActivityType.Ski]: '#f18f01',
+};
+
+export function mapActivityAggregatesToPieData(
+  aggregates: ActivityAggregate[],
+  metric: ActivityBreakdownMetric,
+): ActivityBreakdownItem[] {
+  return aggregates.map((activity) => ({
+    label: activity.activity_type,
+    value: activity[metric],
+    color: activityColors[activity.activity_type] ?? '#8884d8',
+  }));
+}
+
+export const mockPieChartByCount = mapActivityAggregatesToPieData(
+  mockActivityAggregates,
+  ActivityBreakdownMetric.ActivityCount,
+);
+
+export const mockPieChartByDistance = mapActivityAggregatesToPieData(
+  mockActivityAggregates,
+  ActivityBreakdownMetric.TotalDistance,
+);
