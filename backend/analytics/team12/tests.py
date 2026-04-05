@@ -1,5 +1,5 @@
 import pytest
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -202,3 +202,51 @@ class TestTeam12AnalyticsService:
 
         with pytest.raises(ValueError, match="'to' must be >= 'from'"):
             team12_service.weekly_summary(user, "2026-03", "2026-01")
+
+    def test_activity_streaks_no_activities(self, create_user, team12_service):
+        user = create_user(username="team12user8", email="team12h@example.com")
+
+        result = team12_service.activity_streaks(user)
+
+        assert result["current_streak"] == 0
+        assert result["longest_streak"] == 0
+
+    def test_activity_streaks_multiple_same_day_count_once(self, create_user, create_activity, team12_service):
+        user = create_user(username="team12user9", email="team12i@example.com")
+        today = date.today()
+
+        create_activity(user, date=today, duration=20)
+        create_activity(user, date=today, duration=40)
+        create_activity(user, date=today, duration=60)
+
+        result = team12_service.activity_streaks(user)
+
+        assert result["current_streak"] == 1
+        assert result["longest_streak"] == 1
+
+    def test_activity_streaks_consecutive_days(self, create_user, create_activity, team12_service):
+        user = create_user(username="team12user10", email="team12j@example.com")
+        today = date.today()
+
+        create_activity(user, date=today - timedelta(days=2), duration=30)
+        create_activity(user, date=today - timedelta(days=1), duration=30)
+        create_activity(user, date=today, duration=30)
+
+        result = team12_service.activity_streaks(user)
+
+        assert result["current_streak"] == 3
+        assert result["longest_streak"] == 3
+
+    def test_activity_streaks_broken_current_but_longer_historical(self, create_user, create_activity, team12_service):
+        user = create_user(username="team12user11", email="team12k@example.com")
+        today = date.today()
+
+        create_activity(user, date=today - timedelta(days=6), duration=30)
+        create_activity(user, date=today - timedelta(days=5), duration=30)
+        create_activity(user, date=today - timedelta(days=4), duration=30)
+        create_activity(user, date=today - timedelta(days=1), duration=30)
+
+        result = team12_service.activity_streaks(user)
+
+        assert result["current_streak"] == 0
+        assert result["longest_streak"] == 3
