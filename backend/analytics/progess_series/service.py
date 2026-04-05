@@ -8,15 +8,14 @@ from typing import Any, Iterable
 
 
 class ProgressSeriesError(Exception):
-    pass
-
+    """Base error for progress-series generation failures."""
 
 class InvalidGranularityError(ProgressSeriesError):
-    pass
-
+    """Raised when a caller requests an unsupported bucket size."""
 
 class UnsupportedGoalTypeError(ProgressSeriesError):
-    pass
+    """Raised when the goal metric cannot be derived from an activity."""
+
 
 
 @dataclass
