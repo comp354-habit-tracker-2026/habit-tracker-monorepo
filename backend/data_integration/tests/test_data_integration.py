@@ -3,11 +3,18 @@ from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from core.business.exceptions import DomainValidationError
+from data_integration.business import WeSkiGpxImportService
 from data_integration.business.we_ski.domain import ParsedSession, TrackPoint
 from data_integration.business.we_ski.validator import WeSkiGpxValidator
+from data_integration.presentation.viewsets import (
+    DataIntegrationSerializer,
+    DataIntegrationViewSet,
+    WeSkiGpxUploadSerializer,
+)
 
 User = get_user_model()
 
@@ -142,4 +149,44 @@ def test_we_ski_validator_repairs_missing_coordinates_and_filters_bad_points():
     assert cleaned_session.points[1].lon is not None
     assert cleaned_session.points[1].lat == pytest.approx(45.0001)
     assert cleaned_session.points[1].lon == pytest.approx(-74.0001)
+
+
+def test_viewset_serializer_class_switches_for_upload_action():
+    viewset = DataIntegrationViewSet()
+
+    viewset.action = "upload_we_ski_gpx"
+    assert viewset.get_serializer_class() is WeSkiGpxUploadSerializer
+
+    viewset.action = "list"
+    assert viewset.get_serializer_class() is DataIntegrationSerializer
+
+
+def test_viewset_get_serializer_includes_request_context():
+    factory = APIRequestFactory()
+    viewset = DataIntegrationViewSet()
+    viewset.action = "upload_we_ski_gpx"
+    viewset.request = factory.post("/api/v1/data-integrations/we-ski/gpx-upload/", {})
+
+    serializer = viewset.get_serializer(data={})
+
+    assert serializer.context["request"] is viewset.request
+    assert serializer.context["view"] is viewset
+
+
+@pytest.mark.django_db
+def test_upload_we_ski_gpx_maps_domain_validation_error_to_file_error(authenticated_client, monkeypatch):
+    def raise_validation_error(self, raw_gpx, filename=None):
+        raise DomainValidationError("fixture-backed import failed")
+
+    monkeypatch.setattr(WeSkiGpxImportService, "import_gpx", raise_validation_error)
+
+    response = authenticated_client.post(
+        "/api/v1/data-integrations/we-ski/gpx-upload/",
+        {"file": SimpleUploadedFile("session.gpx", b"ignored", content_type="application/gpx+xml")},
+        format="multipart",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "file" in response.data
+    assert str(response.data["file"][0]) == "fixture-backed import failed"
 
