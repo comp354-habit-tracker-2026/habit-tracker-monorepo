@@ -16,7 +16,7 @@ class OutboxEvent(models.Model):
         default=Status.PENDING,
     )
 
-    attempts = models.IntegerField(default=0)
+    attempts = models.PositiveIntegerField(default=0)
     last_error = models.TextField(null=True, blank=True)
 
     idempotency_key = models.CharField(
@@ -24,6 +24,7 @@ class OutboxEvent(models.Model):
         null=True,
         blank=True,
         db_index=True,
+        unique=True,
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
