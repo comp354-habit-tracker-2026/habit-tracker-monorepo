@@ -1,5 +1,6 @@
 // just a placeholder for now replace with real data when available
 
+
 import {
   ActivityBreakdownMetric,
   ActivitySource,

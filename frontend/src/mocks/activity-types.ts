@@ -21,6 +21,7 @@ export enum ActivityType {
   Snowboarding = 'snowboarding',
 }
 
+
 export type ActivitySummary = {
   durationSeconds: number;
   distanceKm?: number;
@@ -95,7 +96,6 @@ export type ActivityStreamPayload = {
   activityType: ActivityType;
   streams: ActivityStreams;
 };
-
 export type ActivityAggregate = {
   activity_type: ActivityType;
   total_distance: number;
