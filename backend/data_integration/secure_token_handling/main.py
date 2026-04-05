@@ -4,8 +4,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import Base, database_connection, open_database_session
-from token_service import ProviderTokenManager, verify_provider_token
-from token_model import ProviderToken
+from token_service import ProviderTokenManager
 import os
 
 # Load values from .env into environment variables
@@ -140,7 +139,7 @@ def get_provider_token_route(user_id: int, provider_name: str, database_session:
     return token_manager.get_valid_provider_token(user_id=user_id, provider_name=provider_name)
 
 
-@app.post("/api/permissions/verify", tags=["Permissions"], summary="Verify user permission")
+@app.post("/api/permissions/verify")
 def verify_permission(
     request: VerifyPermissionRequest,
     database_session: Session = Depends(open_database_session),
@@ -165,12 +164,11 @@ def verify_permission(
     # if user.is_deleted:
     #     return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
 
-    token_manager = ProviderTokenManager(database_session)
-    return token_manager.verify_provider_token(
-        user_id=user_id,
-        provider_name=provider_name,
-        caller_service=x_caller_service
-    )
+    if not token or token.token_status != "ACTIVE":
+        return {"allowed": False, "reason": "NO_ACTIVE_TOKEN", "user_id": user_id, "provider_name": provider_name}
+
+    # Both checks passed
+    return {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
 
 if __name__ == "__main__":
     import uvicorn

@@ -450,3 +450,13 @@ class ProviderTokenManager:
 
         return result
 
+
+# this is just to test if the refresh works since I dont have access yet to the real providers
+USE_FAKE_REFRESH = os.getenv("USE_FAKE_REFRESH", "false").lower() == "true" # for testing refresh logic without actually calling the provider's refresh endpoint (set USE_FAKE_REFRESH=true in .env to use this) -> it will just generate a new fake token instead of calling the real refresh endpoint of the provider, but it will still go through the same database update and response flow as a real refresh would -> this is just for testing the refresh flow without needing valid provider credentials or waiting for the token to expire
+
+# This class manages provider tokens using the database session
+class ProviderTokenManager:
+    # Constructor
+    # Saves the current database session inside the object so all methods can use it
+    def __init__(self, database_session: Session):
+        self.database_session = database_session
