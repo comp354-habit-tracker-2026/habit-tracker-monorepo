@@ -28,9 +28,15 @@
 }
 
 .activity-bar-chart__description,
+.activity-bar-chart__date-range,
 .activity-bar-chart__empty-copy {
   margin: 0;
   color: #4f6175;
+}
+
+.activity-bar-chart__date-range {
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .activity-bar-chart__content {
