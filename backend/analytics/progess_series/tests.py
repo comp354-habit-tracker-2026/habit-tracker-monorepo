@@ -247,3 +247,43 @@ class GoalProgressSeriesTests(TestCase):
 
         self.assertEqual(result["actual_value"], 0.0)
         self.assertTrue(result["no_data"])
+
+    #new test for filtering only by sport matching counts
+    def test_sport_filter_only_counts_matching_activities(self):
+        Activity.objects.create(
+            activity_type="running",
+            duration=30,
+            date=date(2026, 3, 1),
+            user=self.user,
+            provider="strava",
+            distance=2.5,
+            calories=200,
+        )
+        Activity.objects.create(
+            activity_type="cycling",
+            duration=45,
+            date=date(2026, 3, 2),
+            user=self.user,
+            provider="mapmyrun",
+            distance=10.0,
+            calories=300,
+        )
+        Activity.objects.create(
+            activity_type="running",
+            duration=40,
+            date=date(2026, 3, 3),
+            user=self.user,
+            provider="strava",
+            distance=3.5,
+            calories=250,
+        )
+
+        activities = Activity.objects.filter(user=self.user).order_by("date")
+        result = generate_progress_series(self.goal, activities, "daily", sport="running")
+
+        self.assertEqual(result.actual_value, 6.0)
+        self.assertEqual(result.percent_complete, 30.0)
+        self.assertEqual(len(result.points), 7)
+        self.assertEqual(result.points[0].value, 2.5)
+        self.assertEqual(result.points[1].value, 0.0)   # cycling ignored
+        self.assertEqual(result.points[2].value, 3.5)
