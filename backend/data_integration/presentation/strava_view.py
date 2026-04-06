@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from django.conf import settings
 from ..data.strava import StravaAuthService
 from rest_framework.permissions import AllowAny
-from rest_framework.authentication import SessionAuthentication
 import logging
 
 logger = logging.getLogger(__name__)
