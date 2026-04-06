@@ -106,6 +106,42 @@ def test_strava_fetcher_uses_date_filters_and_paginates(mock_urlopen):
     assert "page=2" in second_request.full_url
 
 
+@patch("data_integration.data.strava.urlopen")
+def test_strava_fetcher_stops_after_first_full_page_without_date_filters(mock_urlopen):
+    mock_response = Mock()
+    mock_response.read.return_value = json_bytes([{**RAW_ACTIVITY, "id": idx} for idx in range(30)])
+    mock_urlopen.return_value = context_manager(mock_response)
+
+    fetcher = StravaActivityFetcher()
+    activities = fetcher.get_all_activities(access_token="token-789")
+
+    assert len(activities) == 30
+    assert mock_urlopen.call_count == 1
+
+
+@patch("data_integration.data.strava.urlopen")
+def test_strava_fetcher_returns_empty_list_when_first_page_is_empty(mock_urlopen):
+    mock_response = Mock()
+    mock_response.read.return_value = b"[]"
+    mock_urlopen.return_value = context_manager(mock_response)
+
+    fetcher = StravaActivityFetcher()
+
+    assert fetcher.get_all_activities(access_token="token-empty") == []
+
+
+@patch("data_integration.data.strava.urlopen")
+def test_strava_fetcher_raises_for_non_list_payload(mock_urlopen):
+    mock_response = Mock()
+    mock_response.read.return_value = json_bytes({"message": "not-a-list"})
+    mock_urlopen.return_value = context_manager(mock_response)
+
+    fetcher = StravaActivityFetcher()
+
+    with pytest.raises(ValueError, match="Expected Strava activities response to be a list."):
+        fetcher.get_all_activities(access_token="token-invalid")
+
+
 def test_data_integration_service_delegates_to_strava_fetcher():
     fetcher = Mock()
     fetcher.get_all_activities.return_value = ["activity"]
@@ -213,3 +249,38 @@ def test_strava_service_camel_case_wrapper():
         
         assert result["status"] == "ok"
         mock_method.assert_called_once_with("some_code")
+
+
+def test_to_epoch_returns_none_for_none_input():
+    assert StravaActivityFetcher._to_epoch(None, end_of_day=False) is None
+
+
+def test_coerce_datetime_accepts_datetime_with_timezone():
+    original = datetime(2025, 9, 27, 0, 30, 50, tzinfo=timezone.utc)
+
+    parsed = StravaActivityFetcher._coerce_datetime(original, end_of_day=False)
+
+    assert parsed == original
+
+
+def test_coerce_datetime_accepts_naive_date_values():
+    parsed = StravaActivityFetcher._coerce_datetime(date(2025, 8, 27), end_of_day=True)
+
+    assert parsed == datetime(2025, 8, 27, 23, 59, 59, tzinfo=timezone.utc)
+
+
+def test_coerce_datetime_accepts_iso_datetime_string_with_offset():
+    parsed = StravaActivityFetcher._coerce_datetime("2025-09-27T00:30:50-04:00", end_of_day=False)
+
+    assert parsed == datetime(2025, 9, 27, 4, 30, 50, tzinfo=timezone.utc)
+
+
+def test_coerce_datetime_accepts_date_only_string():
+    parsed = StravaActivityFetcher._coerce_datetime("2025-08-27", end_of_day=False)
+
+    assert parsed == datetime(2025, 8, 27, 0, 0, 0, tzinfo=timezone.utc)
+
+
+def test_coerce_datetime_rejects_unsupported_types():
+    with pytest.raises(TypeError, match="Date values must be date, datetime, ISO 8601 string, or None."):
+        StravaActivityFetcher._coerce_datetime(123, end_of_day=False)
