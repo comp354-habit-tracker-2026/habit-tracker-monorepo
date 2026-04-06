@@ -7,9 +7,9 @@ run-name: (g26-168) Cypress E2E Tests on ${{ github.ref_name }} by @${{ github.a
 # This workflow is going to be triggered every time there is a PUSH or PULL_REQUEST on integration/g26-168-e2e-ci-pipeline
 on:
   push:
-    branches: [integration/g26-168-e2e-ci-pipeline]
+    branches: ["main", "integration/g26-168-e2e-ci-pipeline"]
   pull_request:
-    branches: [integration/g26-168-e2e-ci-pipeline]
+    branches: ["main"]
 
 #Workflow
 
