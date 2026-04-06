@@ -165,11 +165,14 @@ def verify_permission(
     # if user.is_deleted:
     #     return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
 
-    if not token or token.token_status != "ACTIVE":
-        return {"allowed": False, "reason": "NO_ACTIVE_TOKEN", "user_id": user_id, "provider_name": provider_name}
 
-    # Both checks passed
-    return {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
+    token_manager = ProviderTokenManager(database_session)
+    return token_manager.verify_provider_token(
+        user_id=user_id,
+        provider_name=provider_name,
+        scope=request.scope,
+        caller_service=x_caller_service
+    )
 
 if __name__ == "__main__":
     import uvicorn
