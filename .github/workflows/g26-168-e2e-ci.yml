@@ -40,9 +40,13 @@ jobs:
       working-directory: ./frontend
 #     Run cypress tests, runs the cypress:ci script from package.json
 #     --retires 1 retries any failed test ONCE before marking as failed
+#     Instead of passing the retry command in command line
+#     setting it as an ENV variable hoping this solves the error
     - name: Run Cypress E2E tests 
-      run: npm run cypress:ci -- --retries 1
+      run: npm run cypress:ci
       working-directory: ./frontend
+      env:
+        CYPRESS_RETRIES: 1
 #     Upload Cypress videos
 #     always(), runs this step no matter what
 #     Github prebuilt action
