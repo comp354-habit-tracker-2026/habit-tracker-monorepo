@@ -1,0 +1,29 @@
+name: Stale PR Labeler
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:      # Allows manual triggering
+
+jobs:
+  stale:
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-pr-stale: 14
+          days-before-pr-close: -1        # Never auto-close, just label
+          days-before-issue-stale: -1     # Don't touch issues
+          days-before-issue-close: -1
+          stale-pr-label: 'stale'
+          stale-pr-message: >
+            This PR has been inactive for 14 days and has been marked as stale.
+            Please update it or it may be deprioritized. Add the `do-not-stale`
+            label to exempt it from this process.
+          exempt-pr-labels: 'do-not-stale'
+          remove-stale-when-updated: true
