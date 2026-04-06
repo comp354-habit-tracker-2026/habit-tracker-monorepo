@@ -27,6 +27,10 @@ class DataIntegrationService(BaseService):
             },
         ]
 
+        # Derive is_synced from last_synced_at using the helper
+        for integration in integrations:
+            integration["is_synced"] = self.is_synced(integration["last_synced_at"])
+
         if provider:
             integrations = [item for item in integrations if item["provider"] == provider]
         if status:
