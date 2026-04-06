@@ -25,3 +25,12 @@ class Team12AnalyticsService:
 
     def activity_streaks(self, user):
         return self.repository.activity_streaks(user)
+
+    # Generated with help from an LLM.
+    def monthly_summary(self, user, from_param, to_param, activity_type=None):
+        return self.repository.monthly_summary(
+            user=user,
+            from_param=from_param,
+            to_param=to_param,
+            activity_type=activity_type,
+        )

@@ -203,6 +203,112 @@ class TestTeam12AnalyticsService:
         with pytest.raises(ValueError, match="'to' must be >= 'from'"):
             team12_service.weekly_summary(user, "2026-03", "2026-01")
 
+    def test_monthly_summary_basic(self, create_user, create_activity, team12_service):
+        user = create_user(username="team12user12", email="team12l@example.com")
+
+        # Two activities in January 2026
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=30,
+            distance=5000,
+            date=date(2026, 1, 6),
+        )
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=60,
+            distance=10000,
+            date=date(2026, 1, 8),
+        )
+
+        # One activity in February 2026
+        create_activity(
+            user,
+            activity_type="Cycling",
+            duration=45,
+            distance=15000,
+            date=date(2026, 2, 15),
+        )
+
+        result = team12_service.monthly_summary(user, "2026-01", "2026-02")
+
+        assert len(result) == 2
+
+        jan = next(row for row in result if row["monthStart"] == "2026-01-01")
+        feb = next(row for row in result if row["monthStart"] == "2026-02-01")
+
+        assert jan["workoutCount"] == 2
+        assert jan["totalDuration"] == 90
+        assert jan["totalDistance"] == pytest.approx(15000.0)
+        assert jan["avgSpeed"] == pytest.approx(6.0)
+        assert jan["avgHR"] is None
+
+        assert feb["workoutCount"] == 1
+        assert feb["totalDuration"] == 45
+        assert feb["totalDistance"] == pytest.approx(15000.0)
+        assert feb["avgSpeed"] == pytest.approx(3.0)
+        assert feb["avgHR"] is None
+
+    def test_monthly_summary_with_activity_type_filter(
+        self, create_user, create_activity, team12_service
+    ):
+        user = create_user(username="team12user13", email="team12m@example.com")
+
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=30,
+            distance=5000,
+            date=date(2026, 1, 6),
+        )
+        create_activity(
+            user,
+            activity_type="Running",
+            duration=60,
+            distance=10000,
+            date=date(2026, 1, 8),
+        )
+        create_activity(
+            user,
+            activity_type="Cycling",
+            duration=45,
+            distance=15000,
+            date=date(2026, 2, 15),
+        )
+
+        result = team12_service.monthly_summary(
+            user, "2026-01", "2026-02", activity_type="Running"
+        )
+
+        jan = next(row for row in result if row["monthStart"] == "2026-01-01")
+        feb = next(row for row in result if row["monthStart"] == "2026-02-01")
+
+        assert jan["workoutCount"] == 2
+        assert jan["totalDuration"] == 90
+        assert jan["totalDistance"] == pytest.approx(15000.0)
+        assert jan["avgSpeed"] == pytest.approx(6.0)
+        assert jan["avgHR"] is None
+
+        # February is in range but filtered out by activity_type
+        assert feb["workoutCount"] == 0
+        assert feb["totalDuration"] == 0
+        assert feb["totalDistance"] == 0
+        assert feb["avgSpeed"] == 0
+        assert feb["avgHR"] is None
+
+    def test_monthly_summary_invalid_date_format(self, create_user, team12_service):
+        user = create_user(username="team12user14", email="team12n@example.com")
+
+        with pytest.raises(ValueError, match="Invalid date format YYYY-MM"):
+            team12_service.monthly_summary(user, "2026/01", "2026-01")
+
+    def test_monthly_summary_invalid_date_range(self, create_user, team12_service):
+        user = create_user(username="team12user15", email="team12o@example.com")
+
+        with pytest.raises(ValueError, match="'to' must be >= 'from'"):
+            team12_service.monthly_summary(user, "2026-03", "2026-01")
+
     def test_activity_streaks_no_activities(self, create_user, team12_service):
         user = create_user(username="team12user8", email="team12h@example.com")
 

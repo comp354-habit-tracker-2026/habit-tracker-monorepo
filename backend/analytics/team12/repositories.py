@@ -1,13 +1,13 @@
-from django.db.models import Avg, Count, Max, Sum
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+
+from django.db.models import Avg, Count, Max, Sum
 
 from activities.models import Activity
 
-from datetime import date, datetime, timedelta
 
-def get_week_start(date):
-    return date - timedelta(days=date.weekday())
+def get_week_start(d):
+    return d - timedelta(days=d.weekday())
 
 
 class Team12AnalyticsRepository:
@@ -43,17 +43,19 @@ class Team12AnalyticsRepository:
                 "total_calories": row["total_calories"] or 0,
                 "total_duration": row["total_duration"] or 0,
             }
-            for row in queryset.values("activity_type").annotate(
+            for row in queryset.values("activity_type")
+            .annotate(
                 count=Count("id"),
                 total_distance=Sum("distance"),
                 total_calories=Sum("calories"),
                 total_duration=Sum("duration"),
-            ).order_by("activity_type")
+            )
+            .order_by("activity_type")
         ]
 
-        def activity_streaks(self, user):
+    def activity_streaks(self, user):
         # Assisted by ChatGPT for initial draft of streak calculation logic; reviewed and adapted by Omar.
-        activity_dates = list(
+        activity_dates = (
             Activity.objects.filter(user=user)
             .values_list("date", flat=True)
             .order_by("date")
@@ -108,22 +110,20 @@ class Team12AnalyticsRepository:
         if to_date < from_date:
             raise ValueError("'to' must be >= 'from'")
 
-        queryset = Activity.objects.filter(
-            user=user,
-            date__gte=from_date,
-            date__lte=to_date
-        )
+        queryset = Activity.objects.filter(user=user, date__gte=from_date, date__lte=to_date)
 
         if activity_type:
             queryset = queryset.filter(activity_type=activity_type)
 
-        weekly_data = defaultdict(lambda: {
-            "workoutCount": 0,
-            "totalDuration": 0,
-            "totalDistance": 0,
-            "totalSpeed": 0,
-            "speedCount": 0,
-        })
+        weekly_data = defaultdict(
+            lambda: {
+                "workoutCount": 0,
+                "totalDuration": 0,
+                "totalDistance": 0,
+                "totalSpeed": 0,
+                "speedCount": 0,
+            }
+        )
 
         for activity in queryset:
             week_start = get_week_start(activity.date).isoformat()
@@ -160,7 +160,8 @@ class Team12AnalyticsRepository:
                 else:
                     avg_speed = (
                         data["totalSpeed"] / data["speedCount"]
-                        if data["speedCount"] > 0 else 0
+                        if data["speedCount"] > 0
+                        else 0
                     )
 
                     result.append({
@@ -175,5 +176,100 @@ class Team12AnalyticsRepository:
                 seen_weeks.add(week_start)
 
             current += timedelta(days=7)
+
+        return result
+
+    # Generated with help from an LLM.
+    def monthly_summary(self, user, from_param, to_param, activity_type=None):
+        try:
+            from_date = datetime.strptime(from_param, "%Y-%m").date()
+            to_date = datetime.strptime(to_param, "%Y-%m").date()
+        except ValueError:
+            raise ValueError("Invalid date format YYYY-MM")
+
+        from_month = from_date.replace(day=1)
+        to_month = to_date.replace(day=1)
+
+        if to_month < from_month:
+            raise ValueError("'to' must be >= 'from'")
+
+        # Last day of the final month for the query upper bound
+        last_day_of_to_month = (
+            (to_month.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        )
+
+        queryset = Activity.objects.filter(
+            user=user,
+            date__gte=from_month,
+            date__lte=last_day_of_to_month,
+        )
+
+        if activity_type:
+            queryset = queryset.filter(activity_type=activity_type)
+
+        monthly_data = defaultdict(
+            lambda: {
+                "workoutCount": 0,
+                "totalDuration": 0,
+                "totalDistance": 0,
+                "totalSpeed": 0,
+                "speedCount": 0,
+            }
+        )
+
+        for activity in queryset:
+            month_start = activity.date.replace(day=1).isoformat()
+            month = monthly_data[month_start]
+
+            month["workoutCount"] += 1
+            month["totalDuration"] += activity.duration or 0
+            month["totalDistance"] += float(activity.distance or 0)
+
+            if activity.distance and activity.distance > 0:
+                speed = activity.duration / (float(activity.distance) / 1000)
+                month["totalSpeed"] += speed
+                month["speedCount"] += 1
+
+        result = []
+        current = from_month
+
+        while current <= to_month:
+            month_start = current.isoformat()
+            data = monthly_data.get(month_start)
+
+            if not data:
+                result.append(
+                    {
+                        "monthStart": month_start,
+                        "workoutCount": 0,
+                        "totalDuration": 0,
+                        "totalDistance": 0,
+                        "avgSpeed": 0,
+                        "avgHR": None,
+                    }
+                )
+            else:
+                avg_speed = (
+                    data["totalSpeed"] / data["speedCount"]
+                    if data["speedCount"] > 0
+                    else 0
+                )
+
+                result.append(
+                    {
+                        "monthStart": month_start,
+                        "workoutCount": data["workoutCount"],
+                        "totalDuration": data["totalDuration"],
+                        "totalDistance": data["totalDistance"],
+                        "avgSpeed": avg_speed,
+                        "avgHR": None,
+                    }
+                )
+
+            # Move to the first day of the next month
+            if current.month == 12:
+                current = current.replace(year=current.year + 1, month=1)
+            else:
+                current = current.replace(month=current.month + 1)
 
         return result
