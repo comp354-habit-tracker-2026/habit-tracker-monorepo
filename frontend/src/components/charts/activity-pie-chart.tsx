@@ -2,6 +2,8 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
 import type { ActivityBreakdownItem } from '@/mocks/activity-types';
 
+import { formatChartDateRange } from './charts-util';
+
 import './activity-pie-chart.css';
 
 type ActivityPieChartProps = {
@@ -9,6 +11,8 @@ type ActivityPieChartProps = {
   title?: string;
   description?: string;
   totalLabel?: string;
+  startDate?: Date | string;
+  endDate?: Date | string;
   height?: number;
   valueFormatter?: (value: number) => string;
 };
@@ -22,10 +26,13 @@ export function ActivityPieChart({
   title = 'Activity breakdown',
   description,
   totalLabel = 'Total',
+  startDate,
+  endDate,
   height = 320,
   valueFormatter = defaultValueFormatter,
 }: ActivityPieChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const dateRange = formatChartDateRange(startDate, endDate);
 
   if (data.length === 0) {
     return (
@@ -35,8 +42,13 @@ export function ActivityPieChart({
           {description ? (
             <p className="activity-pie-chart__description">{description}</p>
           ) : null}
+          {dateRange ? (
+            <p className="activity-pie-chart__date-range">{dateRange}</p>
+          ) : null}
         </div>
-        <p className="activity-pie-chart__empty-copy">No activity data available yet.</p>
+        <p className="activity-pie-chart__empty-copy">
+          No activity data available yet.
+        </p>
       </section>
     );
   }
@@ -45,7 +57,12 @@ export function ActivityPieChart({
     <section className="activity-pie-chart">
       <div className="activity-pie-chart__header">
         <h2 className="activity-pie-chart__title">{title}</h2>
-        {description ? <p className="activity-pie-chart__description">{description}</p> : null}
+        {description ? (
+          <p className="activity-pie-chart__description">{description}</p>
+        ) : null}
+        {dateRange ? (
+          <p className="activity-pie-chart__date-range">{dateRange}</p>
+        ) : null}
       </div>
 
       <div className="activity-pie-chart__content">
@@ -54,7 +71,9 @@ export function ActivityPieChart({
             <PieChart>
               <Tooltip
                 formatter={(value) =>
-                  typeof value === 'number' ? valueFormatter(value) : String(value ?? '')
+                  typeof value === 'number'
+                    ? valueFormatter(value)
+                    : String(value ?? '')
                 }
                 contentStyle={{
                   borderRadius: 12,
@@ -80,14 +99,19 @@ export function ActivityPieChart({
           </ResponsiveContainer>
 
           <div className="activity-pie-chart__summary" aria-hidden="true">
-            <span className="activity-pie-chart__summary-label">{totalLabel}</span>
+            <span className="activity-pie-chart__summary-label">
+              {totalLabel}
+            </span>
             <strong className="activity-pie-chart__summary-value">
               {valueFormatter(total)}
             </strong>
           </div>
         </div>
 
-        <ul className="activity-pie-chart__legend" aria-label={`${title} legend`}>
+        <ul
+          className="activity-pie-chart__legend"
+          aria-label={`${title} legend`}
+        >
           {data.map((item) => (
             <li key={item.label} className="activity-pie-chart__legend-item">
               <span
@@ -96,7 +120,9 @@ export function ActivityPieChart({
                 aria-hidden="true"
               />
               <div className="activity-pie-chart__legend-copy">
-                <span className="activity-pie-chart__legend-label">{item.label}</span>
+                <span className="activity-pie-chart__legend-label">
+                  {item.label}
+                </span>
                 <span className="activity-pie-chart__legend-value">
                   {valueFormatter(item.value)}
                 </span>
