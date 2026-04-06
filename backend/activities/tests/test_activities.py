@@ -201,3 +201,64 @@ class TestActivities:
         response = api_client.get(f'/api/v1/activities/{activity.id}/')
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_create_activity_unauthorized(self, api_client):
+     data = {
+        'activity_type': 'Running',
+        'duration': 45,
+        'date': date.today().isoformat(),
+        'distance': '10.5',
+        'calories': 450
+     }
+
+     response = api_client.post('/api/v1/activities/', data, format='json')
+     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_create_activity_missing_activity_type(self, authenticated_client):
+     data = {
+        'activity_type': '',
+        'duration': 45,
+        'date': date.today().isoformat(),
+        'distance': '10.5',
+        'calories': 450
+     }
+
+     response = authenticated_client.post('/api/v1/activities/', data, format='json')
+     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_activity_invalid_duration(self, authenticated_client):
+     data = {
+        'activity_type': 'Running',
+        'duration': -10,
+        'date': date.today().isoformat(),
+        'distance': '10.5',
+        'calories': 450
+     }
+
+     response = authenticated_client.post('/api/v1/activities/', data, format='json')
+     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_activity_invalid_date_format(self, authenticated_client):
+     data = {
+        'activity_type': 'Running',
+        'duration': 45,
+        'date': 'invalid-date',
+        'distance': '10.5',
+        'calories': 450
+     }
+
+     response = authenticated_client.post('/api/v1/activities/', data, format='json')
+     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_activity_negative_distance(self, authenticated_client):
+     data = {
+        'activity_type': 'Cycling',
+        'duration': 30,
+        'date': date.today().isoformat(),
+        'distance': '-5.0',
+        'calories': 300
+     }
+
+     response = authenticated_client.post('/api/v1/activities/', data, format='json')
+     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
