@@ -48,4 +48,30 @@ def test_list_data_integrations_returns_business_data(authenticated_client):
     assert len(response.data) >= 1
     assert "provider" in response.data[0]
     assert "is_synced" in response.data[0]
+    assert "consent_granted" in response.data[0]
+
+
+@pytest.mark.django_db
+def test_grant_and_revoke_data_integration_consent(authenticated_client):
+    grant_response = authenticated_client.post(
+        "/api/v1/data-integrations/consent/",
+        {"provider": "strava", "consent_granted": True},
+        format="json",
+    )
+
+    assert grant_response.status_code == status.HTTP_200_OK
+    assert grant_response.data["provider"] == "strava"
+    assert grant_response.data["consent_granted"] is True
+    assert grant_response.data["status"] == "active"
+
+    revoke_response = authenticated_client.post(
+        "/api/v1/data-integrations/consent/",
+        {"provider": "strava", "consent_granted": False},
+        format="json",
+    )
+
+    assert revoke_response.status_code == status.HTTP_200_OK
+    assert revoke_response.data["provider"] == "strava"
+    assert revoke_response.data["consent_granted"] is False
+    assert revoke_response.data["status"] == "revoked"
 
