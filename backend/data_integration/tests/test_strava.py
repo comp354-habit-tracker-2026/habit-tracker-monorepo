@@ -232,7 +232,7 @@ def test_strava_auth_server_error(mock_urlopen):
     response = client.post(url, {"refresh_token": "any_token"}, format="json")
 
     assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
-    assert "Connection Timeout" in response.data["error"]
+    assert "internal error" in response.data["error"]
 
 
 def test_strava_service_camel_case_wrapper():
