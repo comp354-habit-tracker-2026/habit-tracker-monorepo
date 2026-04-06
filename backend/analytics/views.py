@@ -1,3 +1,16 @@
-from analytics.presentation.views import AnalyticsOverviewView
+from analytics.presentation import (
+    AnalyticsOverviewView,
+    ActivityStatisticsView,
+    PersonalRecordsView,
+    ActivityTypeBreakdownView,
+    WeeklySummaryView,
+    ActivityStreaksView,
+)
 
-__all__ = ["AnalyticsOverviewView"]
+__all__ = ["AnalyticsOverviewView", "ActivityStatisticsView",
+           "PersonalRecordsView",
+           "ActivityTypeBreakdownView",
+           "WeeklySummaryView",
+           "ActivityStreaksView", ]
+
+
