@@ -45,7 +45,7 @@ class RevokeProviderTokenRequest(BaseModel):
     provider_name: str
 
 
-class VerifyPermissionRequest(BaseModel):
+class VerifyProviderTokenRequest(BaseModel):
     user_id: int
     provider_name: str
     scope: str
@@ -141,10 +141,9 @@ def get_provider_token_route(user_id: int, provider_name: str, database_session:
 
 @app.post("/api/permissions/verify")
 def verify_permission(
-    request: VerifyPermissionRequest,
+    request: VerifyProviderTokenRequest,
     database_session: Session = Depends(open_database_session),
-    _: None = Depends(check_api_key),
-    x_caller_service: str = Header(default="")
+    _: None = Depends(check_api_key)
 ):
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
@@ -173,6 +172,7 @@ def verify_permission(
         scope=request.scope,
         caller_service=x_caller_service
     )
+
 
 if __name__ == "__main__":
     import uvicorn
