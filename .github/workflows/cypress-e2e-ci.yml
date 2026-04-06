@@ -8,8 +8,17 @@ run-name: (g26-168) Cypress E2E Tests on ${{ github.ref_name }} by @${{ github.a
 on:
   push:
     branches: ["main", "integration/g26-168-e2e-ci-pipeline"]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/cypress-e2e-ci.yml'
   pull_request:
     branches: ["main"]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/cypress-e2e-ci.yml'
+
+permissions:
+  contents: read
 
 #Workflow
 
@@ -21,17 +30,20 @@ jobs:
 #	strategy:
 #     matrix:
 #		os:[ubuntu-latest, windows-latest, macOS-latest]
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
     
     steps:
     # Checksout the repo and pulls it into the pipeline so that the workflow can access it
     - name: Checkout Code 
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
       # Setting up Node.js Version 20
-    - name: Setup Node.js 
-      uses: actions/setup-node@v4
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v5
       with:
-        node-version: 20
+        node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
 #	  Install the dependencies
