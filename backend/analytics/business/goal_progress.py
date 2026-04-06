@@ -1,5 +1,4 @@
 from decimal import Decimal
-from uuid import uuid4
 
 from django.utils import timezone
 
@@ -8,11 +7,11 @@ from notifications.business import NotificationService
 
 
 class GoalProgressService:
-    """Compute goal progress state from stored goal data and record state changes.
+    """Compute and persist the goal progress health indicator.
 
-    This service updates the goal's last computed state and only asks the
-    notification layer to record an event contract when a notifiable state is
-    reached.
+    This service updates the goal's last computed state and creates a
+    synchronous in-app notification when the indicator changes into a
+    notifiable state.
     """
 
     AT_RISK_TOLERANCE = Decimal("0.10")
@@ -29,33 +28,31 @@ class GoalProgressService:
         computed_at = self._normalize_timestamp(computed_at or timezone.now())
         previous_state = goal.progress_state
         new_state, progress_summary = self._compute_state(goal, computed_at)
-        event_published = False
+        notification_created = False
 
         if previous_state != new_state:
-            # Persist the latest computed state so later checks can detect transitions.
+            # Persist the latest health indicator state so later checks can detect transitions.
             goal.progress_state = new_state
             goal.progress_state_changed_at = computed_at
             goal.save(update_fields=["progress_state", "progress_state_changed_at", "updated_at"])
 
             if new_state in self.NOTIFIABLE_STATES:
-                # Record the outbox/event contract for future notification delivery.
-                self.notification_service.publish_goal_progress_state_changed(
+                # Create the in-app notification immediately for this milestone.
+                self.notification_service.create_goal_progress_notification(
                     goal=goal,
                     previous_state=previous_state,
                     new_state=new_state,
                     progress_summary=progress_summary,
                     computed_at=computed_at,
-                    dedup_key=f"goal-progress:{goal.pk}:{new_state}:{computed_at.isoformat()}",
-                    event_id=str(uuid4()),
                 )
-                event_published = True
+                notification_created = True
 
         return {
             "goal_id": goal.pk,
             "previous_state": previous_state,
             "state": new_state,
             "changed": previous_state != new_state,
-            "event_published": event_published,
+            "notification_created": notification_created,
             "progress_summary": progress_summary,
         }
 

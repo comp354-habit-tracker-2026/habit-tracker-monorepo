@@ -1,18 +1,79 @@
-from datetime import date, datetime
+from datetime import datetime
+from decimal import Decimal
 
 import pytest
+from activities.serializers import ActivitySerializer
 from django.contrib.auth import get_user_model
+from goals.serializers import GoalSerializer
 from django.utils import timezone
+from rest_framework import status
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from analytics.business import GoalProgressService
-from core.models import OutboxEvent
 from goals.models import Goal
+from notifications.models import Notification
 
 User = get_user_model()
+
+GOAL_INPUT = {
+    "title": "Run 50km",
+    "description": "Monthly running goal",
+    "target_value": "50.00",
+    "goal_type": "distance",
+    "start_date": "2026-01-01",
+    "end_date": "2026-01-31",
+}
+
+MANUAL_ACTIVITY_INPUT = {
+    "activity_type": "Running",
+    "duration": 45,
+    "date": "2026-01-15",
+    "distance": "7.5",
+    "calories": 450,
+}
+
+EXTERNAL_ACTIVITY_INPUT = {
+    "activity_type": "Cycling",
+    "duration": 60,
+    "date": "2026-01-15",
+    "provider": "strava",
+    "external_id": "strava_12345",
+    "distance": "25.0",
+    "raw_data": {"original": "strava data"},
+}
 
 
 def _dt(year, month, day):
     return timezone.make_aware(datetime(year, month, day, 12, 0, 0))
+
+
+def _auth_client(user):
+    client = APIClient()
+    refresh = RefreshToken.for_user(user)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    return client
+
+
+def _create_goal_from_payload(user, **overrides):
+    serializer = GoalSerializer(data={**GOAL_INPUT, **overrides})
+    assert serializer.is_valid(), serializer.errors
+    return serializer.save(user=user)
+
+
+def _create_activity_from_payload(user, payload, **overrides):
+    serializer = ActivitySerializer(data={**payload, **overrides})
+    assert serializer.is_valid(), serializer.errors
+    return serializer.save(user=user)
+
+
+def _sync_goal_distance(goal, *activities):
+    # Goal progress still reads Goal.current_value directly in this milestone.
+    goal.current_value = sum(
+        ((activity.distance or Decimal("0")) for activity in activities),
+        Decimal("0"),
+    )
+    goal.save(update_fields=["current_value", "updated_at"])
 
 
 @pytest.mark.django_db
@@ -25,87 +86,140 @@ class TestGoalProgressService:
         )
         self.service = GoalProgressService()
 
-    def test_state_change_to_achieved_publishes_one_event(self):
-        goal = Goal.objects.create(
-            user=self.user,
-            title="Run 100km",
-            target_value=100,
-            current_value=100,
-            goal_type="distance",
-            start_date=date(2026, 4, 1),
-            end_date=date(2026, 4, 30),
-        )
+    def test_manual_and_external_payloads_can_create_achieved_notification(self):
+        goal = _create_goal_from_payload(self.user, target_value="30.00")
+        manual_activity = _create_activity_from_payload(self.user, MANUAL_ACTIVITY_INPUT)
+        external_activity = _create_activity_from_payload(self.user, EXTERNAL_ACTIVITY_INPUT)
+        _sync_goal_distance(goal, manual_activity, external_activity)
 
-        result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 4, 10))
+        result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 1, 15))
 
         goal.refresh_from_db()
-        event = OutboxEvent.objects.get()
+        notification = Notification.objects.get()
         assert result["state"] == Goal.ProgressState.ACHIEVED
-        assert result["event_published"] is True
+        assert result["notification_created"] is True
         assert goal.progress_state == Goal.ProgressState.ACHIEVED
-        assert event.event_type == "GoalProgressStateChanged"
-        assert event.payload["previousState"] == Goal.ProgressState.ON_TRACK
-        assert event.payload["newState"] == Goal.ProgressState.ACHIEVED
-        assert event.payload["progressSummary"]["percentComplete"] == 100.0
+        assert notification.notification_type == Notification.NotificationType.GOAL_ACHIEVED
+        assert notification.payload["previousState"] == Goal.ProgressState.ON_TRACK
+        assert notification.payload["newState"] == Goal.ProgressState.ACHIEVED
+        assert notification.payload["goalTitle"] == GOAL_INPUT["title"]
+        assert notification.payload["progressSummary"]["actual"] == 32.5
 
-    def test_state_change_to_at_risk_only_publishes_once(self):
-        goal = Goal.objects.create(
-            user=self.user,
-            title="Workout streak",
-            target_value=100,
-            current_value=10,
-            goal_type="custom",
-            start_date=date(2026, 4, 1),
-            end_date=date(2026, 4, 11),
-        )
+    def test_manual_activity_payload_creates_at_risk_notification_once(self):
+        goal = _create_goal_from_payload(self.user)
+        manual_activity = _create_activity_from_payload(self.user, MANUAL_ACTIVITY_INPUT)
+        _sync_goal_distance(goal, manual_activity)
 
-        first = self.service.evaluate_goal(goal, computed_at=_dt(2026, 4, 10))
-        second = self.service.evaluate_goal(goal, computed_at=_dt(2026, 4, 10))
+        first = self.service.evaluate_goal(goal, computed_at=_dt(2026, 1, 15))
+        second = self.service.evaluate_goal(goal, computed_at=_dt(2026, 1, 15))
 
         goal.refresh_from_db()
         assert first["state"] == Goal.ProgressState.AT_RISK
-        assert second["event_published"] is False
+        assert second["notification_created"] is False
         assert goal.progress_state == Goal.ProgressState.AT_RISK
-        assert OutboxEvent.objects.count() == 1
+        assert Notification.objects.count() == 1
+        notification = Notification.objects.get()
+        assert notification.notification_type == Notification.NotificationType.GOAL_AT_RISK
+        assert notification.payload["progressSummary"]["actual"] == 7.5
 
-    def test_state_change_to_missed_publishes_after_deadline(self):
-        goal = Goal.objects.create(
-            user=self.user,
-            title="Daily calories",
-            target_value=400,
-            current_value=150,
-            goal_type="calories",
-            progress_state=Goal.ProgressState.AT_RISK,
-            progress_state_changed_at=timezone.now(),
-            start_date=date(2026, 4, 1),
-            end_date=date(2026, 4, 10),
-        )
+    def test_external_activity_payload_creates_missed_notification_after_deadline(self):
+        goal = _create_goal_from_payload(self.user)
+        external_activity = _create_activity_from_payload(self.user, EXTERNAL_ACTIVITY_INPUT)
+        _sync_goal_distance(goal, external_activity)
 
-        result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 4, 12))
+        result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 2, 1))
 
-        event = OutboxEvent.objects.get()
+        notification = Notification.objects.get()
         assert result["state"] == Goal.ProgressState.MISSED
-        assert event.payload["previousState"] == Goal.ProgressState.AT_RISK
-        assert event.payload["newState"] == Goal.ProgressState.MISSED
+        assert notification.notification_type == Notification.NotificationType.GOAL_MISSED
+        assert notification.payload["previousState"] == Goal.ProgressState.ON_TRACK
+        assert notification.payload["newState"] == Goal.ProgressState.MISSED
 
-    def test_on_track_transition_updates_goal_without_publishing(self):
-        goal = Goal.objects.create(
-            user=self.user,
-            title="Build consistency",
-            target_value=100,
-            current_value=50,
-            goal_type="custom",
-            progress_state=Goal.ProgressState.AT_RISK,
-            progress_state_changed_at=timezone.now(),
-            start_date=date(2026, 4, 1),
-            end_date=date(2026, 4, 30),
+    def test_manual_and_external_payloads_can_move_goal_back_to_on_track_without_notification(self):
+        goal = _create_goal_from_payload(self.user)
+        manual_activity = _create_activity_from_payload(self.user, MANUAL_ACTIVITY_INPUT)
+        external_activity = _create_activity_from_payload(
+            self.user,
+            EXTERNAL_ACTIVITY_INPUT,
+            external_id="strava_98765",
         )
+        _sync_goal_distance(goal, manual_activity, external_activity)
+        goal.progress_state = Goal.ProgressState.AT_RISK
+        goal.progress_state_changed_at = timezone.now()
+        goal.save(update_fields=["current_value", "progress_state", "progress_state_changed_at", "updated_at"])
 
-        result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 4, 5))
+        result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 1, 15))
 
         goal.refresh_from_db()
         assert result["state"] == Goal.ProgressState.ON_TRACK
-        assert result["event_published"] is False
+        assert result["notification_created"] is False
         assert goal.progress_state == Goal.ProgressState.ON_TRACK
         assert goal.progress_state_changed_at is not None
-        assert OutboxEvent.objects.count() == 0
+        assert Notification.objects.count() == 0
+
+
+@pytest.mark.django_db
+class TestNotificationsAPI:
+    def test_notifications_list_returns_only_authenticated_users_rows(self):
+        user = User.objects.create_user(
+            username="notifications-user",
+            email="notifications@example.com",
+            password="TestPass123!",
+        )
+        other_user = User.objects.create_user(
+            username="other-notifications-user",
+            email="other-notifications@example.com",
+            password="TestPass123!",
+        )
+        own_goal = _create_goal_from_payload(user)
+        own_manual_activity = _create_activity_from_payload(user, MANUAL_ACTIVITY_INPUT)
+        _sync_goal_distance(own_goal, own_manual_activity)
+        GoalProgressService().evaluate_goal(own_goal, computed_at=_dt(2026, 1, 15))
+
+        other_goal = _create_goal_from_payload(other_user, title="Cycle 50km")
+        other_external_activity = _create_activity_from_payload(
+            other_user,
+            EXTERNAL_ACTIVITY_INPUT,
+            external_id="strava_other_12345",
+        )
+        _sync_goal_distance(other_goal, other_external_activity)
+        GoalProgressService().evaluate_goal(other_goal, computed_at=_dt(2026, 2, 1))
+
+        response = _auth_client(user).get("/api/v1/notifications/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+        assert response.data[0]["title"] == "Goal at risk: Run 50km"
+        assert response.data[0]["notification_type"] == Notification.NotificationType.GOAL_AT_RISK
+
+    def test_notifications_list_orders_newest_first(self):
+        user = User.objects.create_user(
+            username="ordering-user",
+            email="ordering@example.com",
+            password="TestPass123!",
+        )
+        older_goal = _create_goal_from_payload(user)
+        older_manual_activity = _create_activity_from_payload(user, MANUAL_ACTIVITY_INPUT)
+        _sync_goal_distance(older_goal, older_manual_activity)
+        GoalProgressService().evaluate_goal(older_goal, computed_at=_dt(2026, 1, 15))
+
+        newer_goal = _create_goal_from_payload(user, title="Cycle 30km", target_value="30.00")
+        newer_manual_activity = _create_activity_from_payload(
+            user,
+            MANUAL_ACTIVITY_INPUT,
+            date="2026-01-16",
+        )
+        newer_external_activity = _create_activity_from_payload(
+            user,
+            EXTERNAL_ACTIVITY_INPUT,
+            date="2026-01-16",
+            external_id="strava_ordering_12345",
+        )
+        _sync_goal_distance(newer_goal, newer_manual_activity, newer_external_activity)
+        GoalProgressService().evaluate_goal(newer_goal, computed_at=_dt(2026, 1, 16))
+
+        response = _auth_client(user).get("/api/v1/notifications/")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data[0]["title"] == "Goal achieved: Cycle 30km"
+        assert response.data[1]["title"] == "Goal at risk: Run 50km"
