@@ -227,3 +227,25 @@ export const mockPieChartByDistance = mapActivityAggregatesToPieData(
   mockActivityAggregates,
   ActivityBreakdownMetric.TotalDistance,
 );
+
+export const mockPieChartByCountWithDates: ActivityBreakdownItem[] = [
+  { label: ActivityType.Cycling, value: 8, color: activityColors[ActivityType.Cycling] ?? '#8884d8', date: '2026-01-05' },
+  { label: ActivityType.Walking, value: 10, color: activityColors[ActivityType.Walking] ?? '#8884d8', date: '2026-01-08' },
+  { label: ActivityType.Run, value: 6, color: activityColors[ActivityType.Run] ?? '#8884d8', date: '2026-01-12' },
+  { label: ActivityType.Ski, value: 4, color: activityColors[ActivityType.Ski] ?? '#8884d8', date: '2026-01-20' },
+  { label: ActivityType.Cycling, value: 12, color: activityColors[ActivityType.Cycling] ?? '#8884d8', date: '2026-02-03' },
+  { label: ActivityType.Walking, value: 16, color: activityColors[ActivityType.Walking] ?? '#8884d8', date: '2026-02-10' },
+  { label: ActivityType.Run, value: 9, color: activityColors[ActivityType.Run] ?? '#8884d8', date: '2026-02-14' },
+  { label: ActivityType.Snowboarding, value: 5, color: activityColors[ActivityType.Snowboarding] ?? '#8884d8', date: '2026-02-18' },
+];
+
+export const mockPieChartByDistanceWithDates: ActivityBreakdownItem[] = [
+  { label: ActivityType.Cycling, value: 98.4, color: activityColors[ActivityType.Cycling] ?? '#8884d8', date: '2026-01-05' },
+  { label: ActivityType.Walking, value: 24.2, color: activityColors[ActivityType.Walking] ?? '#8884d8', date: '2026-01-08' },
+  { label: ActivityType.Run, value: 42.7, color: activityColors[ActivityType.Run] ?? '#8884d8', date: '2026-01-12' },
+  { label: ActivityType.Ski, value: 31.6, color: activityColors[ActivityType.Ski] ?? '#8884d8', date: '2026-01-20' },
+  { label: ActivityType.Cycling, value: 144.1, color: activityColors[ActivityType.Cycling] ?? '#8884d8', date: '2026-02-03' },
+  { label: ActivityType.Walking, value: 37.9, color: activityColors[ActivityType.Walking] ?? '#8884d8', date: '2026-02-10' },
+  { label: ActivityType.Run, value: 55.3, color: activityColors[ActivityType.Run] ?? '#8884d8', date: '2026-02-14' },
+  { label: ActivityType.Snowboarding, value: 28.8, color: activityColors[ActivityType.Snowboarding] ?? '#8884d8', date: '2026-02-18' },
+];

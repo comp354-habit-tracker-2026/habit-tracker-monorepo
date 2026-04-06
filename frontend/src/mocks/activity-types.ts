@@ -117,4 +117,5 @@ export type ActivityBreakdownItem = {
   label: string;
   value: number;
   color: string;
+  date?: string | Date;
 };
