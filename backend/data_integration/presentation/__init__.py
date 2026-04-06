@@ -1,3 +1,3 @@
-from .viewsets import DataIntegrationViewSet
+from .strava_view import StravaAuthViewSet
 
-__all__ = ["DataIntegrationViewSet"]
+__all__ = ["StravaAuthViewSet"]
