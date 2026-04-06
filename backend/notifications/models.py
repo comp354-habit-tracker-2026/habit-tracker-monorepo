@@ -3,32 +3,32 @@ from django.db import models
 from django.conf import settings
 
 
+class NotificationType(models.TextChoices):
+    ACHIEVEMENT = 'ACHIEVEMENT', 'Achievement'
+    INACTIVITY_REMINDER = 'INACTIVITY_REMINDER', 'Inactivity Reminder'
+
+
+class NotificationStatus(models.TextChoices):
+    PENDING = 'PENDING', 'Pending'
+    SENT = 'SENT', 'Sent'
+    FAILED = 'FAILED', 'Failed'
+    SNOOZED = 'SNOOZED', 'Snoozed'
+    ARCHIVED = 'ARCHIVED', 'Archived'
+
+
+class NotificationChannel(models.TextChoices):
+    EMAIL = 'EMAIL', 'Email'
+    IN_APP = 'IN_APP', 'In App'
+
+
 class Notification(models.Model):
-    TYPE_CHOICES = [
-        ('ACHIEVEMENT', 'Achievement'),
-        ('INACTIVITY_REMINDER', 'Inactivity Reminder'),
-    ]
-
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('SENT', 'Sent'),
-        ('FAILED', 'Failed'),
-        ('SNOOZED', 'Snoozed'),
-        ('ARCHIVED', 'Archived'),
-    ]
-
-    CHANNEL_CHOICES = [
-        ('EMAIL', 'Email'),
-        ('IN_APP', 'In App'),
-    ]
-
     notif_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
-    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    type = models.CharField(max_length=20, choices=NotificationType.choices)
     message = models.TextField()
     read = models.BooleanField(default=False)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
+    status = models.CharField(max_length=20, choices=NotificationStatus.choices, default=NotificationStatus.PENDING)
+    channel = models.CharField(max_length=20, choices=NotificationChannel.choices)
     created_at = models.DateTimeField(auto_now_add=True)
     scheduled_at = models.DateTimeField(null=True, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
