@@ -7,10 +7,12 @@ from analytics.presentation import (
     ActivityStreaksView,
 )
 
+from analytics.presentation.views import AnalyticsOverviewView, HealthIndicatorsView
+
 __all__ = ["AnalyticsOverviewView", "ActivityStatisticsView",
            "PersonalRecordsView",
            "ActivityTypeBreakdownView",
            "WeeklySummaryView",
-           "ActivityStreaksView", ]
+           "ActivityStreaksView", "HealthIndicatorsView"]
 
 

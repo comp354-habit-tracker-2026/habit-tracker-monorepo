@@ -51,7 +51,7 @@ class Team12AnalyticsRepository:
             ).order_by("activity_type")
         ]
 
-        def activity_streaks(self, user):
+    def activity_streaks(self, user):
         # Assisted by ChatGPT for initial draft of streak calculation logic; reviewed and adapted by Omar.
         activity_dates = list(
             Activity.objects.filter(user=user)

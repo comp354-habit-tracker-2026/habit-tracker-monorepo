@@ -1,4 +1,5 @@
 from django.urls import path
+from .views import AnalyticsOverviewView, HealthIndicatorsView
 
 from analytics.views import (
     AnalyticsOverviewView,
@@ -16,5 +17,7 @@ urlpatterns = [
     path("activity-type-breakdown/", ActivityTypeBreakdownView.as_view(), name="activity_type_breakdown"),
     path("weekly-summary/", WeeklySummaryView.as_view(), name="weekly_summary"),
     path("activity-streaks/", ActivityStreaksView.as_view(), name="activity_streaks"),
-]
+    path("overview/", AnalyticsOverviewView.as_view(), name="analytics_overview"),
+    path("health-indicators/", HealthIndicatorsView.as_view(), name="health_indicators"),
 
+]
