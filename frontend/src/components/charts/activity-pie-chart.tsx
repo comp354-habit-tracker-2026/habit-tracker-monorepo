@@ -14,6 +14,9 @@ type ActivityPieChartProps = {
   startDate?: Date | string;
   endDate?: Date | string;
   height?: number;
+  showLegend?: boolean;
+  emptyStateMessage?: string;
+  className?: string;
   valueFormatter?: (value: number) => string;
 };
 
@@ -29,6 +32,9 @@ export function ActivityPieChart({
   startDate,
   endDate,
   height = 320,
+  showLegend = true,
+  emptyStateMessage = 'No activity data available yet.',
+  className,
   valueFormatter = defaultValueFormatter,
 }: ActivityPieChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
@@ -36,7 +42,15 @@ export function ActivityPieChart({
 
   if (data.length === 0) {
     return (
-      <section className="activity-pie-chart activity-pie-chart--empty">
+      <section
+        className={[
+          'activity-pie-chart',
+          'activity-pie-chart--empty',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <div className="activity-pie-chart__header">
           <h2 className="activity-pie-chart__title">{title}</h2>
           {description ? (
@@ -46,15 +60,15 @@ export function ActivityPieChart({
             <p className="activity-pie-chart__date-range">{dateRange}</p>
           ) : null}
         </div>
-        <p className="activity-pie-chart__empty-copy">
-          No activity data available yet.
-        </p>
+        <p className="activity-pie-chart__empty-copy">{emptyStateMessage}</p>
       </section>
     );
   }
 
   return (
-    <section className="activity-pie-chart">
+    <section
+      className={['activity-pie-chart', className].filter(Boolean).join(' ')}
+    >
       <div className="activity-pie-chart__header">
         <h2 className="activity-pie-chart__title">{title}</h2>
         {description ? (
@@ -108,28 +122,30 @@ export function ActivityPieChart({
           </div>
         </div>
 
-        <ul
-          className="activity-pie-chart__legend"
-          aria-label={`${title} legend`}
-        >
-          {data.map((item) => (
-            <li key={item.label} className="activity-pie-chart__legend-item">
-              <span
-                className="activity-pie-chart__legend-swatch"
-                style={{ backgroundColor: item.color }}
-                aria-hidden="true"
-              />
-              <div className="activity-pie-chart__legend-copy">
-                <span className="activity-pie-chart__legend-label">
-                  {item.label}
-                </span>
-                <span className="activity-pie-chart__legend-value">
-                  {valueFormatter(item.value)}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {showLegend ? (
+          <ul
+            className="activity-pie-chart__legend"
+            aria-label={`${title} legend`}
+          >
+            {data.map((item) => (
+              <li key={item.label} className="activity-pie-chart__legend-item">
+                <span
+                  className="activity-pie-chart__legend-swatch"
+                  style={{ backgroundColor: item.color }}
+                  aria-hidden="true"
+                />
+                <div className="activity-pie-chart__legend-copy">
+                  <span className="activity-pie-chart__legend-label">
+                    {item.label}
+                  </span>
+                  <span className="activity-pie-chart__legend-value">
+                    {valueFormatter(item.value)}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </section>
   );

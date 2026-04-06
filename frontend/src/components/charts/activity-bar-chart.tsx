@@ -22,6 +22,9 @@ type ActivityBarChartProps = {
   startDate?: Date | string;
   endDate?: Date | string;
   height?: number;
+  showLegend?: boolean;
+  emptyStateMessage?: string;
+  className?: string;
   valueFormatter?: (value: number) => string;
 };
 
@@ -36,13 +39,24 @@ export function ActivityBarChart({
   startDate,
   endDate,
   height = 320,
+  showLegend = true,
+  emptyStateMessage = 'No activity data available yet.',
+  className,
   valueFormatter = defaultValueFormatter,
 }: ActivityBarChartProps) {
   const dateRange = formatChartDateRange(startDate, endDate);
 
   if (data.length === 0) {
     return (
-      <section className="activity-bar-chart activity-bar-chart--empty">
+      <section
+        className={[
+          'activity-bar-chart',
+          'activity-bar-chart--empty',
+          className,
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <div className="activity-bar-chart__header">
           <h2 className="activity-bar-chart__title">{title}</h2>
           {description ? (
@@ -52,15 +66,15 @@ export function ActivityBarChart({
             <p className="activity-bar-chart__date-range">{dateRange}</p>
           ) : null}
         </div>
-        <p className="activity-bar-chart__empty-copy">
-          No activity data available yet.
-        </p>
+        <p className="activity-bar-chart__empty-copy">{emptyStateMessage}</p>
       </section>
     );
   }
 
   return (
-    <section className="activity-bar-chart">
+    <section
+      className={['activity-bar-chart', className].filter(Boolean).join(' ')}
+    >
       <div className="activity-bar-chart__header">
         <h2 className="activity-bar-chart__title">{title}</h2>
         {description ? (
@@ -111,28 +125,30 @@ export function ActivityBarChart({
           </ResponsiveContainer>
         </div>
 
-        <ul
-          className="activity-bar-chart__legend"
-          aria-label={`${title} legend`}
-        >
-          {data.map((item) => (
-            <li key={item.label} className="activity-bar-chart__legend-item">
-              <span
-                className="activity-bar-chart__legend-swatch"
-                style={{ backgroundColor: item.color }}
-                aria-hidden="true"
-              />
-              <div className="activity-bar-chart__legend-copy">
-                <span className="activity-bar-chart__legend-label">
-                  {item.label}
-                </span>
-                <span className="activity-bar-chart__legend-value">
-                  {valueFormatter(item.value)}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {showLegend ? (
+          <ul
+            className="activity-bar-chart__legend"
+            aria-label={`${title} legend`}
+          >
+            {data.map((item) => (
+              <li key={item.label} className="activity-bar-chart__legend-item">
+                <span
+                  className="activity-bar-chart__legend-swatch"
+                  style={{ backgroundColor: item.color }}
+                  aria-hidden="true"
+                />
+                <div className="activity-bar-chart__legend-copy">
+                  <span className="activity-bar-chart__legend-label">
+                    {item.label}
+                  </span>
+                  <span className="activity-bar-chart__legend-value">
+                    {valueFormatter(item.value)}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </section>
   );

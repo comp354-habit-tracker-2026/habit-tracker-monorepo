@@ -68,3 +68,35 @@ export const EndDateOnly: Story = {
     data: mockPieChartByCount,
   },
 };
+
+export const WithoutLegend: Story = {
+  args: {
+    title: 'Activities without legend',
+    description: 'Example showing the legend hidden for tighter layouts.',
+    totalLabel: 'Sessions',
+    startDate: '2026-03-01',
+    endDate: '2026-03-31',
+    showLegend: false,
+    data: mockPieChartByCount,
+  },
+};
+
+export const EmptyStateMessage: Story = {
+  args: {
+    title: 'No activity yet',
+    emptyStateMessage: 'No workouts were recorded for this period.',
+    startDate: '2026-03-01',
+    endDate: '2026-03-31',
+    data: [],
+  },
+};
+
+export const WithCustomClassName: Story = {
+  args: {
+    title: 'Activities with custom class name',
+    description: 'Example showing className for layout or styling hooks.',
+    totalLabel: 'Sessions',
+    className: 'storybook-chart-example',
+    data: mockPieChartByCount,
+  },
+};
