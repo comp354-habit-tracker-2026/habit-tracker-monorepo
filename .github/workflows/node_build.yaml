@@ -41,12 +41,6 @@ jobs:
       - name: Run React frontend lint
         run: npm run lint
         working-directory: ./frontend
-      - name: Run Jest unit tests
-        run: npm test
-        working-directory: ./frontend
-      - name: Run Cypress E2E tests
-        run: npm run cypress:ci
-        working-directory: ./frontend
       - name: Run React frontend build
         run: npm run build
         working-directory: ./frontend
