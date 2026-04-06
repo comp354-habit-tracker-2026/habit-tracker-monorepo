@@ -1,7 +1,9 @@
-import { useState } from 'react';
 
+import { useState } from 'react';
 import { ContentLayout } from '@/components/layouts/content-layout';
-import { apiClient } from '@/lib/api-client';
+import { ConsentToggle } from '../../components/ConsentToggle';
+import { setConsent as setDummyConsent, getUserData, getUserConsents } from '../../api/dummyConsentApi';
+
 
 type ConsentResponse = {
   provider: string;
@@ -9,19 +11,27 @@ type ConsentResponse = {
   status: string;
 };
 
+const PROVIDERS = [
+  'Strava',
+  'MapMyRun',
+  'We Ski',
+  'MyWhoosh',
+];
+
 function ConsentTestRoute() {
+
+  const [consents, setConsents] = useState<Record<string, boolean>>(getUserConsents());
   const [result, setResult] = useState<ConsentResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<Record<string, any>>(getUserData());
 
-  async function setConsent(consentGranted: boolean) {
+  async function setConsent(provider: string, consentGranted: boolean) {
     setError(null);
-
+    setConsents((prev) => ({ ...prev, [provider]: consentGranted }));
     try {
-      const response = await apiClient.post<ConsentResponse>('/api/v1/data-integrations/consent/', {
-        provider: 'strava',
-        consent_granted: consentGranted,
-      });
+      const response = await setDummyConsent(provider, consentGranted);
       setResult(response);
+      setUserData(getUserData());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unexpected error');
     }
@@ -30,16 +40,27 @@ function ConsentTestRoute() {
   return (
     <ContentLayout title="Consent Test">
       <p>This page is a small dummy test for the new consent API.</p>
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-        <button onClick={() => setConsent(true)}>Grant Strava Consent</button>
-        <button onClick={() => setConsent(false)}>Revoke Strava Consent</button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem', maxWidth: 300 }}>
+        {PROVIDERS.map((provider) => (
+          <ConsentToggle
+            key={provider}
+            provider={provider}
+            consentGranted={consents[provider]}
+            onToggle={setConsent}
+          />
+        ))}
       </div>
 
       {result ? (
         <pre>{JSON.stringify(result, null, 2)}</pre>
       ) : (
-        <p>Click a button to send a consent request to the backend.</p>
+        <p>Toggle a provider to simulate a consent request.</p>
       )}
+
+      <div style={{ marginTop: 24 }}>
+        <strong>User Data (dummy):</strong>
+        <pre>{JSON.stringify(userData, null, 2)}</pre>
+      </div>
 
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
     </ContentLayout>
