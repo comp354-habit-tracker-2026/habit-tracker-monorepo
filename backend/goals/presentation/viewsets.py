@@ -38,3 +38,19 @@ class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
             return Response({"detail": "You do not have permission to delete this goal."}, status=status.HTTP_403_FORBIDDEN)
         if result == "invalid_id":
             return Response({"detail": "Invalid goal ID format."}, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        """
+        PUT /api/v1/goals/{id}/
+        Updates a goal belonging to the authenticated user.
+        """
+        pk = kwargs.get("pk")
+        result = self.service.update_goal(pk, request.user, request.data)
+        if result == "not_found":
+            return Response({"detail": "Goal not found."}, status=status.HTTP_404_NOT_FOUND)
+        if result == "forbidden":
+            return Response({"detail": "You do not have permission to update this goal."}, status=status.HTTP_403_FORBIDDEN)
+        if result == "invalid_id":
+            return Response({"detail": "Invalid goal ID format."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(result)
+        return Response(serializer.data, status=status.HTTP_200_OK)

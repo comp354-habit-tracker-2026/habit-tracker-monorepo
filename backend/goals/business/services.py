@@ -28,3 +28,27 @@ class GoalService(BaseService):
             return "forbidden"
         goal.delete()
         return "deleted"
+
+    def update_goal(self, goal_id, user, data):
+        if not str(goal_id).isdigit():
+            return "invalid_id"
+        goal = Goal.objects.filter(id=goal_id).first()  # pylint: disable=no-member
+        if goal is None:
+            return "not_found"
+        if goal.user != user:
+            return "forbidden"
+        allowed_fields = [
+            "title",
+            "description",
+            "goal_type",
+            "status",
+            "current_value",
+            "target_value",
+            "start_date",
+            "end_date",
+        ]
+        for field in allowed_fields:
+            if field in data:
+                setattr(goal, field, data[field])
+        goal.save()
+        return goal
