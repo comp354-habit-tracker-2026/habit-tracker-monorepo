@@ -5,6 +5,9 @@ from django.conf import settings
 from ..data.strava import StravaAuthService
 from rest_framework.permissions import AllowAny
 from rest_framework.authentication import SessionAuthentication
+import logging
+
+logger = logging.getLogger(__name__)
 
 class StravaAuthViewSet(viewsets.ViewSet):
     """
@@ -35,8 +38,12 @@ class StravaAuthViewSet(viewsets.ViewSet):
         try:
             tokens = self.auth_service.authenticateUser(code)
             return Response(tokens)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            logger.exception("Error while connecting Strava account.")
+            return Response(
+                {"error": "An internal error occurred while connecting your Strava account."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     @action(detail=False, methods=['post'])
     def refresh(self, request):
@@ -48,5 +55,9 @@ class StravaAuthViewSet(viewsets.ViewSet):
         try:
             new_tokens = self.auth_service.refresh_token(refresh_token)
             return Response(new_tokens)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception:
+            logger.exception("Error while refreshing Strava tokens.")
+            return Response(
+                {"error": "An internal error occurred while refreshing your Strava connection."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
