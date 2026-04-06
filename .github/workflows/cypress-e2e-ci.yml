@@ -30,20 +30,18 @@ jobs:
 #	strategy:
 #     matrix:
 #		os:[ubuntu-latest, windows-latest, macOS-latest]
-    strategy:
-      matrix:
-        node-version: [20.x, 22.x]
+    
     
     steps:
     # Checksout the repo and pulls it into the pipeline so that the workflow can access it
     - name: Checkout Code 
-      uses: actions/checkout@v5
+      uses: actions/checkout@v4
     
       # Setting up Node.js Version 20
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v5
+    - name: Setup Node.js 
+      uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: 20
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
 #	  Install the dependencies
