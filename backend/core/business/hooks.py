@@ -4,7 +4,7 @@ File: hooks.py
 Issue: #82
 
 Goal: 
-Publish an event to the Eventhub when Activity data is preprocessed and ready for downstream tasks
+Logging & Monitoring
 
 '''
 
