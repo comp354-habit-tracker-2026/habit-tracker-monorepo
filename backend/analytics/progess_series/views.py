@@ -22,6 +22,7 @@ class GoalProgressSeriesView(View):
 
     def get(self, request, goal_id: int, *args, **kwargs):
         granularity = request.GET.get("granularity", "daily")
+        sport = request.GET.get("sport")
         use_demo = request.GET.get("demo", "false").lower() == "true"
 
         try:
@@ -55,6 +56,7 @@ class GoalProgressSeriesView(View):
                 goal=goal,
                 activities=activities,
                 granularity=granularity,
+                sport=sport,
             )
             return JsonResponse(result.to_dict(), status=200)
 
