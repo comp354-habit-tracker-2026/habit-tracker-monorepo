@@ -7,6 +7,9 @@ from analytics.business import AnalyticsService
 #team 12
 from analytics.team12.services import Team12AnalyticsService
 
+#team 13
+from analytics.data.repositories import AnalyticsRepository
+
 class AnalyticsOverviewView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -19,6 +22,7 @@ class AnalyticsOverviewView(APIView):
         }
         return Response(data)
 
+#team 12
 class ActivityStatisticsView(APIView):
     def get(self, request):
         user = request.user
@@ -70,12 +74,41 @@ class WeeklySummaryView(APIView):
 
         return Response(data)
 
+#team 13
 class HealthIndicatorsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        service = AnalyticsService()
+        service = AnalyticsRepository()
+        data = service.activity_statistics(request.user),        
+        return Response(data)
+    
+class InactivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
         data = {
             "inactivity_evaluation": service.inactivity_evaluation(request.user),
         }
         return Response(data)
+    
+class HealthTrackingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data = service.trend_snapshot(request.user),        
+        return Response(data)
+    
+class HealthForecastView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data = service.forecast_preview(request.user),        
+        return Response(data)
+    
+    
+
+
