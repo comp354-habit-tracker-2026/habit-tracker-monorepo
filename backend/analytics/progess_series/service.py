@@ -81,6 +81,7 @@ def generate_progress_series(
     goal: Any,
     activities: Iterable[Any],
     granularity: str = "daily",
+    sport: str | None = None,
 ) -> ProgressSeries:
     """
     Build chart-ready progress data for a goal.
@@ -115,6 +116,11 @@ def generate_progress_series(
         # unfiltered queryset if needed.
         if activity_date < start_date or activity_date > end_date:
             continue
+        #filtering for sports type 
+        if sport is not None:
+            activity_sport = getattr(activity, "activity_type", "")
+            if activity_sport.lower() != sport.lower():
+                continue
 
         value = _resolve_metric_value(goal.goal_type, activity)
         bucket_key = (
