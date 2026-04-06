@@ -20,4 +20,4 @@ class EventPublisher:
             'external_id': activity.get('external_id'),
             'payload': activity
         }
-        print('Publishing event:', event)
+        print('Publishing event:', event) # Temporary prints out results, need to be replaced with the connection of the EventHub

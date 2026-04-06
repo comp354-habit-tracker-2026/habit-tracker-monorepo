@@ -6,9 +6,9 @@
     This file contains the activity deduplication logic. It checks
     whether an activity already exists by comparing provider and 
     external_id values. 
-    
-    If an activity has no duplicates -> NEW + normalization
-    If an activity has a duplicate and and it differs from the existing one -> UPDATE + normalization
+
+    If an activity has no duplicates -> NEW
+    If an activity has a duplicate and and it differs from the existing one -> UPDATE
     If an activity has a duplicate and it is identical to the existing one -> SKIP
    
     Returns a decision outcome (NEW, UPDATE, SKIP) that can be used by logging & monitoring
@@ -65,6 +65,7 @@ class ActivityDeduplicator:
         return status and changed_fields for logging purpose
         '''
         existing_activity = self.find_existing_activity(activity_data, existing_activities)
+
         if existing_activity is None:  # NEW case
             return 'NEW', []
         

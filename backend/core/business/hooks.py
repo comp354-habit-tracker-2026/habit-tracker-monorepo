@@ -5,16 +5,16 @@ Issue: #82
 
 Goal: 
 Publish an event to the Eventhub when Activity data is preprocessed and ready for downstream tasks
-Log success/failure
 
 '''
 
 class LoggingHook:
     def log_details(self, status, changed_fields, activity):
         print(
-            f"provider: {activity.get('provider')}, "
-            f"external_id: {activity.get('external_id')}, "
-            f'status: {status}'
+            'Logging: \n'
+            f"Provider: {activity.get('provider')}, "
+            f"External_id: {activity.get('external_id')}, "
+            f'Status: {status}'
         )
         if status == 'SKIP':
             print('Activity already exists and has no changes. Skip.')

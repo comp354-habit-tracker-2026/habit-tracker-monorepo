@@ -25,7 +25,6 @@ class ActivityPipeline:
 
         results = self.deduplicator.process(adapted, existing_activities)
 
-
         # Logging:
         self.hooks.log_details(results['status'], results['changed_fields'], results['activity'])
 
