@@ -7,7 +7,7 @@ from analytics.business import AnalyticsService
 #team 12
 from analytics.team12.services import Team12AnalyticsService
 
-#team 13
+#team 13 and 14
 from analytics.data.repositories import AnalyticsRepository
 
 class AnalyticsOverviewView(APIView):
@@ -109,6 +109,24 @@ class HealthForecastView(APIView):
         data = service.forecast_preview(request.user),        
         return Response(data)
     
-    
+#team 14
+class ActivityForecastView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()     #placeholder service
+        try:
+            data = service.forecast_preview(request.user)   #placeholder call
+            response_data = {
+                "predictions": data.get("predictions", []),  #list of {date,predictedValue} obj
+                "metadata": {
+                    "methodUsed": request.query_params.get("method", "baseline"),
+                    "windowK": request.query_params.get("windowK", 3),
+                    "fallbackUsed": data.get("fallbackUsed", False),
+                }
+            }
+            return Response(response_data)
+        except Exception as e:
+            return Response({"Forecasting Engine Error": str(e)}, status=500)
 
 

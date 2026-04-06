@@ -6,11 +6,12 @@ from .views import (
     WeeklySummaryView,
     ActivityStreaksView,
     HealthIndicatorsView,
+    ActivityForecastView,
 )
 
 __all__ = ["AnalyticsOverviewView",  "ActivityStatisticsView",
     "PersonalRecordsView",
     "ActivityTypeBreakdownView",
     "WeeklySummaryView",
-    "ActivityStreaksView","HealthIndicatorsView",]
+    "ActivityStreaksView","HealthIndicatorsView","ActivityForecastView",]
 
