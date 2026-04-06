@@ -1,4 +1,4 @@
-name: G26 TypeScript Checks
+name: G26 typescript-checks.yml
 
 on:
   push:
