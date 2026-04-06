@@ -41,7 +41,7 @@ jobs:
 #     Run cypress tests, runs the cypress:ci script from package.json
 #     --retires 1 retries any failed test ONCE before marking as failed
     - name: Run Cypress E2E tests 
-      run: npm run cypress:ci -- --retires 1
+      run: npm run cypress:ci -- --retries 1
       working-directory: ./frontend
 #     Upload Cypress videos
 #     always(), runs this step no matter what
