@@ -10,7 +10,7 @@ from data_integration.business import (
     StravaActivityFactory,
     StravaActivitySummary,
 )
-from data_integration.data import StravaActivityFetcher, StravaAuthService  
+from data_integration.data import StravaActivityFetcher, StravaAuthService
 
 
 RAW_ACTIVITY = {

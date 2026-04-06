@@ -46,7 +46,7 @@ class StravaAuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def refresh(self, request):
-        """POST /api/strava/refresh/ with {'refresh_token': '...'}"""
+        """POST /api/v1/data-integrations/strava/refresh/ with {'refresh_token': '...'}"""
         refresh_token = request.data.get('refresh_token')
         if not refresh_token:
             return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
