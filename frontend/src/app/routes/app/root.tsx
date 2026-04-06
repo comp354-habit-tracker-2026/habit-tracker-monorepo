@@ -17,6 +17,8 @@ function AppRoot() {
         <Link to={paths.app.habits.getHref()}>Habits</Link>
         {' · '}
         <Link to={paths.app.profile.getHref()}>Profile</Link>
+        {' · '}
+        <Link to={paths.app.consentTest.getHref()}>Consent Test</Link>
       </nav>
       <main className="app-root__main">
         <Outlet />
