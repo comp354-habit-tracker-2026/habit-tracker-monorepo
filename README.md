@@ -1,33 +1,50 @@
-# App-Filtered Goal Progress
+# habit-tracker-monorepo
 
-This module implements support for app-filtered goal progress, allowing the system to compute progress and status based on activities from a specific source application.
+## Stale PR Labeler
 
-In many real-world scenarios, users may track activities across multiple platforms (e.g., Strava, MapMyRun, MyWhoosh, We Ski). This feature enables more granular analysis by restricting computations to a single selected source application when required.
+This repo uses an automated GitHub Action to manage stale pull requests.
 
-### Functionality
+### How it works
+Pull requests with no activity (comments, commits, or reviews) for **14 days**
+are automatically labeled as `stale` and the author is notified via a comment.
+The stale label is removed if the PR becomes active again.
 
-- When a `source_app` is provided, only activities originating from that application are included in progress calculations.
-- When no filter is specified, the system falls back to using all available activities.
-- The implementation ensures that filtering does not affect the correctness of the default (non-filtered) behavior.
-- Edge cases such as missing or empty data for a selected application are handled gracefully.
+### Exemption Label
+If a PR should **not** be marked as stale (e.g. it's intentionally on hold),
+add the `do-not-stale` label to it. The action will skip that PR entirely.
 
-### Design Overview
+## Code owners PR Review Assignment
+This repo contains a `CODEOWNERS` file that assigns groups to a PR when it is created.
+Reviewers can be set by a group to protect their features from breaking during shared file merges.
 
-The feature is designed with modularity and separation of concerns:
+### How it works
+When a pull request is created, codeowner group(s) are automatically assigned to review the pull request.
+The groups are relevant to files changed in the pull request.
+The pull request must receive a review from a member of the assigned group(s) before it can be closed.
 
-- `app_filter.py`  
-  Responsible for filtering activities based on the `source_app` field.
+### How to add a codeowner
+Ownership of a folder or a file can be set by adding a line inside the `CODEOWNERS` file.
+A single line in the `CODEOWNERS` file can target either a (set of) file(s) or a folder.
 
-- `progress_by_app.py`  
-  Applies filtering logic before delegating to the progress computation.
+The `CODEOWNERS` file has some assignments prepared that need specifications on file and folder names, placeholdered by `{...}`.
+Otherwise, teams can specify other files and folders by themselves using documentation provided below.
 
-- `progress_calculator.py`  
-  Contains the core logic for computing actual value, target value, and percent completion.
+Team names are simply `Group-xx` for groups 1-4 and `group-xx` for groups 5-27.
+Do be mindful of capitalization when assigning ownership.
+The lines for assigning codeowners are as follows:
 
-- `activity_model.py`  
-  Defines the structure of activity data, including fields such as distance, duration, and source application.
+#### Folder ownership:
+`/{path}/{from}/{root}/{folder}/ @comp354-habit-tracker-2026/{team}`
 
-- `goal_model.py`  
-  Represents goal definitions, including target values and time ranges.
+#### File ownership:
+`/{path}/{from}/{root}/{file}.{ext} @comp354-habit-tracker-2026/{team}` for single files.
 
-This modular approach ensures low coupling and makes the feature easy to extend or integrate with other components (e.g., sport filtering or analytics services).
+`/{path}/{from}/{root}/*.{ext} @comp354-habit-tracker-2026/{team}` for all files of the same extension.
+
+#### Multiple team ownership:
+`/{path}/{from}/{root}/{folder}/ @comp354-habit-tracker-2026/{team1} @comp354-habit-tracker-2026/{team2}`
+for a folder shared between 2 groups. This can also be done with files.
+Setting ownership through multiple lines will not add but override ownership.
+This will require a review from those 2 (or more) groups.
+
+Further documentation can be found [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
