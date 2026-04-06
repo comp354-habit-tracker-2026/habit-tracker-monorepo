@@ -51,12 +51,13 @@ Further documentation can be found [here](https://docs.github.com/en/repositorie
 
 ## PR Labeling Automation
 
-This repository uses GitHub Actions to automatically label pull requests.
+This repository uses multiple GitHub Actions to automatically label pull requests.
 
 ### How it works
-- Labels are applied based on changed files (e.g. frontend/, backend/)
-- A size label (XS, S, M, L, XL) is also added based on the number of lines changed
+- **Path-based labels** are applied based on changed files (for example, `frontend/` or `backend/`). The workflow is defined in [`.github/workflows/labeler.yml`](.github/workflows/labeler.yml), and the matching rules are configured in [`.github/labeler.yml`](.github/labeler.yml).
+- **PR size labels** (`XS`, `S`, `M`, `L`, `XL`) are added based on the number of lines changed. This workflow is defined in [`.github/workflows/pr-size-labeler.yml`](.github/workflows/pr-size-labeler.yml).
 
 ### Purpose
 - Helps reviewers quickly understand the scope of a PR
 - Improves organization and review efficiency
+- Makes it clearer which workflow/config to update when labeling rules need to change
