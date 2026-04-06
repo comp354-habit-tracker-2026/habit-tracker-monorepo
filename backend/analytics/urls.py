@@ -9,6 +9,7 @@ from analytics.views import (
     WeeklySummaryView,
     ActivityStreaksView,
     ActivityForecastView,
+    PaginatedActivityHistoryView,
 )
 
 urlpatterns = [
@@ -21,4 +22,5 @@ urlpatterns = [
     path("overview/", AnalyticsOverviewView.as_view(), name="analytics_overview"),
     path("health-indicators/", HealthIndicatorsView.as_view(), name="health_indicators"),
     path("forecast/", ActivityForecastView.as_view(), name="activity_forecast"),
+    path("activity-history/", PaginatedActivityHistoryView.as_view(), name="activity_history"),
 ]
