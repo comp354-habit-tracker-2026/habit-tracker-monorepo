@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+import json
 
 import pytest
 from activities.serializers import ActivitySerializer
@@ -76,6 +77,20 @@ def _sync_goal_distance(goal, *activities):
     goal.save(update_fields=["current_value", "updated_at"])
 
 
+def _json_ready(value):
+    if isinstance(value, Decimal):
+        return str(value)
+    return str(value)
+
+
+def _trace_case(name, *, input_data, output_data):
+    print(f"\n=== {name} ===")
+    print("INPUT:")
+    print(json.dumps(input_data, indent=2, default=_json_ready))
+    print("OUTPUT:")
+    print(json.dumps(output_data, indent=2, default=_json_ready))
+
+
 @pytest.mark.django_db
 class TestGoalProgressService:
     def setup_method(self):
@@ -96,6 +111,18 @@ class TestGoalProgressService:
 
         goal.refresh_from_db()
         notification = Notification.objects.get()
+        _trace_case(
+            "achieved notification",
+            input_data={
+                "goal": {**GOAL_INPUT, "target_value": "30.00"},
+                "activities": [MANUAL_ACTIVITY_INPUT, EXTERNAL_ACTIVITY_INPUT],
+                "computed_at": "2026-01-15T12:00:00Z",
+            },
+            output_data={
+                "result": result,
+                "notification": notification.payload,
+            },
+        )
         assert result["state"] == Goal.ProgressState.ACHIEVED
         assert result["notification_created"] is True
         assert goal.progress_state == Goal.ProgressState.ACHIEVED
@@ -119,6 +146,19 @@ class TestGoalProgressService:
         assert goal.progress_state == Goal.ProgressState.AT_RISK
         assert Notification.objects.count() == 1
         notification = Notification.objects.get()
+        _trace_case(
+            "at risk notification",
+            input_data={
+                "goal": GOAL_INPUT,
+                "activities": [MANUAL_ACTIVITY_INPUT],
+                "computed_at": "2026-01-15T12:00:00Z",
+            },
+            output_data={
+                "first_result": first,
+                "second_result": second,
+                "notification": notification.payload,
+            },
+        )
         assert notification.notification_type == Notification.NotificationType.GOAL_AT_RISK
         assert notification.payload["progressSummary"]["actual"] == 7.5
 
@@ -130,6 +170,18 @@ class TestGoalProgressService:
         result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 2, 1))
 
         notification = Notification.objects.get()
+        _trace_case(
+            "missed notification",
+            input_data={
+                "goal": GOAL_INPUT,
+                "activities": [EXTERNAL_ACTIVITY_INPUT],
+                "computed_at": "2026-02-01T12:00:00Z",
+            },
+            output_data={
+                "result": result,
+                "notification": notification.payload,
+            },
+        )
         assert result["state"] == Goal.ProgressState.MISSED
         assert notification.notification_type == Notification.NotificationType.GOAL_MISSED
         assert notification.payload["previousState"] == Goal.ProgressState.ON_TRACK
@@ -151,6 +203,22 @@ class TestGoalProgressService:
         result = self.service.evaluate_goal(goal, computed_at=_dt(2026, 1, 15))
 
         goal.refresh_from_db()
+        _trace_case(
+            "on track transition",
+            input_data={
+                "goal": GOAL_INPUT,
+                "activities": [
+                    MANUAL_ACTIVITY_INPUT,
+                    {**EXTERNAL_ACTIVITY_INPUT, "external_id": "strava_98765"},
+                ],
+                "computed_at": "2026-01-15T12:00:00Z",
+                "previous_state": Goal.ProgressState.AT_RISK,
+            },
+            output_data={
+                "result": result,
+                "notification_count": Notification.objects.count(),
+            },
+        )
         assert result["state"] == Goal.ProgressState.ON_TRACK
         assert result["notification_created"] is False
         assert goal.progress_state == Goal.ProgressState.ON_TRACK
@@ -187,6 +255,17 @@ class TestNotificationsAPI:
 
         response = _auth_client(user).get("/api/v1/notifications/")
 
+        _trace_case(
+            "notifications list for one user",
+            input_data={
+                "request": "GET /api/v1/notifications/",
+                "authenticated_user": user.email,
+            },
+            output_data={
+                "status_code": response.status_code,
+                "response": response.data,
+            },
+        )
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
         assert response.data[0]["title"] == "Goal at risk: Run 50km"
@@ -220,6 +299,17 @@ class TestNotificationsAPI:
 
         response = _auth_client(user).get("/api/v1/notifications/")
 
+        _trace_case(
+            "notifications list newest first",
+            input_data={
+                "request": "GET /api/v1/notifications/",
+                "authenticated_user": user.email,
+            },
+            output_data={
+                "status_code": response.status_code,
+                "response": response.data,
+            },
+        )
         assert response.status_code == status.HTTP_200_OK
         assert response.data[0]["title"] == "Goal achieved: Cycle 30km"
         assert response.data[1]["title"] == "Goal at risk: Run 50km"
