@@ -48,7 +48,14 @@ class TestGoalDetailViewing:
 
         assert response.status_code == 200
         assert response.data["id"] == goal.id
-        assert response.data["title"] == "Test Goal"
+        assert response.data["title"] == goal.title
+        assert response.data["description"] == goal.description
+        assert response.data["goal_type"] == goal.goal_type
+        assert response.data["status"] == goal.status
+        assert response.data["start_date"] == str(goal.start_date)
+        assert response.data["end_date"] == str(goal.end_date)
+        assert "created_at" in response.data
+        assert "updated_at" in response.data
         assert "progress_percentage" in response.data
         assert float(response.data["progress_percentage"]) == 50.0
 
