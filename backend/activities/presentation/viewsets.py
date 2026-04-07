@@ -47,3 +47,18 @@ class ActivityViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
             },
             idempotency_key=f"activity.imported:{activity.id}",
         )
+    
+    # Issue #106 - Activity Modification
+    def update(self, request, *args, **kwargs):
+        """
+        Handles both PUT (full) and PATCH (partial) updates.
+        Delegates business logic to ActivityService.
+        """
+        updated_instance = self.service.update_activity(
+            activity_id=kwargs['pk'],
+            user=request.user,
+            data=request.data
+        )
+
+        serializer = self.get_serializer(updated_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
