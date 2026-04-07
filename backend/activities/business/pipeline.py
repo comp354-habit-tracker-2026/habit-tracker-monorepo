@@ -4,24 +4,33 @@
     
     Description: 
     This file contains part of the pipeline orchestration. It
-    connects the adapter, normalizer, and deduplication steps
+    connects the adapter, normalizer, deduplication, logging and event publisher steps
     for activity ingestion """
 
-from normalizer import AactivityNormalizer
-from deduplication import ActivityDeduplicator
+#from normalizer import ActivityNormalizer
+from backend.activities.business.deduplication import ActivityDeduplicator
+from backend.activities.business.event_publisher import EventPublisher
+from backend.activities.business.hooks import LoggingHook
 
 class ActivityPipeline:
     def __init__(self):
-        self.normalizer = AactivityNormalizer()
+        #self.normalizer = ActivityNormalizer()
         self.deduplicator = ActivityDeduplicator()
+        self.publisher = EventPublisher()
+        self.hooks = LoggingHook()
 
     def process(self, adapter, raw_activity, existing_activities):
         adapted = adapter.transform(raw_activity) #transform
-        normalized = self.normalizer.normalize(adapted) #normalize
-        is_duplicate = self.deduplicator.is_duplicate(self.normalized, existing_activities)
-        if is_duplicate:
-            print("Duplicate activity found. Skipping.")
-            return None
-        
-        print("New activity processed.")
-        return normalized
+        #normalized = self.normalizer.normalize(adapted) #normalize
+
+        results = self.deduplicator.process(adapted, existing_activities)
+
+        # Logging:
+        self.hooks.log_details(results['status'], results['changed_fields'], results['activity'])
+
+        # Publishing:
+        if results['status'] in ['NEW', 'UPDATE']:
+            self.publisher.publish_event(results['activity'], results['status'])
+
+        return results
+

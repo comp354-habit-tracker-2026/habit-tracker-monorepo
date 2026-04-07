@@ -9,7 +9,7 @@
 
 from datetime import datetime
 
-class AactivityNormalizer:
+class ActivityNormalizer:
     def normalize(self, activity_data):
         date_str = activity_data.get("date")
         return {
