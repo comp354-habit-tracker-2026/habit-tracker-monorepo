@@ -388,4 +388,4 @@ class TestTeam12AnalyticsService:
 
         assert result["currentPersonalBest"] == 20
         assert result["previousBest"] == 10
-
+        
