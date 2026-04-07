@@ -1,7 +1,6 @@
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Count, Max, Sum
 
 VALID_METRICS = ["COUNT", "DURATION", "STREAK", "CUSTOM"]
@@ -283,7 +282,7 @@ class Team12AnalyticsRepository:
         queryset = Activity.objects.filter(user=user, id=habit_id)
 
         if not queryset.exists():
-            raise ObjectDoesNotExist("Habit not found")
+            raise ValueError("Habit not found")
 
         # Map metric → field
         metric_map = {
