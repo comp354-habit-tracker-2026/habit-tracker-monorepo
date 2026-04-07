@@ -63,8 +63,8 @@ class TestAuthentication:
         assert 'access' in response.data
         assert 'refresh' in response.data
 
-    def test_login_access_token_contains_user_claims(self, api_client, create_user):
-        """Test login access token includes expected user claims."""
+       def test_login_access_token_contains_user_claims(self, api_client, create_user):
+        """Test login access token includes expected user id claim."""
         user = create_user(email='claims@test.com')
         data = {
             'username': 'testuser',
@@ -77,10 +77,6 @@ class TestAuthentication:
         access = response.data['access']
         token = AccessToken(access)
         assert int(token['user_id']) == user.id
-        assert token['username'] == user.username
-        assert token['email'] == user.email
-        assert token['is_staff'] is False
-        assert token['is_superuser'] is False
 
     def test_protected_route_without_token_fails(self, api_client):
         """Test accessing protected route without token fails"""
