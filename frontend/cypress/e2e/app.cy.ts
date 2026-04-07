@@ -95,4 +95,17 @@ it('shows error state when habits API fails', () => {
   cy.contains('My Habits').should('be.visible');
   cy.contains('Failed to load habits.').should('be.visible');
 });
+
+it('opens the activities page', () => {
+  cy.visit('/app/activities');
+  cy.url().should('include', '/app/activities');
+  cy.contains('Activities').should('be.visible');
+});
+
+it('shows 404 page for unknown route and can go back home', () => {
+  cy.visit('/does-not-exist', { failOnStatusCode: false });
+  cy.contains('404').should('be.visible');
+  cy.contains('Go home').click();
+  cy.url().should('eq', Cypress.config().baseUrl + '/');
+});
 });
