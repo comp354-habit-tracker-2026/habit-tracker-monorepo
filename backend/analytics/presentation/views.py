@@ -19,13 +19,14 @@ class AnalyticsOverviewView(APIView):
 
 # ============================================================
 # G13 - cathytham - InactivityDetector - PR #241
-# ============================================================ 
+# ============================================================
 class HealthIndicatorsView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         service = AnalyticsService()
         data = {
+            "activity_statistics": service.activity_statistics(request.user),
             "inactivity_evaluation": service.inactivity_evaluation(request.user),
         }
         return Response(data)

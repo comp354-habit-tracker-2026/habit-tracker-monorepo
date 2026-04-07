@@ -3,7 +3,7 @@
 # ============================================================
 import unittest
 
-from backend.analytics.business.models import HealthScoreModel, HealthScoreResult
+from analytics.business.models import HealthScoreModel, HealthScoreResult
 
 
 class TestHealthScoreModel(unittest.TestCase):

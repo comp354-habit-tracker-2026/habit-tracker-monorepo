@@ -6,7 +6,8 @@
 # Note: The actual forecasting logic is not implemented in this file; it serves solely as a definition of the data structures used in the API.
 
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
+from dataclasses import dataclass
 
 # The ForecastRequest model captures the input parameters for generating a forecast, including the user ID, the number of days to forecast, and the type of forecast (baseline or trained).
 class ForecastRequest(BaseModel):
@@ -34,9 +35,6 @@ class ForecastResponse(BaseModel):
 # ============================================================
 # G13 - FadyRizkalla - Health Score Model - PR #296
 # ============================================================
-
-from dataclasses import dataclass
-from typing import Optional, Dict
 
 
 @dataclass

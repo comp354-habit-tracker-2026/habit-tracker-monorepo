@@ -6,7 +6,7 @@ import unittest
 import asyncio
 from unittest.mock import patch
 from fastapi import HTTPException
-from backend.analytics.business.api_router import (
+from analytics.business.api_router import (
     HealthIndicatorsRequest,
     health_indicators_endpoint,
 )
@@ -18,7 +18,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
     # ------------------------------------------------------------
     # TC1 Normal request (success)
     # ------------------------------------------------------------
-    @patch("backend.analytics.presentation.api_router.fetch_activity_data")
+    @patch("analytics.business.api_router.fetch_activity_data")
     def test_tc1_normal_request_success(self, mock_fetch_activity_data):
         """Returns success response with indicators, score, inactivity false, and explanations."""
         mock_fetch_activity_data.return_value = [
@@ -64,7 +64,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
     # ------------------------------------------------------------
     # TC2 Invalid parameters (missing userId)
     # ------------------------------------------------------------
-    @patch("backend.analytics.presentation.api_router.fetch_activity_data")
+    @patch("analytics.business.api_router.fetch_activity_data")
     def test_tc2_missing_user_id(self, mock_fetch_activity_data):
         """Request creation should fail if user_id is missing."""
         with self.assertRaises(Exception):
@@ -81,7 +81,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
     # ------------------------------------------------------------
     # TC3 Invalid parameters (date range invalid)
     # ------------------------------------------------------------
-    @patch("backend.analytics.presentation.api_router.fetch_activity_data")
+    @patch("analytics.business.api_router.fetch_activity_data")
     def test_tc3_invalid_date_range(self, mock_fetch_activity_data):
         """Returns HTTP 400 when from_date is later than to_date."""
         request = HealthIndicatorsRequest(
@@ -102,7 +102,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
     # ------------------------------------------------------------
     # TC4 No activity data in range
     # ------------------------------------------------------------
-    @patch("backend.analytics.presentation.api_router.fetch_activity_data")
+    @patch("analytics.business.api_router.fetch_activity_data")
     def test_tc4_no_activity_data(self, mock_fetch_activity_data):
         """Returns success with default indicators and inactivity true."""
         mock_fetch_activity_data.return_value = []
@@ -132,7 +132,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
     # ------------------------------------------------------------
     # TC5 Data storage unavailable
     # ------------------------------------------------------------
-    @patch("backend.analytics.presentation.api_router.fetch_activity_data")
+    @patch("analytics.business.api_router.fetch_activity_data")
     def test_tc5_data_storage_unavailable(self, mock_fetch_activity_data):
         """Returns HTTP 503 when activity data service fails."""
         mock_fetch_activity_data.side_effect = Exception("Activity data service unavailable")

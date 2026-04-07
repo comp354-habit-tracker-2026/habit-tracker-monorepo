@@ -4,7 +4,7 @@
 
 import unittest
 
-from backend.analytics.business.validation_explainability import (
+from analytics.business.validation_explainability import (
     validate_explainability_inputs,
     ExplainabilityBuilder,
     format_error_response,

@@ -4,6 +4,9 @@
 try:
     from .services import AnalyticsService
     __all__ = ["AnalyticsService"]
-except ImportError:
+except ModuleNotFoundError as exc:
     # Allow imports to work even without Django installed (e.g., for testing indicators)
-    __all__ = []
+    if exc.name == "django" or (exc.name and exc.name.startswith("django.")):
+        __all__ = []
+    else:
+        raise

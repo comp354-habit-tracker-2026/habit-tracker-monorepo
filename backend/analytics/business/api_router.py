@@ -2,9 +2,27 @@
 # The router handles POST requests to the /forecast endpoint, where it validates the incoming request data using the ForecastRequest model.
 # It checks for valid input parameters and then calls the generate_forecast_data function from the services module to produce the forecast and associated metrics.
 # The response is structured according to the ForecastResponse model, ensuring consistent formatting of the API output.
+from datetime import datetime
+from typing import List, Optional, Dict, Any
+
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+
 from .models import ForecastRequest, ForecastResponse
 from .services import AnalyticsService
+from analytics.business.indicators import (
+    WorkoutSession,
+    WorkoutType,
+    VolumeIndicator,
+    ConsistencyIndicator,
+)
+from analytics.business.models import HealthScoreModel
+from analytics.business.validation_explainability import (
+    validate_explainability_inputs,
+    ExplainabilityBuilder,
+    format_error_response,
+    format_success_response,
+)
 
 router = APIRouter()
 
@@ -45,69 +63,60 @@ def forecast_endpoint(request: ForecastRequest):
 # G13 - MMingQwQ - Health Indicators API  - Issue #22
 # ============================================================
 
-from datetime import datetime
-from typing import List, Optional, Literal, Dict, Any
-
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
-
-from backend.analytics.business.indicators import (
-    WorkoutSession,
-    WorkoutType,
-    VolumeIndicator,
-    ConsistencyIndicator,
-)
-from backend.analytics.business.models import HealthScoreModel
-from backend.analytics.business.validation_explainability import (
-    validate_explainability_inputs,
-    ExplainabilityBuilder,
-    format_error_response,
-    format_success_response,
-)
-
-router = APIRouter()
-
-
-class WorkoutInput(BaseModel):
-    """Represents one workout entry sent to the API."""
-    date: datetime
-    duration_minutes: int = Field(..., ge=10, le=600)
-    intensity: float = Field(..., ge=0.5, le=2.0)
-    workout_type: Literal["cardio", "strength", "flexibility", "sports", "mixed"]
-    user_id: str
-    notes: Optional[str] = None
-
 
 class HealthIndicatorsRequest(BaseModel):
     """Request body for health indicators endpoint."""
     user_id: str
-    workouts: List[WorkoutInput]
+    from_date: datetime
+    to_date: datetime
+    window: Optional[str] = None
     target_workouts: int = Field(..., gt=0)
     alerts: Optional[List[str]] = None
 
 
-def compute_inactivity(workouts: List[WorkoutSession]) -> Dict[str, Any]:
+def fetch_activity_data(
+    user_id: str,
+    from_date: datetime,
+    to_date: datetime,
+) -> List[Dict[str, Any]]:
     """
-    Computes inactivity status from workout history.
-    This is a temporary local integration helper until Cathy’s module is fully merged.
+    Fetches activity data for the given user and date range.
+    Returns a list of workout dicts with keys: date, duration_minutes, intensity,
+    workout_type, user_id, and optionally notes.
+    """
+    # Placeholder - replace with real data-source call when available.
+    return []
+
+
+def compute_inactivity(
+    workouts: List[WorkoutSession],
+    to_date: Optional[datetime] = None,
+) -> Dict[str, Any]:
+    """
+    Computes inactivity status from workout history relative to *to_date*.
+
+    A user is considered inactive only when they have had no workout in the
+    last 7 days (severe inactivity).  3-6 days without a workout is flagged as
+    a mild warning but does not set inactive=True.
     """
     if not workouts:
         return {
             "inactive": True,
             "days_since_last_activity": None,
             "severity": "severe",
-            "message": "No activity data found."
+            "message": "No activity data found.",
         }
 
+    reference = to_date or datetime.now()
     latest_workout = max(workouts, key=lambda w: w.date)
-    days_since_last_activity = (datetime.now() - latest_workout.date).days
+    days_since_last_activity = (reference - latest_workout.date).days
 
     if days_since_last_activity >= 7:
         severity = "severe"
         inactive = True
     elif days_since_last_activity >= 3:
         severity = "mild"
-        inactive = True
+        inactive = False
     else:
         severity = "none"
         inactive = False
@@ -116,7 +125,7 @@ def compute_inactivity(workouts: List[WorkoutSession]) -> Dict[str, Any]:
         "inactive": inactive,
         "days_since_last_activity": days_since_last_activity,
         "severity": severity,
-        "message": f"Last activity was {days_since_last_activity} day(s) ago."
+        "message": f"Last activity was {days_since_last_activity} day(s) ago.",
     }
 
 
@@ -133,21 +142,48 @@ def build_score_input(
     }
 
 
-@router.post("/api/health-indicators")
+@router.post("/health-indicators")
 async def health_indicators_endpoint(request: HealthIndicatorsRequest):
     """Computes health indicators, health score, inactivity, and explanations."""
+    # Validate date range
+    if request.from_date > request.to_date:
+        raise HTTPException(
+            status_code=400,
+            detail=format_error_response("from_date must not be later than to_date"),
+        )
+
+    # Fetch activity data (503 if the data source is unavailable)
     try:
-        workout_sessions = [
-            WorkoutSession(
-                date=w.date,
-                duration_minutes=w.duration_minutes,
-                intensity=w.intensity,
-                workout_type=WorkoutType(w.workout_type),
-                user_id=w.user_id,
-                notes=w.notes,
+        activity_data = fetch_activity_data(
+            user_id=request.user_id,
+            from_date=request.from_date,
+            to_date=request.to_date,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=format_error_response(f"Activity data service unavailable: {str(e)}"),
+        )
+
+    try:
+        # Convert raw dicts to WorkoutSession objects
+        workout_sessions = []
+        for w in activity_data:
+            date = (
+                w["date"]
+                if isinstance(w["date"], datetime)
+                else datetime.fromisoformat(str(w["date"]))
             )
-            for w in request.workouts
-        ]
+            workout_sessions.append(
+                WorkoutSession(
+                    date=date,
+                    duration_minutes=w["duration_minutes"],
+                    intensity=w["intensity"],
+                    workout_type=WorkoutType(w["workout_type"]),
+                    user_id=w["user_id"],
+                    notes=w.get("notes"),
+                )
+            )
 
         # Fitness indicators
         volume_result = VolumeIndicator.calculate(workout_sessions)
@@ -156,8 +192,8 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
             target_workouts=request.target_workouts,
         )
 
-        # Inactivity
-        inactivity_result = compute_inactivity(workout_sessions)
+        # Inactivity (relative to to_date)
+        inactivity_result = compute_inactivity(workout_sessions, to_date=request.to_date)
 
         # Build score input
         indicators = build_score_input(
@@ -186,6 +222,11 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
             score_range=score_result.score_range,
             alerts=request.alerts,
         )
+
+        # Include the inactivity message in the explanations for visibility
+        inactivity_message = inactivity_result.get("message")
+        if inactivity_message and inactivity_message not in explanations:
+            explanations.append(inactivity_message)
 
         response_data = {
             "user_id": request.user_id,

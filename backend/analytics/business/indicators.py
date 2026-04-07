@@ -13,10 +13,9 @@ Consistency Indicator: Measures adherence to workout targets with scheduling var
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 from enum import Enum
 import statistics
-import math
 
 
 
@@ -214,9 +213,9 @@ class VolumeIndicator:
 
         return VolumeResult(
             total_volume=round(total_volume, 2),
-            period_start=period_start or workouts[0].date,
-            period_end=period_end or workouts[-1].date,
-                        workout_count=len(workouts),
+            period_start=period_start or min(w.date for w in workouts),
+            period_end=period_end or max(w.date for w in workouts),
+            workout_count=len(workouts),
             breakdown_by_type={k: round(v, 2) for k, v in breakdown_by_type.items()},
             breakdown_by_intensity={k: round(v, 2) for k, v in breakdown_by_intensity.items()},
             interpretation=interpretation,
