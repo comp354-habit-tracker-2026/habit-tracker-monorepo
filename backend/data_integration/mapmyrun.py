@@ -3,10 +3,9 @@ import uuid
 from pathlib import Path
 from azure.storage.blob import BlobClient
 from dotenv import load_dotenv
+import pandas as pd
 
 load_dotenv()
-import pandas as pd
-from datetime import datetime
 
 SUPPORTED_EXTENSIONS = (".xlsx", ".xls")
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -38,6 +37,39 @@ def validate_upload(file_path: str) -> tuple[bool, str | None]:
         )
 
     return True, None
+
+#FEATURE : UPLOAD FILE TO AZURE BLOB STORAGE AND RETURN URL OR ERROR MESSAGE
+
+def upload_to_blob(file_path: str) -> tuple[bool, str]:
+    is_valid, error = validate_upload(file_path)
+    if not is_valid:
+        return False, error
+
+    try:
+        connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        if not connection_string:
+            return False, "AZURE_STORAGE_CONNECTION_STRING is not set."
+
+        container_name = "filestorage"
+        path = Path(file_path)
+
+        unique_name = f"{uuid.uuid4()}{path.suffix}"
+
+        blob_client = BlobClient.from_connection_string(
+            conn_str=connection_string,
+            container_name=container_name,
+            blob_name=unique_name
+        )
+
+        with open(file_path, "rb") as data: blob_client.upload_blob(data, overwrite=True)
+
+        print(f"✅ File uploaded successfully: {blob_client.url}")
+
+        return True, blob_client.url
+
+    except Exception as e:
+        return False, f"Upload failed: {str(e)}"
+
 
 # Feature #75 : normalization and validation of imported data
 def validate_normalize_data(data):
@@ -117,5 +149,3 @@ def validate_normalize_data(data):
 
     
     return normalized_validated_data, None
-
-
