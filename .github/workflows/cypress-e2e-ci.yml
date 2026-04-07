@@ -1,10 +1,7 @@
 name: Integrate Cypress E2E tests into GitHub Actions CI
 run-name: (g26-168) Cypress E2E Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
 
-# Will run on PUSH & PULL REQUESTS from ***integration/g26-168-e2e-ci-pipeline***
-
-# These are the EVENTS
-# This workflow is going to be triggered every time there is a PUSH or PULL_REQUEST on integration/g26-168-e2e-ci-pipeline
+# EVENTS workflow is going to be triggered every time there is a PUSH or PULL_REQUEST on integration/g26-168-e2e-ci-pipeline
 on:
   push:
     branches: ["main", "integration/g26-168-e2e-ci-pipeline"]
@@ -21,16 +18,9 @@ permissions:
   contents: read
 
 #Workflow
-
 jobs:
   cypress-e2e:
-    runs-on: ubuntu-latest # Testing on latest version of Ubuntu
-#   Test on multiple OS    
-#   runs-on: ${{matrix.os}}
-#	strategy:
-#     matrix:
-#		os:[ubuntu-latest, windows-latest, macOS-latest]
-    
+    runs-on: ubuntu-latest    
     
     steps:
     # Checksout the repo and pulls it into the pipeline so that the workflow can access it
@@ -44,41 +34,36 @@ jobs:
         node-version: 20
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
+
 #	  Install the dependencies
     - name: Install dependencies
       run: npm ci
       working-directory: ./frontend
+
 #     Run cypress tests, runs the cypress:ci script from package.json
-#     --retires 1 retries any failed test ONCE before marking as failed
-#     Instead of passing the retry command in command line
-#     setting it as an ENV variable hoping this solves the error
     - name: Run Cypress E2E tests 
       run: npm run cypress:ci
       working-directory: ./frontend
       env:
         CYPRESS_RETRIES: 1
-#     Upload Cypress videos
-#     always(), runs this step no matter what
-#     Github prebuilt action
-#     Saves the videos to frontend/cypress/videos
+        
+#     Upload Cypress videos save the videos to frontend/cypress/videos
     - name: Upload Cypress videos
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: cypress-videos
         path: frontend/cypress/videos
-#     Upload Cypress screenshots
-#     always(), runs this step no matter what
-#     Github prebuilt action
-#     Saves the screenshots to frontend/cypress/screenshots
+
+#     Upload Cypress screenshots saves the screenshots to frontend/cypress/screenshots
     - name: Upload Cypress screenshots
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: cypress-screenshots
         path: frontend/cypress/screenshots
-#     Upload Cypress Logs (Fulfills the explicit requirement)
-#     Saves the logs to frontend/cypress/logs
+
+#     Upload Cypress Logs saves the logs to frontend/cypress/logs
     - name: Upload Cypress logs
       if: always()
       uses: actions/upload-artifact@v4
