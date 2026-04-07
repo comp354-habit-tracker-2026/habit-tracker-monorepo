@@ -179,3 +179,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STRAVA_CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
+STRAVA_CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
