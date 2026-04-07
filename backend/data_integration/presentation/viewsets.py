@@ -3,6 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+import logging
+
 from data_integration.business import DataIntegrationService
 from data_integration.models import DataConsent
 
@@ -48,7 +50,11 @@ class DataIntegrationViewSet(viewsets.ViewSet):
         try:
             self.service.set_user_consent(request.user, provider, consent_granted)
         except ValueError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            logging.exception("Error while setting user consent for provider %s", provider)
+            return Response(
+                {"detail": "Invalid consent request."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         integrations = self.service.get_user_integrations(request.user, request.query_params)
         provider_data = next((item for item in integrations if item["provider"] == provider), None)
