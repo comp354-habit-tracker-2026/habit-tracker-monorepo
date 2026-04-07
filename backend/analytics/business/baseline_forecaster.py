@@ -218,7 +218,7 @@ def generate_baseline_forecast(
     future_dates = _generate_future_dates(last_date, horizon)
 
     forecast = [
-        {"date": date, "predictedValue": round(val, 6)}
+        {"date": date, "predictedValue": val}
         for date, val in zip(future_dates, raw_predictions)
     ]
 
