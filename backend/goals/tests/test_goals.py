@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from goals.business import GoalService
 from goals.models import Goal
 from datetime import date, timedelta
 
@@ -138,3 +139,111 @@ class TestGoals:
         response = authenticated_client.get('/api/v1/goals/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    @pytest.mark.parametrize(
+        "actual,target,deadline_offset,expected_percent,expected_status",
+        [
+            (0, 100, 7, 0.00, "AT_RISK"),
+            (80, 100, 7, 80.00, "ON_TRACK"),
+            (100, 100, 7, 100.00, "ACHIEVED"),
+            (150, 100, 7, 150.00, "ACHIEVED"),
+            (60, 100, -1, 60.00, "MISSED"),
+            (0, 0, 7, 100.00, "ACHIEVED"),
+        ],
+    )
+    def test_goal_status_summary_acceptance_matrix(
+        self,
+        authenticated_client,
+        create_goal,
+        actual,
+        target,
+        deadline_offset,
+        expected_percent,
+        expected_status,
+    ):
+        goal = create_goal(
+            authenticated_client.user,
+            target_value=target,
+            current_value=actual,
+            end_date=date.today() + timedelta(days=deadline_offset),
+        )
+
+        response = authenticated_client.get(f'/api/v1/goals/{goal.id}/status/')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['goalId'] == goal.id
+        assert response.data['status'] == expected_status
+        assert response.data['percentComplete'] == pytest.approx(expected_percent, abs=0.01)
+        assert 'evaluatedAt' in response.data
+
+    def test_goal_status_summary_metrics_failure_returns_partial_response(
+        self,
+        authenticated_client,
+        create_goal,
+        monkeypatch,
+    ):
+        goal = create_goal(authenticated_client.user, target_value=100, current_value=20)
+
+        def _raise_metrics_failure(*args, **kwargs):
+            raise RuntimeError("metrics unavailable")
+
+        monkeypatch.setattr(GoalService, 'get_actual_value', _raise_metrics_failure)
+
+        response = authenticated_client.get(f'/api/v1/goals/{goal.id}/status/')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['percentComplete'] == pytest.approx(0.00, abs=0.01)
+        assert response.data['status'] == 'AT_RISK'
+        assert 'notes' in response.data
+        assert 'Actual value unavailable' in response.data['notes']
+
+    def test_goal_status_summary_negative_actual_clamped(
+        self,
+        authenticated_client,
+        create_goal,
+    ):
+        goal = create_goal(
+            authenticated_client.user,
+            target_value=100,
+            current_value=-25,
+            end_date=date.today() + timedelta(days=10),
+        )
+
+        response = authenticated_client.get(f'/api/v1/goals/{goal.id}/status/')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['actualValue'] == pytest.approx(0.00, abs=0.01)
+        assert response.data['percentComplete'] == pytest.approx(0.00, abs=0.01)
+        assert response.data['status'] == 'AT_RISK'
+        assert 'clamped to 0' in response.data.get('notes', '')
+
+    def test_goal_status_summary_now_equals_deadline_not_missed(
+        self,
+        authenticated_client,
+        create_goal,
+    ):
+        goal = create_goal(
+            authenticated_client.user,
+            target_value=100,
+            current_value=60,
+            end_date=date.today(),
+        )
+
+        response = authenticated_client.get(f'/api/v1/goals/{goal.id}/status/')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['status'] == 'AT_RISK'
+
+    def test_goal_status_summary_goal_not_found_returns_error_code(self, authenticated_client):
+        response = authenticated_client.get('/api/v1/goals/999999/status/')
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data['errorCode'] == 'GOAL_NOT_FOUND'
+
+    def test_goal_status_summary_invalid_target_returns_422(self, authenticated_client, create_goal):
+        goal = create_goal(authenticated_client.user, target_value=-10, current_value=5)
+
+        response = authenticated_client.get(f'/api/v1/goals/{goal.id}/status/')
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.data['errorCode'] == 'GOAL_INVALID'
