@@ -1,94 +1,107 @@
-# Overview
+# Testing Strategy
 
-This document describes the testing strategy used by Group 21 (UX Research & Accessibility) to evaluate Grooups 17, 18 and 19s UIs.
+## Overview
 
+This document describes the testing strategy used by Group 21 (UX Research & Accessibility) to evaluate the UIs of Groups 17, 18, and 19.
 
-## Persona Based Testing (#138)
+## Persona-Based Testing (#138)
 
-Testing was done using the different personas devloped in Milestone 1 which mimics real-life users interacting with the system.
-Each Test is performed from 3 distinct user profiles:
+Testing was conducted using the personas developed in Milestone 1, which simulate real-life users interacting with the system.
 
-1. Beginner Users
-2. Intermediate USers
-3. Advanced USers
+Each test is performed from three distinct user profiles:
 
-(Proficency skill based on their experience using the app)
+1. Beginner users
+2. Intermediate users
+3. Advanced users
 
-This in turn helps evaluate:
+(These profiles are based on the user’s level of experience with the application.)
 
-1. Ease of Navigation
-2. Clarity of Information
-3. User satisfaction
+This approach helps evaluate:
+
+1. Ease of navigation
+2. Clarity of information
+3. Overall user satisfaction
+
 
 ## Usability Testing (#130)
 
-Usability was assesesed through direct interaction with each UI, evaluating the ease of completion of each task.
+Usability was assessed through direct interaction with each UI, focusing on how easily users can complete tasks.
 
-We evaluate: 
+We evaluate:
 
-1. Navigation (How easy it is to navigate)
-2. Layout (Does the layout make sense?)
-3. Readability(Is the text clear and understanable?)
-4. User flow (Do users know what to do?)
+1. Navigation (how intuitive the interface is)
+2. Layout (whether content is logically organized)
+3. Readability (clarity and understandability of text)
+4. User flow (whether users know what actions to take)
 
-By doing this we indentify: 
+Through this process, we identify:
 
-1. Elements that are confusing
-2. Slow interactions
-3. Unclear features
+1. Confusing elements
+2. Slow or inefficient interactions
+3. Unclear or incomplete features
 
-## Accesibility Tracing (#152)
 
-Following the core principles of WCAG basics, we check:
+## Accessibility Testing (#152)
 
-1. Colur Contrast
-2. Text Readability
-3. Responsiveness Design
-4. Keyboard Accesibility
+Following core WCAG principles, we evaluate:
 
-Using Lighthouse and AXE DevTools
+1. Color contrast
+2. Text readability
+3. Responsive design
+4. Keyboard accessibility
+
+We use the following tools:
+
+* Lighthouse (accessibility and performance reports)
+* AXE DevTools (accessibility issue detection)
+
 
 ## UX Audit (#136)
-A structured UX audit was conducted to assess design quality beyond basic, covering:
 
-1. Consistency in layout
+A structured UX audit is conducted to assess overall design quality beyond basic usability.
+
+This includes:
+
+1. Consistency across layouts
 2. Visual hierarchy
-3. System feedback
-4. Overall perceived quality of the user experience
+3. System feedback (e.g., loading states, errors)
+4. Overall perceived user experience
 
-All issues identified were documented as GitHub issues
+All issues identified are documented and tracked as GitHub issues.
+
 
 ## Testing Methods
 
-We manually interacted with the UI
+### Manual Testing
 
-and the automated tools consist of:
+We manually interact with the UI to simulate real user behavior and identify usability issues.
 
-1. Lighthouse for performance and accesibility
-2. AXE for accesebility
+### Automated Tools
+
+We use:
+
+1. Lighthouse → performance and accessibility analysis
+2. AXE → accessibility issue detection
 
 
 ## Testing Context
+
 Testing is performed under the following conditions:
 
 1. Some features may use mock data
 2. Some components may be incomplete
-3. UI may not be fully integrated
-   
-These limitations are considered in evaluation
+3. The UI may not be fully integrated
 
-## Output Testing
+These limitations are considered during evaluation.
+
+
+## Testing Output
 
 Testing produces:
 
-1. Test cases (qa/test-cases.md)
-2. Screenshots (qa/evidence/)
+1. Test cases (`qa/test-cases.md`)
+2. Screenshots (`qa/evidence/`)
 3. GitHub issues for identified problems
 4. UX improvement recommendations
-   
-All results are linked to relevant issues (#138, #152, #130, #136)
 
-
-
-
-
+All results are linked to relevant issues (#138, #152, #130, #136) to ensure traceability.
