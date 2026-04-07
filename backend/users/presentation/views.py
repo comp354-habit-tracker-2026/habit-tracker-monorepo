@@ -4,11 +4,13 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.serializers import (
     RegisterSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
+    CustomTokenObtainPairSerializer,
 )
 
 User = get_user_model()
@@ -79,3 +81,8 @@ class PasswordResetConfirmView(APIView):
             {"message": "Password reset successful"},
             status=status.HTTP_200_OK,
         )
+
+
+class LoginView(TokenObtainPairView):
+    permission_classes = (AllowAny,)
+    serializer_class = CustomTokenObtainPairSerializer

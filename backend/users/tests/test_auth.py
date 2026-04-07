@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework_simplejwt.tokens import AccessToken
 
 User = get_user_model()
 
@@ -61,6 +62,25 @@ class TestAuthentication:
         assert response.status_code == status.HTTP_200_OK
         assert 'access' in response.data
         assert 'refresh' in response.data
+
+    def test_login_access_token_contains_user_claims(self, api_client, create_user):
+        """Test login access token includes expected user claims."""
+        user = create_user(email='claims@test.com')
+        data = {
+            'username': 'testuser',
+            'password': 'TestPass123!'
+        }
+
+        response = api_client.post('/api/v1/auth/login/', data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        access = response.data['access']
+        token = AccessToken(access)
+        assert token['user_id'] == user.id
+        assert token['username'] == user.username
+        assert token['email'] == user.email
+        assert token['is_staff'] is False
+        assert token['is_superuser'] is False
 
     def test_protected_route_without_token_fails(self, api_client):
         """Test accessing protected route without token fails"""

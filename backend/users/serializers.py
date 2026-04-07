@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from users.business import UserRegistrationService
 
@@ -32,8 +33,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 RegisterSerialiser = RegisterSerializer
 
 
-
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
@@ -46,3 +45,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         required=True,
         validators=[validate_password],
     )
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    pass
