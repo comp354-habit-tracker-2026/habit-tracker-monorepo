@@ -30,3 +30,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 # Backwards-compatible naming alias.
 RegisterSerialiser = RegisterSerializer
+
+
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
