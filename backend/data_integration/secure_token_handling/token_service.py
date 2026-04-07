@@ -427,24 +427,27 @@ class ProviderTokenManager:
     def verify_provider_token(self, user_id: int, provider_name: str,
                               scope: str = "", caller_service: str = "") -> dict:
 
-        try:
-            consent_response = requests.get(
-                f"http://localhost:8000/data-integrations/",  # confirm URL with Carolina
-                params={"provider": provider_name},
-                headers={"x-user-id": str(user_id)}  # confirm auth method with Carolina
-            )
-            if consent_response.status_code == 200:
-                data = consent_response.json()
-                if not data or not data[0].get("consent_granted"):
-                    result = {"allowed": False, "reason": "CONSENT_NOT_FOUND", "user_id": user_id,
-                              "provider_name": provider_name}
-                    _log_permission_check(user_id, provider_name, scope, caller_service, False,
-                                               "CONSENT_NOT_FOUND")
-                    return result
-        except Exception:
-            pass  # if her service is down, fall through to token check for now
 
-        # --- WHAT WE CAN CHECK NOW ---
+        # check table
+        from sqlalchemy import text
+        consent_row = self.database_session.execute(
+            text(
+                "SELECT consent_granted FROM data_integration_data_consent WHERE user_id = :user_id AND provider = :provider"),
+            {"user_id": user_id, "provider": provider_name}
+        ).fetchone()
+
+        if not consent_row:
+            result = {"allowed": False, "reason": "CONSENT_NOT_FOUND", "user_id": user_id,
+                      "provider_name": provider_name}
+            self._log_permission_check(user_id, provider_name, scope, caller_service, False, "CONSENT_NOT_FOUND")
+            return result
+
+        if not consent_row[0]:  # consent_granted is False
+            result = {"allowed": False, "reason": "CONSENT_REVOKED", "user_id": user_id, "provider_name": provider_name}
+            self._log_permission_check(user_id, provider_name, scope, caller_service, False, "CONSENT_REVOKED")
+            return result
+
+        #check token
         token = self.database_session.query(ProviderToken).filter_by(
             user_id=user_id, provider_name=provider_name
         ).first()
@@ -454,17 +457,8 @@ class ProviderTokenManager:
         else:
             result = {"allowed": True, "reason": "APPROVED", "user_id": user_id, "provider_name": provider_name}
 
-        _log_permission_check(user_id, provider_name, scope, caller_service, result["allowed"], result["reason"])
-
         return result
 
 
 # this is just to test if the refresh works since I dont have access yet to the real providers
 USE_FAKE_REFRESH = os.getenv("USE_FAKE_REFRESH", "false").lower() == "true" # for testing refresh logic without actually calling the provider's refresh endpoint (set USE_FAKE_REFRESH=true in .env to use this) -> it will just generate a new fake token instead of calling the real refresh endpoint of the provider, but it will still go through the same database update and response flow as a real refresh would -> this is just for testing the refresh flow without needing valid provider credentials or waiting for the token to expire
-
-# This class manages provider tokens using the database session
-class ProviderTokenManager:
-    # Constructor
-    # Saves the current database session inside the object so all methods can use it
-    def __init__(self, database_session: Session):
-        self.database_session = database_session
