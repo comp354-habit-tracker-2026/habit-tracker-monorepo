@@ -89,3 +89,58 @@ class TestAuthentication:
         refresh_response = api_client.post('/api/v1/auth/refresh/', refresh_data, format='json')
         assert refresh_response.status_code == status.HTTP_200_OK
         assert 'access' in refresh_response.data
+
+
+
+
+    def test_password_reset_request_existing_user(self, api_client, create_user):
+        user = create_user(email='reset@test.com')
+
+        response = api_client.post(
+            '/api/v1/auth/password-reset/request/',
+            {'email': user.email},
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert 'uid' in response.data
+        assert 'token' in response.data
+
+    def test_password_reset_confirm_success(self, api_client, create_user):
+        user = create_user(email='resetconfirm@test.com')
+
+        request_response = api_client.post(
+            '/api/v1/auth/password-reset/request/',
+            {'email': user.email},
+            format='json'
+        )
+
+        response = api_client.post(
+            '/api/v1/auth/password-reset/confirm/',
+            {
+                'uid': request_response.data['uid'],
+                'token': request_response.data['token'],
+                'password': 'NewStrongPass123!'
+            },
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        user.refresh_from_db()
+        assert user.check_password('NewStrongPass123!')
+
+    def test_password_reset_confirm_invalid_token(self, api_client, create_user):
+        user = create_user(email='invalidtoken@test.com')
+
+        response = api_client.post(
+            '/api/v1/auth/password-reset/confirm/',
+            {
+                'uid': user.pk,
+                'token': 'invalid-token',
+                'password': 'NewStrongPass123!'
+            },
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
