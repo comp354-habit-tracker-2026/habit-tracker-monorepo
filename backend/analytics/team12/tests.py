@@ -360,13 +360,13 @@ class TestTeam12AnalyticsService:
     def test_personal_record_for_habit(self, create_user, create_activity, team12_service):
         user = create_user()
 
-        create_activity(user, duration=30)
-        create_activity(user, duration=60)
-        create_activity(user, duration=50)
+        create_activity(user, duration=30, activity_type="running")
+        create_activity(user, duration=60, activity_type="running")
+        create_activity(user, duration=50, activity_type="running")
 
         result = team12_service.personal_record_for_habit(
             user=user,
-            habit_id=1,
+            activity_type="running",
             metric_type="DURATION"
         )
 

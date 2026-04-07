@@ -3,7 +3,6 @@ from datetime import date, datetime, timedelta
 
 from django.db.models import Avg, Count, Max, Sum
 
-VALID_METRICS = ["COUNT", "DURATION", "STREAK", "CUSTOM"]
 from activities.models import Activity
 
 
@@ -275,64 +274,71 @@ class Team12AnalyticsRepository:
 
         return result
     
-    def personal_record_for_habit(self, user, habit_id, metric_type):
+    def personal_record_for_habit(self, user, activity_type, metric_type):
+        VALID_METRICS = ["COUNT", "DURATION", "STREAK", "CUSTOM"]
+
         if metric_type not in VALID_METRICS:
             raise ValueError("Invalid metric type")
 
-        queryset = Activity.objects.filter(user=user, id=habit_id)
+        queryset = Activity.objects.filter(user=user, activity_type=activity_type)
 
         if not queryset.exists():
-            raise ValueError("Habit not found")
-
-        # Map metric → field
-        metric_map = {
-            "COUNT": "calories",  
-            "DURATION": "duration",
-            "STREAK": None,         
-            "CUSTOM": "distance",   
-        }
-
-        field = metric_map.get(metric_type)
-
-        if metric_type == "STREAK":
-            streak_data = self.activity_streaks(user)
             return {
-                "habitId": habit_id,
-                "metricType": "STREAK",
-                "currentPersonalBest": streak_data["longest_streak"],
+                "activityType": activity_type,
+                "metricType": metric_type,
+                "currentPersonalBest": None,
                 "previousBest": None,
-                "achievedAt": None,
                 "improved": False,
-                "unit": "days",
+                "achievedAt": None,
+            }
+        
+        if metric_type == "DURATION":
+            data = list(queryset.values("duration", "created_at"))
+            key = "duration"
+
+        elif metric_type == "COUNT":
+            data = [{"value": 1, "created_at": obj.created_at} for obj in queryset]
+            key = "value"
+
+        elif metric_type == "CUSTOM":
+            data = list(queryset.values("value", "created_at"))
+            key = "value"
+
+        elif metric_type == "STREAK":
+            dates = sorted([obj.created_at.date() for obj in queryset])
+
+            max_streak = 0
+            current_streak = 0
+
+            for i in range(len(dates)):
+                if i == 0 or (dates[i] - dates[i - 1]).days == 1:
+                    current_streak += 1
+                else:
+                    current_streak = 1
+
+                max_streak = max(max_streak, current_streak)
+
+            return {
+                "activityType": activity_type,
+                "metricType": metric_type,
+                "currentPersonalBest": max_streak,
+                "previousBest": None,
+                "improved": False,
+                "achievedAt": None,
             }
 
-        # Get top 2 values
-        logs = (
-            Activity.objects.filter(user=user)
-            .exclude(**{f"{field}__isnull": True})
-            .order_by(f"-{field}", "-date")[:2]
-        )
 
-        if not logs:
-            return None
+        data = [d for d in data if d.get(key) is not None]
+        data.sort(key=lambda x: x[key], reverse=True)
 
-        best = logs[0]
-        previous = logs[1] if len(logs) > 1 else None
+        current = data[0] if len(data) > 0 else None
+        previous = data[1] if len(data) > 1 else None
 
         return {
-            "habitId": habit_id,
+            "activityType": activity_type,
             "metricType": metric_type,
-            "currentPersonalBest": getattr(best, field),
-            "previousBest": getattr(previous, field) if previous else None,
-            "achievedAt": best.date,
-            "improved": previous is None or getattr(best, field) > getattr(previous, field),
-            "unit": self._get_unit(field),
+            "currentPersonalBest": current[key] if current else None,
+            "previousBest": previous[key] if previous else None,
+            "improved": (current[key] > previous[key]) if current and previous else False,
+            "achievedAt": current["created_at"] if current else None,
         }
-
-    def _get_unit(self, field):
-        return {
-            "duration": "minutes",
-            "distance": "km",
-            "calories": "kcal",
-        }.get(field, None)
-
