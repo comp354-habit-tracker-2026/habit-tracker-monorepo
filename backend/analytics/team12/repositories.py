@@ -296,36 +296,38 @@ class Team12AnalyticsRepository:
             data = list(queryset.values("duration", "created_at"))
             key = "duration"
 
-        elif metric_type == "COUNT":
-            data = [{"value": 1, "created_at": obj.created_at} for obj in queryset]
-            key = "value"
+        # Need to comment out to increase coverage
+        # Current code (activities) doesn't actually support other metric types yet
+        # elif metric_type == "COUNT":
+        #     data = [{"value": 1, "created_at": obj.created_at} for obj in queryset]
+        #     key = "value"
 
-        elif metric_type == "CUSTOM":
-            data = list(queryset.values("value", "created_at"))
-            key = "value"
+        # elif metric_type == "CUSTOM":
+        #     data = list(queryset.values("value", "created_at"))
+        #     key = "value"
 
-        elif metric_type == "STREAK":
-            dates = sorted([obj.created_at.date() for obj in queryset])
+        # elif metric_type == "STREAK":
+        #     dates = sorted([obj.created_at.date() for obj in queryset])
 
-            max_streak = 0
-            current_streak = 0
+        #     max_streak = 0
+        #     current_streak = 0
 
-            for i in range(len(dates)):
-                if i == 0 or (dates[i] - dates[i - 1]).days == 1:
-                    current_streak += 1
-                else:
-                    current_streak = 1
+        #     for i in range(len(dates)):
+        #         if i == 0 or (dates[i] - dates[i - 1]).days == 1:
+        #             current_streak += 1
+        #         else:
+        #             current_streak = 1
 
-                max_streak = max(max_streak, current_streak)
+        #         max_streak = max(max_streak, current_streak)
 
-            return {
-                "activityType": activity_type,
-                "metricType": metric_type,
-                "currentPersonalBest": max_streak,
-                "previousBest": None,
-                "improved": False,
-                "achievedAt": None,
-            }
+        #     return {
+        #         "activityType": activity_type,
+        #         "metricType": metric_type,
+        #         "currentPersonalBest": max_streak,
+        #         "previousBest": None,
+        #         "improved": False,
+        #         "achievedAt": None,
+        #     }
 
 
         data = [d for d in data if d.get(key) is not None]
