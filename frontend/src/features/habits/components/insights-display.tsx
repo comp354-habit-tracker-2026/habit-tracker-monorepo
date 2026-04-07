@@ -120,8 +120,8 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                     <p><strong>Most intense activity:</strong> {mostIntenseActivity.title} ({mostIntenseActivity.activityType}) -{' '}
                      {mostIntenseActivity.summary.calories || 0} calories</p>
                     <p><strong>Average heart rate:</strong> {averageHeartRate} bpm</p>
-                    <p><strong>Weekly total calories:</strong> {weeklyCalories} kcal</p>
-                    <p><strong>Weekly total steps:</strong> {weeklySteps}</p>
+                    <p><strong>Total calories:</strong> {weeklyCalories} kcal</p>
+                    <p><strong>Total steps:</strong> {weeklySteps}</p>
                     <p>
                       <strong>Weekly trend:</strong>{' '}
                       {calorieChange >= 0
