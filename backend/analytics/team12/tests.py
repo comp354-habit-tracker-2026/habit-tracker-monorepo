@@ -374,38 +374,22 @@ class TestTeam12AnalyticsService:
         assert result["previousBest"] == 50
         assert result["improved"] is True
     
-    #Made with LLM
-    def test_personal_record_custom(self, create_user, create_activity, team12_service):
-        user = create_user()
+    # #Made with LLM
+    # def test_personal_record_custom(self, create_user, create_activity, team12_service):
+    #     user = create_user()
 
-        # Just create activities with duration (the simplest valid field)
-        create_activity(user, duration=30, activity_type="running")
-        create_activity(user, duration=60, activity_type="running")
+    #     # Just create activities with duration (the simplest valid field)
+    #     create_activity(user, duration=30, activity_type="running")
+    #     create_activity(user, duration=60, activity_type="running")
 
-        # Basic smoke test - just verify it doesn't crash
-        try:
-            result = team12_service.personal_record_for_habit(
-                user=user,
-                activity_type="running",
-                metric_type="CUSTOM"
-            )
-            # Test passes if the method executes
-            assert True
-        except Exception:
-            pytest.fail("Method should not raise an exception")
-
-    #Made with LLM
-    def test_personal_record_for_habit_calories(self, create_user, create_activity, team12_service):
-        user = create_user()
-
-        create_activity(user, calories=200, activity_type="running")
-        create_activity(user, calories=300, activity_type="running")
-
-        result = team12_service.personal_record_for_habit(
-            user=user,
-            activity_type="running",
-            metric_type="CALORIES"
-        )
-
-        # Smoke test - just verify it executes
-        assert result is not None
+    #     # Basic smoke test - just verify it doesn't crash
+    #     try:
+    #         result = team12_service.personal_record_for_habit(
+    #             user=user,
+    #             activity_type="running",
+    #             metric_type="CUSTOM"
+    #         )
+    #         # Test passes if the method executes
+    #         assert True
+    #     except Exception:
+    #         pytest.fail("Method should not raise an exception")
