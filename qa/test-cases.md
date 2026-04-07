@@ -66,3 +66,42 @@ Related Requirements:
 - Accessibility Audit (#152)
 - Usability Testing (#130)
 - UX Audit (#136)
+
+
+## Group 18 – Mobile UI Testing
+
+### TC-20: Mobile Responsiveness
+
+Steps:
+1. Open the app in Chrome
+2. Toggle mobile view (iPhone SE / iPhone 12)
+3. Navigate through all pages
+
+Expected:
+UI should adapt correctly to mobile screen sizes
+
+Actual:
+UI fits well on screen, but is too left aligned.
+
+Notes:
+Screenshots captured for each page, both landscape and portrait.
+
+Persona: Beginner User
+
+UX Issues:
+- Layout shifts on scrolling
+- Some elements too close together
+
+Accessibility Issues:
+- Text too small on larger phones/views/
+- Navigation elements are hard to tap
+
+Evidence:
+- https://github.com/comp354-habit-tracker-2026/habit-tracker-monorepo/pull/327
+  
+
+### Related Requirements
+- Personas (#138)
+- Accessibility Audit (#152)
+- Usability Testing (#130)
+- UX Audit (#136)
