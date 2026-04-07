@@ -20,7 +20,7 @@ jobs:
           after: 00:00
           before: 23:59
           base-branches: "(default)"
-          prohibited-days-dates: "2026-04-07, 2026-04-22, 2026-04-23, 2026-04-24, 2026-04-25" #can modify the dates 
+          prohibited-days-dates: "2026-04-22, 2026-04-23, 2026-04-24, 2026-04-25" #can modify the dates 
 
       - name: Force Failure if Blocked
         if: steps.block.outputs.pr-blocked == 'true'
