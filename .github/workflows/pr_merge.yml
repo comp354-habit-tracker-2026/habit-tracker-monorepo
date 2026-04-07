@@ -17,8 +17,6 @@ jobs:
         id: block
         with:
           timezone: "UTC-4"
-          after: 00:00
-          before: 23:59
           base-branches: "(default)"
           prohibited-days-dates: "2026-04-22, 2026-04-23, 2026-04-24, 2026-04-25" #can modify the dates 
 
