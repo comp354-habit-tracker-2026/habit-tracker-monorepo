@@ -1,5 +1,5 @@
 import pytest
-from backend.activities.data.adapters.activity_adapter_base import ActivityAdapter
+from activities.data.adapters.activity_adapter_base import ActivityAdapter
 
 import json
 
