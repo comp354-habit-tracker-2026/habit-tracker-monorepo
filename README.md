@@ -1,3 +1,66 @@
+# WeSki Group 3 — GPX Parser & Ski Metrics
+
+Parses We Ski GPX session files, converts them to JSON, and computes per-session ski metrics.
+
+## Folder Structure
+
+```
+weski_group3/
+├── data/               # input .gpx files
+├── sessions/           # parsed JSON files (auto-generated)
+├── metrics_output/     # all_sessions_metrics.json (auto-generated)
+└── parser/
+    ├── gpx_parser.py   # parses GPX → ParsedSession JSON
+    ├── metrics.py      # computes ski metrics from session JSON
+    ├── models.py       # TrackPoint and ParsedSession dataclasses
+    └── requirements.txt
+```
+
+## How to Run
+
+```bash
+cd weski_group3/parser
+pip install -r requirements.txt
+python3 gpx_parser.py
+```
+
+This will:
+1. Parse every `.gpx` file in `../data/` → write one `.json` per session to `../sessions/`
+2. Read all session JSONs → write `../metrics_output/all_sessions_metrics.json`
+
+## Parsed Session Output (`sessions/*.json`)
+
+```json
+{
+  "start_time": "2026-01-25T16:16:36+00:00",
+  "end_time":   "2026-01-25T21:30:00+00:00",
+  "track_name": "Sommet Saint-Sauveur",
+  "bounds": [45.88, -74.16, 45.90, -74.15],
+  "points": [
+    { "time": "2026-01-25T16:16:36+00:00", "lat": 45.881, "lon": -74.159, "ele": 213.0, "speed_mps": 1.08 }
+  ]
+}
+```
+
+## Metrics Output (`metrics_output/all_sessions_metrics.json`)
+
+```json
+[
+  {
+    "session_id": 0,
+    "track_name": "Sommet Saint-Sauveur",
+    "start_time": "2026-01-25T16:16:36+00:00",
+    "total_distance_km": 42.3,
+    "total_elevation_gain_meters": 1850.0,
+    "number_of_runs": 12,
+    "total_time_seconds": 18864,
+    "average_speed_kmh": 18.4,
+    "max_speed_kmh": 67.2
+  }
+]
+```
+
+Runs are counted via a state machine (`IDLE → RUN → LIFT → RUN …`) triggered by downhill elevation change (> 5 m) and speed above 2.5 m/s.
 # habit-tracker-monorepo
 
 ## Stale PR Labeler
@@ -48,3 +111,16 @@ Setting ownership through multiple lines will not add but override ownership.
 This will require a review from those 2 (or more) groups.
 
 Further documentation can be found [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+
+## PR Labeling Automation
+
+This repository uses multiple GitHub Actions to automatically label pull requests.
+
+### How it works
+- **Path-based labels** are applied based on changed files (for example, `frontend/` or `backend/`). The workflow is defined in [`.github/workflows/labeler.yml`](.github/workflows/labeler.yml), and the matching rules are configured in [`.github/labeler.yml`](.github/labeler.yml).
+- **PR size labels** (`XS`, `S`, `M`, `L`, `XL`) are added based on the number of lines changed. This workflow is defined in [`.github/workflows/pr-size-labeler.yml`](.github/workflows/pr-size-labeler.yml).
+
+### Purpose
+- Helps reviewers quickly understand the scope of a PR
+- Improves organization and review efficiency
+- Makes it clearer which workflow/config to update when labeling rules need to change
