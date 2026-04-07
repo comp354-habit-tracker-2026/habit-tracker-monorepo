@@ -1,10 +1,10 @@
 name: Jest Unit and Component Tests CI
-run-name: (g26-168) Jest Unit Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
+run-name: Jest Unit Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
 
-# This workflow is going to be triggered every time there is a PUSH or PULL_REQUEST on integration/g26-168-e2e-ci-pipeline
+# This workflow is going to be triggered every time there is a PUSH or PULL_REQUEST
 on:
   push:
-    branches: ["main", "integration/g26-168-e2e-ci-pipeline"]
+    branches: ["main"]
     paths:
       - 'frontend/**'
       - '.github/workflows/jest-ci.yml'

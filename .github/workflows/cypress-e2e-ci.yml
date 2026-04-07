@@ -1,10 +1,10 @@
 name: Integrate Cypress E2E tests into GitHub Actions CI
-run-name: (g26-168) Cypress E2E Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
+run-name: Cypress E2E Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
 
-# EVENTS workflow is going to be triggered every time there is a PUSH or PULL_REQUEST on integration/g26-168-e2e-ci-pipeline
+# EVENTS workflow is going to be triggered every time there is a PUSH or PULL_REQUEST
 on:
   push:
-    branches: ["main", "integration/g26-168-e2e-ci-pipeline"]
+    branches: ["main"]
     paths:
       - 'frontend/**'
       - '.github/workflows/cypress-e2e-ci.yml'
@@ -46,7 +46,7 @@ jobs:
       working-directory: ./frontend
       env:
         CYPRESS_RETRIES: 1
-        
+
 #     Upload Cypress videos save the videos to frontend/cypress/videos
     - name: Upload Cypress videos
       if: always()
