@@ -1,28 +1,19 @@
-"""Name: Kabeya Ngoyi
-    Student ID: 27214545
+"""Name: Kabeya Ngoyi + Jeffrey Bringolf
+    Student ID: 27214545 + 40282898
     File: mywhoosh_adapter.py
     
     Description: 
     This file contains the MyWhoosh adapter. It converts raw MyWhoosh
     activity into the unified Activity format used by the system."""
 
-class MyWhooshAdapter:
-    def __init__(self):
-        self.provider = "mywhoosh"
+from .activity_adapter_base import ActivityAdapter
+from .models import ActivitySource, MyWhooshActivity
+from .config.config import AdapterConfig
 
-    def transform(self, raw_activity):
-        """
-        Converting raw MyWhoosh data into Activity format
-        """
-
-        return {
-            "activity_type": raw_activity.get("type", "unknwon"),
-            "duration": raw_activity.get("duration", 0), 
-            "date": raw_activity.get("date"), 
-            "provider": self.provider, 
-            "external_id": raw_activity.get("id"), 
-            "raw_data": raw_activity, 
-            "distance": raw_activity.get("distance"), 
-            "calories": raw_activity.get("calories")
-        }
+class MyWhooshAdapter(ActivityAdapter):
+    super().__init__(
+            ActivitySource.MY_WHOOSH, 
+            AdapterConfig.get_activity_schema(AdapterConfig.MY_WHOOSH_ADAPTER_SCHEMA_FILENAME), 
+            MyWhooshActivity
+            )
     

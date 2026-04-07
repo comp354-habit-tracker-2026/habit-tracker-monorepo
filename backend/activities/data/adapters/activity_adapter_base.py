@@ -1,19 +1,24 @@
 from .interfaces import IActivityAdapter
-from .models import ActivitySource
+from .models import ActivitySource, Activity
 
-from typing import Callable
+from typing import Callable, Optional
 import json
 import jsonschema
 
 class ActivityAdapter(IActivityAdapter):
 
-    def __init__(self, provider_name: ActivitySource, activity_schema: dict):
+    def __init__(self, provider_name: ActivitySource, activity_schema: dict, activity_class: type = Activity):
         super().__init__()
         self._provider_name = provider_name
         self._parse_start_hooks = []
         self._parse_success_hooks = []
         self._parse_failure_hooks = []
         self.activity_schema = activity_schema
+
+        if not issubclass(activity_class, Activity):
+            raise ValueError(f"Activity class must inheret from {Activity}. Received {activity_class}")
+        
+        self.activity_class = activity_class
 
     #get_provider_name() -> str
     #Return the provider name or ID.
@@ -44,24 +49,29 @@ class ActivityAdapter(IActivityAdapter):
 
     def parse(self, raw_input_data):
         """Parse raw activity data into a standard Activity object."""
-        raise NotImplementedError()
+        
+        valid_input, error = self.validate(raw_input_data)
+        if not valid_input:
+            raise ValueError(f"Input data was not valid. Error: {error}")
+        
+        activity = Activity()
+        input_data_dict = self._convert_raw_input_data_to_dict(raw_input_data)
+
+        for attribute, value in input_data_dict.items():
+            setattr(activity, attribute, value)
+
+        return activity
 
     #validate(raw_input_data) -> bool
     #Validate raw input data before parsing.
-    def validate(self, raw_input_data: str) -> bool:
+    def validate(self, raw_input_data: str) -> tuple[bool, Optional[Exception]]:
         """Validate raw data before parsing."""
         input_data_dict = self._convert_raw_input_data_to_dict(raw_input_data)
         try:
             jsonschema.validate(schema=self.activity_schema, instance=input_data_dict, format_checker=jsonschema.FormatChecker())
-            return True
-        except jsonschema.ValidationError:
-            return False
-                
-    #mapToActivity(self, raw_input_data) -> Activity object
-    #Convert raw input data into a standardized Activity object.
-    def mapToActivity(self, raw_input_data):
-        """Convert raw input data into a standardized Activity object."""
-        raise NotImplementedError()
+            return True, None
+        except jsonschema.ValidationError as e:
+            return False, e
     
     # Can be overriden by child classes if data doesn't come in as json
     def _convert_raw_input_data_to_dict(self, input_data: str) -> dict:
