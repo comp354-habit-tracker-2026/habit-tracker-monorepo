@@ -54,7 +54,8 @@ jobs:
         working-directory: ./backend
 
       - name: Run tests
-        run: pytest --cov --cov-branch --cov-report=xml:coverage.xml
+        # run: pytest --cov --cov-branch --cov-report=xml:coverage.xml
+        run: pytest --cov --cov-branch --cov-report=xml:coverage.xml --junitxml=test-results.xml
         working-directory: ./backend
 
       - name: Upload results to Codecov
