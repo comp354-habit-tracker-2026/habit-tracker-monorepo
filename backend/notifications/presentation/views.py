@@ -22,3 +22,16 @@ class ViewNotifications(APIView):
         data = list(notifications.values())
 
         return Response({"notifications": data})
+
+class MarkNotificationAsRead(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, notification_id):
+        service = NotificationService()
+        try:
+            notification = service.mark_as_read(notification_id)
+            return Response(
+                {"detail": "Notification marked as read.", "id": notification.id}
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=404)
