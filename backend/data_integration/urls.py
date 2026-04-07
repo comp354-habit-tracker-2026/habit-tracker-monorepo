@@ -1,7 +1,7 @@
 from django.urls import include, path
 from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
-from .views import StravaAuthViewSet
+from .views import FileRecordViewSet, StravaAuthViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
@@ -18,6 +18,7 @@ def integration_root(request):
 # The @action decorators in your ViewSet (connect/refresh) 
 # will automatically become /strava/connect/ and /strava/refresh/
 router = DefaultRouter()
+router.register(r'files', FileRecordViewSet, basename="file-record")
 router.register(r'strava', StravaAuthViewSet, basename="strava")
 # Later you can add: router.register(r'mywhoosh', MyWhooshViewSet, basename="mywhoosh")
 # etc. for other integrations.
