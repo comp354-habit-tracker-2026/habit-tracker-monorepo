@@ -13,7 +13,7 @@ Actual:
 Partially successful
 
 Notes:
-Main sections are visible, but layout is not intuitive for beginner users
+Main sections are visible, but layout is not intuitive for beginner users.
 
 Persona: Beginner User
 
@@ -25,6 +25,10 @@ UX Issues:
 Accessibility Issues:
 - Weak visual hierarchy
 - Small navigation elements
+
+Evidence:
+See qa/evidence.md
+
 
 ### TC-11: Accessibility & Performance Audit (Lighthouse)
 
@@ -42,10 +46,23 @@ Actual:
 - Accessibility: 81
 
 Issues:
-- Large JavaScript size
+- Large JavaScript size (~4MB)
+- Unused JavaScript code
 - Missing form labels
 - Low contrast elements
-- Layout shifts (CLS)
+- Layout shifts (CLS issues)
 
 Notes:
-Performance is low due to heavy frontend and unused code
+Performance is low due to heavy frontend and lack of optimization.
+
+Evidence:
+See qa/evidence.md
+
+
+### Requirements Traceability
+
+Related Requirements:
+- Personas (#138)
+- Accessibility Audit (#152)
+- Usability Testing (#130)
+- UX Audit (#136)
