@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.utils import timezone
 from datetime import date
+from goals.models import Goal
 from core.business import BaseService
 from goals.data import GoalRepository
 
@@ -63,4 +64,71 @@ class GoalService(BaseService):
             "on_track": on_track,
             "days_remaining": days_remaining,
             "summary": summary,
+    def delete_goal(self, goal_id, user):
+        if not str(goal_id).isdigit():
+            return "invalid_id"
+        goal = Goal.objects.filter(id=goal_id).first()  # pylint: disable=no-member
+        if goal is None:
+            return "not_found"
+        if goal.user != user:
+            return "forbidden"
+        goal.delete()
+        return "deleted"
+
+    def update_goal(self, goal_id, user, data):
+        if not str(goal_id).isdigit():
+            return "invalid_id"
+        goal = Goal.objects.filter(id=goal_id).first()  # pylint: disable=no-member
+        if goal is None:
+            return "not_found"
+        if goal.user != user:
+            return "forbidden"
+        allowed_fields = [
+            "title",
+            "description",
+            "goal_type",
+            "status",
+            "current_value",
+            "target_value",
+            "start_date",
+            "end_date",
+        ]
+        for field in allowed_fields:
+            if field in data:
+                setattr(goal, field, data[field])
+        goal.save()
+        return goal
+
+    def create_goal(self, user, data):
+        # Define permitted fields
+        allowed_fields = [
+            "title",
+            "description",
+            "goal_type",
+            "status",
+            "current_value",
+            "target_value",
+            "start_date",
+            "end_date",
+        ]
+
+        try:
+            # Filter out each field
+            filtered_data = {
+                field: data[field] for field in allowed_fields if field in data
+            }
+
+            # Define the goal object
+            goal = Goal(user=user, **filtered_data) # pylint: disable=no-member
+
+            # Clean the data
+            goal.full_clean()
+
+            # Save the goal
+            goal.save()
+            return goal
+        except Exception as e:
+            return {
+            "error": type(e).__name__, 
+            "msg": str(e)
         }
