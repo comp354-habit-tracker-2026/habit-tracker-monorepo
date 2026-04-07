@@ -35,5 +35,5 @@ class Team12AnalyticsService:
             activity_type=activity_type,
         )
     
-    def personal_record_for_habit(self, user, habit_id, metric_type):
-        return self.repository.personal_record_for_habit(user, habit_id, metric_type)
+    def personal_record_for_habit(self, user, activity_type, metric_type):
+        return self.repository.personal_record_for_habit(user, activity_type, metric_type)
