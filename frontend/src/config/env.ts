@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const EnvSchema = z.object({
+const envSchema = z.object({
   BACKEND_URL: z.string().default(''),
   ENV: z.enum(['dev', 'prod']).default('dev'),
 });
@@ -11,7 +11,7 @@ const parseEnv = () => {
     ENV: import.meta.env.VITE_ENV,
   };
 
-  const parsed = EnvSchema.safeParse(rawEnv);
+  const parsed = envSchema.safeParse(rawEnv);
 
   if (!parsed.success) {
     const issues = parsed.error.issues
