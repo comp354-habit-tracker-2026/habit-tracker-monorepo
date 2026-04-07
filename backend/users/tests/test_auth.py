@@ -83,9 +83,37 @@ class TestAuthentication:
         login_data = {'username': 'testuser', 'password': 'TestPass123!'}
         login_response = api_client.post('/api/v1/auth/login/', login_data, format='json')
         refresh_token = login_response.data['refresh']
-        
+
         # Use refresh token
         refresh_data = {'refresh': refresh_token}
         refresh_response = api_client.post('/api/v1/auth/refresh/', refresh_data, format='json')
         assert refresh_response.status_code == status.HTTP_200_OK
         assert 'access' in refresh_response.data
+
+    def test_logout_blacklists_refresh_token(self, api_client, create_user):
+        """Test logout blacklists the refresh token"""
+        create_user()
+        login_data = {'username': 'testuser', 'password': 'TestPass123!'}
+        login_response = api_client.post('/api/v1/auth/login/', login_data, format='json')
+        refresh_token = login_response.data['refresh']
+
+        logout_response = api_client.post('/api/v1/auth/logout/', {'refresh': refresh_token}, format='json')
+        assert logout_response.status_code == status.HTTP_200_OK
+
+    def test_logout_invalidates_refresh_token(self, api_client, create_user):
+        """Test that a blacklisted refresh token cannot be reused"""
+        create_user()
+        login_data = {'username': 'testuser', 'password': 'TestPass123!'}
+        login_response = api_client.post('/api/v1/auth/login/', login_data, format='json')
+        refresh_token = login_response.data['refresh']
+
+        api_client.post('/api/v1/auth/logout/', {'refresh': refresh_token}, format='json')
+
+        # Attempt to use the blacklisted token
+        refresh_response = api_client.post('/api/v1/auth/refresh/', {'refresh': refresh_token}, format='json')
+        assert refresh_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_logout_without_token_fails(self, api_client):
+        """Test logout without a refresh token returns 400"""
+        response = api_client.post('/api/v1/auth/logout/', {}, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
