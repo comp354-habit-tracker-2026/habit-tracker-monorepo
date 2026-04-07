@@ -4,5 +4,5 @@
 ![Dashboard](evidence/G17_Dashboard.png)
 ![Dashboard](evidence/G17_Dashboard_2.png)
 
-## Lighthouse Report
-[View Lighthouse Report](Lighthouse Report Viewer_G17.pdf)
+## Full Lighthouse Report
+[View Lighthouse Report](evidence//Lighthouse Report Viewer_G17.pdf)
