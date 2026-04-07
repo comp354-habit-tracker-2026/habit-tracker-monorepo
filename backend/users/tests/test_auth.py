@@ -114,6 +114,17 @@ class TestAuthentication:
 
         assert response.status_code == status.HTTP_200_OK
         assert 'message' in response.data
+        assert 'uid' not in response.data
+        assert 'token' not in response.data
+
+    def test_password_reset_request_missing_email(self, api_client):
+        response = api_client.post(
+            '/api/v1/auth/password-reset/request/',
+            {},
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_password_reset_confirm_success(self, api_client, create_user):
         user = create_user(email='resetconfirm@test.com')
@@ -168,3 +179,33 @@ class TestAuthentication:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'error' in response.data
+
+    def test_password_reset_confirm_missing_fields(self, api_client):
+        response = api_client.post(
+            '/api/v1/auth/password-reset/confirm/',
+            {},
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_password_reset_confirm_weak_password(self, api_client, create_user):
+        user = create_user(email='weakpass@test.com')
+
+        request_response = api_client.post(
+            '/api/v1/auth/password-reset/request/',
+            {'email': user.email},
+            format='json'
+        )
+
+        response = api_client.post(
+            '/api/v1/auth/password-reset/confirm/',
+            {
+                'uid': request_response.data['uid'],
+                'token': request_response.data['token'],
+                'password': '123'
+            },
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
