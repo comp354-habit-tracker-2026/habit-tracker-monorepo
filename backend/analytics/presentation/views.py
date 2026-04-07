@@ -23,8 +23,13 @@ class AnalyticsOverviewView(APIView):
 class HealthIndicatorsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_service(self):
+        """Returns analytics service instance."""
+        return AnalyticsService()
+
     def get(self, request):
-        service = AnalyticsService()
+        """Returns inactivity-related health indicators."""
+        service = self.get_service()
         data = {
             "activity_statistics": service.activity_statistics(request.user),
             "inactivity_evaluation": service.inactivity_evaluation(request.user),
