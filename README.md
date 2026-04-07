@@ -111,3 +111,16 @@ Setting ownership through multiple lines will not add but override ownership.
 This will require a review from those 2 (or more) groups.
 
 Further documentation can be found [here](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+
+## PR Labeling Automation
+
+This repository uses multiple GitHub Actions to automatically label pull requests.
+
+### How it works
+- **Path-based labels** are applied based on changed files (for example, `frontend/` or `backend/`). The workflow is defined in [`.github/workflows/labeler.yml`](.github/workflows/labeler.yml), and the matching rules are configured in [`.github/labeler.yml`](.github/labeler.yml).
+- **PR size labels** (`XS`, `S`, `M`, `L`, `XL`) are added based on the number of lines changed. This workflow is defined in [`.github/workflows/pr-size-labeler.yml`](.github/workflows/pr-size-labeler.yml).
+
+### Purpose
+- Helps reviewers quickly understand the scope of a PR
+- Improves organization and review efficiency
+- Makes it clearer which workflow/config to update when labeling rules need to change
