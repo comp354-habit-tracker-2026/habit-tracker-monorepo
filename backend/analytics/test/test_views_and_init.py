@@ -33,16 +33,16 @@ class DummyRequest:
 
 
 class TestBusinessInit(unittest.TestCase):
-    """Tests for backend.analytics.business.__init__."""
+    """Tests for analytics.business.__init__."""
 
     def test_business_init_exports_analytics_service_when_services_import_works(self):
         """
         Verifies AnalyticsService is exported in __all__
         when services import succeeds.
         """
-        module_name = "backend.analytics.business"
+        module_name = "analytics.business"
 
-        fake_services = types.ModuleType("backend.analytics.business.services")
+        fake_services = types.ModuleType("analytics.business.services")
 
         class FakeAnalyticsService:
             pass
@@ -50,7 +50,7 @@ class TestBusinessInit(unittest.TestCase):
         fake_services.AnalyticsService = FakeAnalyticsService
 
         with patch.dict(sys.modules, {
-            "backend.analytics.business.services": fake_services
+            "analytics.business.services": fake_services
         }):
             if module_name in sys.modules:
                 del sys.modules[module_name]
@@ -66,12 +66,12 @@ class TestBusinessInit(unittest.TestCase):
         Verifies module does not crash when services import fails
         because Django is unavailable.
         """
-        module_name = "backend.analytics.business"
+        module_name = "analytics.business"
 
         original_import = __import__
 
         def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
-            if name.endswith(".services") or name == "backend.analytics.business.services":
+            if name.endswith(".services") or name == "analytics.business.services":
                 raise ModuleNotFoundError("No module named 'django'")
             return original_import(name, globals, locals, fromlist, level)
 
@@ -86,7 +86,7 @@ class TestBusinessInit(unittest.TestCase):
 
 
 class TestPresentationViews(unittest.TestCase):
-    """Tests for backend.analytics.presentation.views."""
+    """Tests for analytics.presentation.views."""
 
     @classmethod
     def setUpClass(cls):
@@ -122,7 +122,7 @@ class TestPresentationViews(unittest.TestCase):
         Verifies AnalyticsOverviewView.get returns activity stats,
         trend analysis, and forecast.
         """
-        module_name = "backend.analytics.presentation.views"
+        module_name = "analytics.presentation.views"
         if module_name in sys.modules:
             del sys.modules[module_name]
 
@@ -156,7 +156,7 @@ class TestPresentationViews(unittest.TestCase):
         Verifies HealthIndicatorsView.get returns activity stats
         and inactivity evaluation.
         """
-        module_name = "backend.analytics.presentation.views"
+        module_name = "analytics.presentation.views"
         if module_name in sys.modules:
             del sys.modules[module_name]
 

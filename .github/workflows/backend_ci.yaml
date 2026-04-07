@@ -24,7 +24,6 @@ jobs:
       POSTGRES_USER: ${{ vars.POSTGRES_USER }}
       POSTGRES_IMAGE: ${{ vars.POSTGRES_IMAGE }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      PYTHONPATH: ${{ github.workspace }} #G13
     services:
       postgres:
         image: ${{ vars.POSTGRES_IMAGE }}
