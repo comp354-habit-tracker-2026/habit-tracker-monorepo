@@ -25,3 +25,27 @@ UX Issues:
 Accessibility Issues:
 - Weak visual hierarchy
 - Small navigation elements
+
+### TC-11: Accessibility & Performance Audit (Lighthouse)
+
+Tool: Lighthouse (Chrome DevTools)
+
+Steps:
+1. Open dashboard
+2. Run Lighthouse audit
+
+Expected:
+High accessibility and performance scores
+
+Actual:
+- Performance: 49
+- Accessibility: 81
+
+Issues:
+- Large JavaScript size
+- Missing form labels
+- Low contrast elements
+- Layout shifts (CLS)
+
+Notes:
+Performance is low due to heavy frontend and unused code
