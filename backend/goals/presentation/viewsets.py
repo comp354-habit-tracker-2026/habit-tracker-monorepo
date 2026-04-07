@@ -54,3 +54,25 @@ class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
             return Response({"detail": "Invalid goal ID format."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(result)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        """
+        POST /api/v1/goals/create/
+        Create a new goal that belongs to the authenticated user.
+        """
+        result = self.service.create_goal(request.user, request.data)
+
+        # Error response maker
+        if isinstance(result, dict) and "error" in result:
+            status_code = status.HTTP_400_BAD_REQUEST
+            
+            # Error Code Builder
+            if result["error"] == "IntegrityError":
+                status_code = status.HTTP_409_CONFLICT
+            elif result["error"] == "DatabaseError":
+                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            
+            return Response({"detail": result["msg"], "type": result["error"]}, status=status_code)
+        
+        serializer = self.get_serializer(result)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

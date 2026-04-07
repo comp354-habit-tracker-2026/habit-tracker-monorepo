@@ -52,3 +52,37 @@ class GoalService(BaseService):
                 setattr(goal, field, data[field])
         goal.save()
         return goal
+
+    def create_goal(self, user, data):
+        # Define permitted fields
+        allowed_fields = [
+            "title",
+            "description",
+            "goal_type",
+            "status",
+            "current_value",
+            "target_value",
+            "start_date",
+            "end_date",
+        ]
+
+        try:
+            # Filter out each field
+            filtered_data = {
+                field: data[field] for field in allowed_fields if field in data
+            }
+
+            # Define the goal object
+            goal = Goal(user=user, **filtered_data) # pylint: disable=no-member
+
+            # Clean the data
+            goal.full_clean()
+
+            # Save the goal
+            goal.save()
+            return goal
+        except Exception as e:
+            return {
+            "error": type(e).__name__, 
+            "msg": str(e)
+        }
