@@ -1,8 +1,5 @@
-from datetime import timedelta
-
-from django.db.models import Avg, Max, Sum
+from django.db.models import Avg, Sum, Max
 from datetime import date
-from django.utils import timezone
 
 from activities.models import Activity
 
@@ -50,48 +47,4 @@ class AnalyticsRepository:
             'days_since_last_activity': days_since,
             'inactive': inactive,
             'severity': severity
-        }
-
-    def activity_signal(self, user):
-        today = timezone.localdate()
-        recent_window_start = today - timedelta(days=7)
-
-        queryset = Activity.objects.filter(user=user)
-        recent_queryset = queryset.filter(date__gte=recent_window_start, date__lte=today)
-
-        last_activity_date = queryset.order_by("-date").values_list("date", flat=True).first()
-
-        weekly_sessions = recent_queryset.count()
-        weekly_minutes = recent_queryset.aggregate(value=Sum("duration"))["value"] or 0
-
-        return {
-            "weekly_sessions": weekly_sessions,
-            "weekly_minutes": int(weekly_minutes),
-            "total_activity_count": queryset.count(),
-            "days_since_last_activity": None
-            if last_activity_date is None
-            else (today - last_activity_date).days,
-        }
-
-    def activity_aggregates_for_window(self, user, start_date, end_date):
-        queryset = Activity.objects.filter(user=user, date__gte=start_date, date__lte=end_date)
-
-        total_minutes = int(queryset.aggregate(value=Sum("duration"))["value"] or 0)
-        total_distance_km = float(queryset.aggregate(value=Sum("distance"))["value"] or 0)
-        session_count = queryset.count()
-        active_days = queryset.values("date").distinct().count()
-        window_days = (end_date - start_date).days + 1
-
-        last_activity_date = queryset.order_by("-date").values_list("date", flat=True).first()
-        inactivity_streak_days = (
-            window_days if last_activity_date is None else (end_date - last_activity_date).days
-        )
-
-        return {
-            "total_minutes": total_minutes,
-            "total_distance_km": round(total_distance_km, 2),
-            "session_count": session_count,
-            "active_days": active_days,
-            "window_days": window_days,
-            "inactivity_streak_days": inactivity_streak_days,
         }
