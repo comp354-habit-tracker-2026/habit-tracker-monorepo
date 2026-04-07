@@ -225,7 +225,7 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
 
         # Include the inactivity message in the explanations for visibility
         inactivity_message = inactivity_result.get("message")
-        if inactivity_message and inactivity_message not in explanations:
+        if inactivity_message:
             explanations.append(inactivity_message)
 
         response_data = {
