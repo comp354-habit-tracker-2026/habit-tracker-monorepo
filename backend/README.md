@@ -137,6 +137,15 @@ curl -X POST http://localhost:8000/api/v1/auth/login/ \
   -d '{"username":"demo1","password":"StrongPass_123"}'
 ```
 
+## Admin user
+```bash
+POSTGRES_HOST=127.0.0.1 \
+DJANGO_SUPERUSER_USERNAME=admin \
+DJANGO_SUPERUSER_EMAIL=admin@example.com \
+DJANGO_SUPERUSER_PASSWORD=StrongPass_123 \
+python3.12 manage.py createsuperuser --noinput
+```
+
 ## Testing
 
 ```bash
