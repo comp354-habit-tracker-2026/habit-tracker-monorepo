@@ -1,0 +1,211 @@
+import pytest
+from backend.activities.business.adapters.activity_adapter_base import ActivityAdapter
+
+import json
+
+TEST_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "external_id": {"type": "string"},
+        "name": {"type": "string"},
+        "sport_type": {"type": "string"},
+        "activity_type": {"type": "string"},
+        "distance": {"type": "number"},
+        "moving_time": {"type": "integer"},
+        "elapsed_time": {"type": "integer"},
+        "total_elevation_gain": {"type": "number"},
+        "start_date": {"type": "string", "format": "date-time"},
+        "start_date_local": {"type": "string", "format": "date-time"},
+        "timezone": {"type": "string"},
+        "average_speed": {"type": "number"},
+        "max_speed": {"type": "number"},
+        "raw_data": {"type": "object"},
+    },
+    "required": [
+        "external_id",
+        "name",
+        "distance",
+        "moving_time",
+        "elapsed_time",
+        "total_elevation_gain",
+        "raw_data",
+    ],
+}
+
+VALID_ACTIVITY = {
+        "external_id": "abc123",
+        "name": "Morning Run",
+        "sport_type": "Run",
+        "activity_type": "Workout",
+        "distance": 5000.0,
+        "moving_time": 1500,
+        "elapsed_time": 1600,
+        "total_elevation_gain": 50.0,
+        "start_date": "2024-01-01T10:00:00Z",
+        "start_date_local": "2024-01-01T05:00:00-05:00",
+        "timezone": "America/New_York",
+        "average_speed": 3.3,
+        "max_speed": 5.0,
+        "raw_data": {"foo": "bar"},
+    }
+
+@pytest.fixture
+def test_schema() -> dict:
+    schema = TEST_SCHEMA.copy()
+    schema['properties'] = schema['properties'].copy()
+    return schema
+
+@pytest.fixture
+def base_adapter(test_schema) -> ActivityAdapter:
+    return ActivityAdapter(None, test_schema)
+
+@pytest.fixture
+def valid_activity(test_schema, base_adapter) -> str:
+    return VALID_ACTIVITY.copy()
+
+class TestAdapter:
+
+    def _validate_dict(adapter, activity):
+        return adapter.validate(json.dumps(activity))
+
+    # Valid cases
+    def test_valid_activity_passes(test_schema, base_adapter, valid_activity):
+        assert TestAdapter._validate_dict(base_adapter, valid_activity)
+
+
+    def test_optional_fields_missing(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        del data["average_speed"]
+        del data["max_speed"]
+        assert TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # ❌ REQUIRED FIELD TESTS
+    # ----------------------
+
+    @pytest.mark.parametrize("field", TEST_SCHEMA["required"])
+    def test_missing_required_fields_fail(self, field, test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        del data[field]
+        assert not TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # ❌ TYPE VALIDATION
+    # ----------------------
+
+    @pytest.mark.parametrize(
+        "field, bad_value",
+        [
+            ("external_id", 123),
+            ("name", 999),
+            ("distance", "far"),
+            ("moving_time", 12.5),
+            ("elapsed_time", "long"),
+            ("total_elevation_gain", "high"),
+            ("raw_data", "not a dict"),
+        ],
+    )
+    def test_wrong_types_fail(self, field, bad_value, test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data[field] = bad_value
+        assert not TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # ❌ DATETIME VALIDATION
+    # ----------------------
+
+    @pytest.mark.parametrize(
+    "field,bad_value",
+    [
+        ("start_date", "not-a-date"),
+        ("start_date_local", "2024/01/01"),
+        ("start_date", "2024-13-01T00:00:00Z"),  # invalid month
+    ])
+    def test_invalid_datetime_format(self, field, bad_value, test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data[field] = bad_value
+        assert not TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # ✅ EDGE CASES
+    # ----------------------
+
+    def test_zero_values(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data["distance"] = 0
+        data["moving_time"] = 0
+        assert TestAdapter._validate_dict(base_adapter, data)
+
+
+    def test_empty_strings(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data["name"] = ""
+        assert TestAdapter._validate_dict(base_adapter, data)  # allowed unless you restrict
+
+
+    def test_extra_fields_allowed(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data["extra_field"] = "extra"
+        assert TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # 🔄 SCHEMA VARIATION TESTS
+    # ----------------------
+
+    def test_schema_with_additional_required_field(test_schema, base_adapter, valid_activity):
+        schema = base_adapter.activity_schema
+        schema["required"] = schema["required"] + ["sport_type"]
+
+        data = valid_activity
+        assert TestAdapter._validate_dict(base_adapter, data)
+
+        del data["sport_type"]
+        assert not TestAdapter._validate_dict(base_adapter, data)
+
+
+    def test_schema_with_stricter_raw_data(test_schema, base_adapter, valid_activity):
+        schema = base_adapter.activity_schema
+        schema["properties"]["raw_data"] = {
+            "type": "object",
+            "properties": {
+                "foo": {"type": "string"}
+            },
+            "required": ["foo"]
+        }
+
+        data = valid_activity
+        assert TestAdapter._validate_dict(base_adapter, data)
+
+        data["raw_data"] = {}
+        assert not TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # ❌ NULL / NONE HANDLING
+    # ----------------------
+
+    def test_none_in_required_field(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data["name"] = None
+        assert not TestAdapter._validate_dict(base_adapter, data)
+
+
+    # ----------------------
+    # 🔥 STRESS / ROBUSTNESS
+    # ----------------------
+
+    def test_large_numbers(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data["distance"] = 1e12
+        assert TestAdapter._validate_dict(base_adapter, data)
+
+
+    def test_nested_raw_data(test_schema, base_adapter, valid_activity):
+        data = valid_activity
+        data["raw_data"] = {"nested": {"deep": {"value": 1}}}
+        assert TestAdapter._validate_dict(base_adapter, data)

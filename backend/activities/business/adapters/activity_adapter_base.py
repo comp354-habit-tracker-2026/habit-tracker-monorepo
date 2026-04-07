@@ -7,13 +7,13 @@ import jsonschema
 
 class ActivityAdapter(IActivityAdapter):
 
-    def __init__(self, provider_name: ActivitySource, activity_schema_filename: str):
+    def __init__(self, provider_name: ActivitySource, activity_schema: dict):
         super().__init__()
         self._provider_name = provider_name
         self._parse_start_hooks = []
         self._parse_success_hooks = []
         self._parse_failure_hooks = []
-        self.activity_schema = self._load_activity_schema(activity_schema_filename)
+        self.activity_schema = activity_schema
 
     #get_provider_name() -> str
     #Return the provider name or ID.
@@ -42,12 +42,6 @@ class ActivityAdapter(IActivityAdapter):
         for hook in hooks:
             hook()
 
-    @staticmethod
-    def _load_activity_schema(filename: str) -> dict[str, type]:
-        # TODO: Add proper error handling
-        with open(filename, 'r') as file:
-            return json.load(file)
-
     def parse(self, raw_input_data):
         """Parse raw activity data into a standard Activity object."""
         raise NotImplementedError()
@@ -58,7 +52,7 @@ class ActivityAdapter(IActivityAdapter):
         """Validate raw data before parsing."""
         input_data_dict = self._convert_raw_input_data_to_dict(raw_input_data)
         try:
-            jsonschema.validate(instance=input_data_dict, schema=self.activity_schema)
+            jsonschema.validate(schema=self.activity_schema, instance=input_data_dict, format_checker=jsonschema.FormatChecker())
             return True
         except jsonschema.ValidationError:
             return False
