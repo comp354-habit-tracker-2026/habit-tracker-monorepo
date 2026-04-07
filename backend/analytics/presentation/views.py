@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 
+
 class SmallResultsPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -15,6 +16,9 @@ from analytics.team12.services import Team12AnalyticsService
 
 #team 13 and 14
 from analytics.data.repositories import AnalyticsRepository
+
+#team 15
+from goals.business import GoalService
 
 class AnalyticsOverviewView(APIView):
     permission_classes = [IsAuthenticated]
@@ -134,6 +138,94 @@ class ActivityForecastView(APIView):
             return Response(response_data)
         except Exception as e:
             return Response({"Forecasting Engine Error": str(e)}, status=500)
+
+class GoalsAnalyticsSummaryView(APIView): #top level goals summary
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        summaries = [service.get_status_summary(g) for g in queryset]
+
+        data = {
+            "totalGoals": len(summaries),
+            "achieved": sum(1 for g in summaries if g["status"] == "ACHIEVED"),
+            "onTrack": sum(1 for g in summaries if g["status"] == "ON_TRACK"),
+            "atRisk": sum(1 for g in summaries if g["status"] == "AT_RISK"),
+            "missed": sum(1 for g in summaries if g["status"] == "MISSED"),
+            "averageCompletion": (
+                sum(g["percentComplete"] for g in summaries) / len(summaries)
+                if summaries else 0
+            ),
+        }
+
+        return Response(data)
+
+class AtRiskGoalsView(APIView): #returns goals that are at risk of being broken
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        data = [
+            s for g in queryset
+            if (s := service.get_status_summary(g))["status"] == "AT_RISK"
+        ]
+
+        return Response({
+            "count": len(data),
+            "goals": data
+        })
+
+class GoalCompletionRateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        summaries = [service.get_status_summary(g) for g in queryset]
+
+        total = len(summaries)
+        achieved = sum(1 for g in summaries if g["status"] == "ACHIEVED")
+
+        return Response({
+            "completionRate": (achieved / total * 100) if total else 0
+        })
+
+class GoalInsightsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        summaries = [service.get_status_summary(g) for g in queryset]
+
+        at_risk = [g for g in summaries if g["status"] == "AT_RISK"]
+        missed = [g for g in summaries if g["status"] == "MISSED"]
+
+        insights = []
+
+        if len(at_risk) > 0:
+            insights.append(f"{len(at_risk)} goals are at risk")
+
+        if len(missed) > 0:
+            insights.append(f"{len(missed)} goals missed their deadline")
+
+        if summaries:
+            avg = sum(g["percentComplete"] for g in summaries) / len(summaries)
+            if avg < 50:
+                insights.append("Overall progress is below 50%")
+
+        return Response({
+            "insights": insights,
+            "atRiskGoals": at_risk,
+            "missedGoals": missed,
+        })
+
 
 # Class for paginated data (shortened data) for better organization
 class PaginatedActivityHistoryView(APIView):
