@@ -22,3 +22,8 @@ class AnalyticsService(BaseService):
         return predict(X_last, horizon=3)
         #return self.repository.forecast_preview(user)
 
+# ============================================================
+# G13 - cathytham - InactivityDetector - PR #241
+# ============================================================        
+    def inactivity_evaluation(self, user):
+        return self.repository.inactivity_evaluation(user)
