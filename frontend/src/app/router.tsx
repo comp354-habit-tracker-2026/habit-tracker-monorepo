@@ -46,10 +46,26 @@ function createAppRouter() {
           lazy: () => lazyRoute(() => import('./routes/app/habit-detail')),
         },
         {
+        path: paths.app.activities.path,//added this code derived from chatGPT
+        lazy: () => lazyRoute(() => import('./routes/app/activities')),
+        },
+        {
           path: paths.app.profile.path,
           lazy: () => lazyRoute(() => import('./routes/app/profile')),
         },
+        {
+          path: paths.app.consentTest.path,
+          lazy: () => lazyRoute(() => import('./routes/app/consent-test')),
+        },
       ],
+    },
+    {
+      path: paths.auth.login.path,
+      lazy: () => lazyRoute(() => import('./routes/auth/login')),
+    },
+    {
+      path: paths.auth.register.path,
+      lazy: () => lazyRoute(() => import('./routes/auth/register')),
     },
     {
       path: '*',

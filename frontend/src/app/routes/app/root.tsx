@@ -16,7 +16,11 @@ function AppRoot() {
         {' · '}
         <Link to={paths.app.habits.getHref()}>Habits</Link>
         {' · '}
+        <Link to={paths.app.activities.getHref()}>Activities</Link> 
+        {' · '}
         <Link to={paths.app.profile.getHref()}>Profile</Link>
+        {' · '}
+        <Link to={paths.app.consentTest.getHref()}>Consent Test</Link>
       </nav>
       <main className="app-root__main">
         <Outlet />
@@ -24,5 +28,8 @@ function AppRoot() {
     </div>
   );
 }
-
+//added Activities link - code developed from chatGPT
 export default AppRoot;
+
+//TODO: Add auth guard once frontend auth context/service is implemented
+// All /app/* routes are intended to be protected

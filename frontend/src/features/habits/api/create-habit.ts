@@ -9,7 +9,7 @@ import { getHabitsQueryOptions } from './get-habits';
 // API call
 // ---------------------------------------------------------------------------
 async function createHabit(data: CreateHabitInput): Promise<Habit> {
-  const response = await apiClient.post<Habit>('/habits', data);
+  const response = await apiClient.post<Habit>('/goals', data);
   return response as unknown as Habit;
 }
 

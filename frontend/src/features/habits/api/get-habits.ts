@@ -8,7 +8,7 @@ import { type Habit } from '../types/habit';
 // API call
 // ---------------------------------------------------------------------------
 async function getHabits(): Promise<Habit[]> {
-  const response = await apiClient.get<Habit[]>('/habits');
+  const response = await apiClient.get<Habit[]>('/goals');
   return response as unknown as Habit[];
 }
 
