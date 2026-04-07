@@ -63,9 +63,7 @@ def forecast_endpoint(request: ForecastRequest):
 # G13 - MMingQwQ - Health Indicators API  - Issue #22
 # ============================================================
 
-
 class HealthIndicatorsRequest(BaseModel):
-    """Request body for health indicators endpoint."""
     user_id: str
     from_date: datetime
     to_date: datetime
@@ -79,12 +77,6 @@ def fetch_activity_data(
     from_date: datetime,
     to_date: datetime,
 ) -> List[Dict[str, Any]]:
-    """
-    Fetches activity data for the given user and date range.
-    Returns a list of workout dicts with keys: date, duration_minutes, intensity,
-    workout_type, user_id, and optionally notes.
-    """
-    # Placeholder - replace with real data-source call when available.
     return []
 
 
@@ -92,13 +84,6 @@ def compute_inactivity(
     workouts: List[WorkoutSession],
     to_date: Optional[datetime] = None,
 ) -> Dict[str, Any]:
-    """
-    Computes inactivity status from workout history relative to *to_date*.
-
-    A user is considered inactive only when they have had no workout in the
-    last 7 days (severe inactivity).  3-6 days without a workout is flagged as
-    a mild warning but does not set inactive=True.
-    """
     if not workouts:
         return {
             "inactive": True,
@@ -134,7 +119,6 @@ def build_score_input(
     consistency_result,
     inactivity_result: Dict[str, Any],
 ) -> Dict[str, Optional[float]]:
-    """Builds normalized indicator dict for health score calculation."""
     return {
         "volume": volume_result.total_volume,
         "consistency": consistency_result.consistency_score,
@@ -144,15 +128,12 @@ def build_score_input(
 
 @router.post("/health-indicators")
 async def health_indicators_endpoint(request: HealthIndicatorsRequest):
-    """Computes health indicators, health score, inactivity, and explanations."""
-    # Validate date range
     if request.from_date > request.to_date:
         raise HTTPException(
             status_code=400,
             detail=format_error_response("from_date must not be later than to_date"),
         )
 
-    # Fetch activity data (503 if the data source is unavailable)
     try:
         activity_data = fetch_activity_data(
             user_id=request.user_id,
@@ -166,17 +147,16 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
         )
 
     try:
-        # Convert raw dicts to WorkoutSession objects
         workout_sessions = []
         for w in activity_data:
-            date = (
+            parsed_date = (
                 w["date"]
                 if isinstance(w["date"], datetime)
                 else datetime.fromisoformat(str(w["date"]))
             )
             workout_sessions.append(
                 WorkoutSession(
-                    date=date,
+                    date=parsed_date,
                     duration_minutes=w["duration_minutes"],
                     intensity=w["intensity"],
                     workout_type=WorkoutType(w["workout_type"]),
@@ -185,24 +165,20 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
                 )
             )
 
-        # Fitness indicators
         volume_result = VolumeIndicator.calculate(workout_sessions)
         consistency_result = ConsistencyIndicator.calculate(
             workouts=workout_sessions,
             target_workouts=request.target_workouts,
         )
 
-        # Inactivity (relative to to_date)
         inactivity_result = compute_inactivity(workout_sessions, to_date=request.to_date)
 
-        # Build score input
         indicators = build_score_input(
             volume_result=volume_result,
             consistency_result=consistency_result,
             inactivity_result=inactivity_result,
         )
 
-        # Validate explanation inputs
         validate_explainability_inputs(
             indicators=indicators,
             health_score=None,
@@ -210,11 +186,9 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
             alerts=request.alerts,
         )
 
-        # Health score
         score_model = HealthScoreModel()
         score_result = score_model.compute_health_score(indicators)
 
-        # Explanation
         explanation_builder = ExplainabilityBuilder()
         explanations = explanation_builder.build_explanation(
             indicators=indicators,
@@ -223,7 +197,6 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
             alerts=request.alerts,
         )
 
-        # Include the inactivity message in the explanations for visibility
         inactivity_message = inactivity_result.get("message")
         if inactivity_message:
             explanations.append(inactivity_message)
@@ -256,9 +229,12 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
         return format_success_response(response_data)
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=format_error_response(str(e)))
+        raise HTTPException(
+            status_code=400,
+            detail=format_error_response(str(e)),
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=format_error_response(f"Internal server error: {str(e)}")
+            detail=format_error_response(f"Internal server error: {str(e)}"),
         )
