@@ -43,7 +43,8 @@ Selection logic
 
 Raises
 ------
-    ValueError  : invalid horizon, window_k, method, missing fields, or empty history
+    ValueError  : invalid horizon, window_k, method, missing fields, empty history,
+                  or history dates not in strictly ascending order
     TypeError   : non-numeric value in history
 """
 
@@ -97,6 +98,17 @@ def _validate_inputs(
             raise ValueError(
                 f"history[{i}]['date'] must be in 'YYYY-MM-DD' format, "
                 f"got '{entry['date']}'"
+            )
+
+    # Enforce strictly ascending date order (required by the input contract).
+    for i in range(1, len(history)):
+        prev_date = datetime.strptime(str(history[i - 1]["date"]), "%Y-%m-%d")
+        curr_date = datetime.strptime(str(history[i]["date"]), "%Y-%m-%d")
+        if curr_date <= prev_date:
+            raise ValueError(
+                f"history dates must be in strictly ascending order, "
+                f"but history[{i - 1}]['date'] '{history[i - 1]['date']}' "
+                f">= history[{i}]['date'] '{history[i]['date']}'"
             )
 
 
@@ -178,7 +190,8 @@ def generate_baseline_forecast(
 
     Raises:
         ValueError: On invalid ``horizon``, ``window_k``, ``method``,
-                    missing history fields, empty history, or bad date format.
+                    missing history fields, empty history, bad date format,
+                    or history dates not in strictly ascending order.
         TypeError:  When a history value is not numeric.
 
     Examples:

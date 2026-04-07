@@ -187,6 +187,31 @@ def test_missing_value_field_raises():
 
 
 # ---------------------------------------------------------------------------
+# Date ordering tests
+# ---------------------------------------------------------------------------
+
+def test_unsorted_history_raises():
+    """History with out-of-order dates must raise ValueError."""
+    history = [
+        {"date": "2024-01-03", "value": 3.0},
+        {"date": "2024-01-01", "value": 1.0},
+        {"date": "2024-01-02", "value": 2.0},
+    ]
+    with pytest.raises(ValueError, match="strictly ascending order"):
+        generate_baseline_forecast(history, horizon=1, window_k=2)
+
+
+def test_duplicate_dates_raises():
+    """History with duplicate consecutive dates must raise ValueError."""
+    history = [
+        {"date": "2024-01-01", "value": 1.0},
+        {"date": "2024-01-01", "value": 2.0},
+    ]
+    with pytest.raises(ValueError, match="strictly ascending order"):
+        generate_baseline_forecast(history, horizon=1, window_k=2)
+
+
+# ---------------------------------------------------------------------------
 # Output structure tests
 # ---------------------------------------------------------------------------
 
