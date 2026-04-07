@@ -141,6 +141,16 @@ def test_empty_history_raises():
         generate_baseline_forecast([], horizon=3, window_k=3)
 
 
+def test_unsorted_history_raises():
+    """History dates must be sorted ascending; unsorted input should be rejected."""
+    unsorted_history = [
+        {"date": "2024-01-02", "value": 5.0},
+        {"date": "2024-01-01", "value": 3.0},
+        {"date": "2024-01-03", "value": 7.0},
+    ]
+
+    with pytest.raises(ValueError, match=r"history.*sorted.*ascending.*date"):
+        generate_baseline_forecast(unsorted_history, horizon=3, window_k=3)
 def test_invalid_horizon_zero(short_history):
     """horizon=0 must raise ValueError mentioning 'horizon'."""
     with pytest.raises(ValueError, match="horizon"):
