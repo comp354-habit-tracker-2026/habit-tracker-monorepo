@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from .models import Activity
+
+from typing import Callable
+
 # NOTE: This interface skeleton was generated with the help of ChatGPT (OpenAI)
 
 class IActivityIngestor(ABC):
@@ -33,7 +36,7 @@ class IActivityAdapter(ABC):
     #parse(raw_input_data: dict) -> Activity
     #Convert raw provider data into standardized Activity
     @abstractmethod
-    def parse(self, raw_input_data):
+    def parse(self, raw_input_data: str):
         """Parse raw activity data into a standard Activity object."""
         pass
 
@@ -46,21 +49,21 @@ class IActivityAdapter(ABC):
     
     #Register callback functions for monitoring parse events (start, success, failure).
     @abstractmethod
-    def register_hooks(self, hooks):
+    def register_hooks(self, hooks: tuple[list[Callable], list[Callable], list[Callable]]):
         """Tell the adapter what to do when parsing starts, works, or fails."""
         pass
 
     #validate(raw_input_data) -> bool
     #Validate raw input data before parsing.
     @abstractmethod
-    def validate(self, raw_input_data):
+    def validate(self, raw_input_data: str):
         """Validate raw data before parsing."""
         pass
 
     #mapToActivity(self, raw_input_data) -> Activity object
     #Convert raw input data into a standardized Activity object.
     @abstractmethod
-    def mapToActivity(self, raw_input_data):
+    def mapToActivity(self, raw_input_data: str):
         """Convert raw input data into a standardized Activity object."""
         pass
 
