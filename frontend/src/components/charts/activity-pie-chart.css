@@ -28,9 +28,15 @@
 }
 
 .activity-pie-chart__description,
+.activity-pie-chart__date-range,
 .activity-pie-chart__empty-copy {
   margin: 0;
   color: #4f6175;
+}
+
+.activity-pie-chart__date-range {
+  font-size: 0.95rem;
+  font-weight: 600;
 }
 
 .activity-pie-chart__content {
