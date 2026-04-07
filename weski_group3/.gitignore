@@ -28,3 +28,8 @@ venv/
 # =========================
 .DS_Store
 Thumbs.db
+
+# =========================
+# Generated output
+# =========================
+metrics_output/
