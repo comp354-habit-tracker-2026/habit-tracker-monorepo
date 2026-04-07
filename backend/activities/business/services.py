@@ -40,6 +40,26 @@ class ActivityService(BaseService):
                 raise PermissionDenied("You do not have permission to delete this activity.")
 
             self.repository.delete(activity)  
+    
+    # Issue #106: Feature: Activity Modification
+    def update_activity(self, activity_id, user, data):
+        """
+        Feature #106: Logic for ownership and immutable field protection.
+        """
+        activity = self.repository.get_by_id(activity_id)
+
+        # 404 if not found OR not owned (Security: don't reveal existence to others)
+        if activity is None or activity.user != user:
+            raise NotFound("Activity not found.")
+
+        # REQUIREMENT: external_id and provider are immutable
+        data.pop('external_id', None)
+        data.pop('provider', None)
+
+        # Re-validate uniqueness if the provider is changing (though here we block it)
+        self.validate_external_activity_uniqueness(data, instance=activity)
+
+        return self.repository.update(activity, data)
 
    
 
