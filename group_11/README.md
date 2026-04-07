@@ -73,3 +73,22 @@ Group 11 has completed the following for CP1:
 
 The database will be integrated in the next milestone.
 
+## Checkpoint 2 Status
+
+Group 11 has completed the following for CP2:
+- Architecture and data flow documentation
+- Repository logic design
+- Testing strategy
+- Sequence diagrams
+- Database schema refinement
+
+Checkpoint 2 database schema refinement:
+- group_11/SCHEMA_CP2.md
+
+The CP2 schema refinement makes the persistence design more explicit by documenting:
+- primary keys and foreign keys
+- unique constraints
+- indexing strategy
+- repository method support
+- pagination and deduplication behavior
+
