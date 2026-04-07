@@ -138,6 +138,8 @@ curl -X POST http://localhost:8000/api/v1/auth/login/ \
 ```
 
 ## Admin user
+Load the .env into your shell and run: 
+
 ```bash
 POSTGRES_HOST=127.0.0.1 \
 DJANGO_SUPERUSER_USERNAME=admin \
