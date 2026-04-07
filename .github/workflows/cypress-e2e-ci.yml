@@ -1,0 +1,73 @@
+name: Integrate Cypress E2E tests into GitHub Actions CI
+run-name: Cypress E2E Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
+
+# EVENTS workflow is going to be triggered every time there is a PUSH or PULL_REQUEST
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/cypress-e2e-ci.yml'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/cypress-e2e-ci.yml'
+
+permissions:
+  contents: read
+
+#Workflow
+jobs:
+  cypress-e2e:
+    runs-on: ubuntu-latest    
+    
+    steps:
+    # Checksout the repo and pulls it into the pipeline so that the workflow can access it
+    - name: Checkout Code 
+      uses: actions/checkout@v4
+    
+      # Setting up Node.js Version 20
+    - name: Setup Node.js 
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+#	  Install the dependencies
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./frontend
+
+#     Run cypress tests, runs the cypress:ci script from package.json
+    - name: Run Cypress E2E tests 
+      run: npm run cypress:ci
+      working-directory: ./frontend
+      env:
+        CYPRESS_RETRIES: 1
+
+#     Upload Cypress videos save the videos to frontend/cypress/videos
+    - name: Upload Cypress videos
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cypress-videos
+        path: frontend/cypress/videos
+
+#     Upload Cypress screenshots saves the screenshots to frontend/cypress/screenshots
+    - name: Upload Cypress screenshots
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cypress-screenshots
+        path: frontend/cypress/screenshots
+
+#     Upload Cypress Logs saves the logs to frontend/cypress/logs
+    - name: Upload Cypress logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cypress-logs
+        path: frontend/cypress/logs
+  
