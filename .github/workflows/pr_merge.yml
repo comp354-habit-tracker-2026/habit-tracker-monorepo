@@ -22,5 +22,8 @@ jobs:
           base-branches: "(default)"
           prohibited-days-dates: "2026-04-22, 2026-04-23, 2026-04-24, 2026-04-25" #can modify the dates 
 
-      - run: echo pr-blocked=${{ steps.block.outputs.pr-blocked }}
-        if: github.event_name == 'pull_request'
+         - name: Force Failure if Blocked
+        if: steps.block.outputs.pr-blocked == 'true'
+        run: |
+            echo "Current date/time is within a prohibited window."
+            exit 1
