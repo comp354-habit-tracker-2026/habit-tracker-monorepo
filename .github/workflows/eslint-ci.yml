@@ -4,7 +4,7 @@ run-name: ESLint Tests on ${{ github.ref_name }} by @${{ github.actor }} 🚀
 # This workflow is going to be triggered every time there is a PUSH or PULL_REQUEST
 on:
   push:
-    branches: ["main", "integration/g26-171-linting-setup"]
+    branches: ["main"]
     paths:
       - 'frontend/**'
       - '.github/workflows/eslint-ci.yml'
