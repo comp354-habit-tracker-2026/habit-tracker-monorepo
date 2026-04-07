@@ -5,32 +5,18 @@ from rest_framework.views import APIView
 from analytics.business import AnalyticsService
 
 
-# class AnalyticsOverviewView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         service = AnalyticsService()
-#         data = {
-#             "activity_statistics": service.activity_statistics(request.user),
-#             "trend_analysis": service.trend_snapshot(request.user),
-#             "forecast": service.forecast_preview(request.user),
-#         }
-#         return Response(data)
-
-# ============================================================
-# G13 - To maximize coverage
-# ============================================================  
 class AnalyticsOverviewView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         service = AnalyticsService()
-        return Response({
+        data = {
             "activity_statistics": service.activity_statistics(request.user),
             "trend_analysis": service.trend_snapshot(request.user),
             "forecast": service.forecast_preview(request.user),
-        })
-
+        }
+        return Response(data)
+    
 # ============================================================
 # G13 - cathytham - InactivityDetector - PR #241
 # ============================================================
