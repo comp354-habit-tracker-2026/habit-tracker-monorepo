@@ -36,23 +36,27 @@ class NotificationService(BaseService):
             send_notification()
     
     def get_all_notifications(self, user_id): 
-        return self.notification_repository.get_all(user_id)
+        user = User.objects.get(id=user_id)
+        return self.notification_repository.get_all(user)
 
     def get(self, notification_id):
         return self.notification_repository.get(notification_id)
     
     def delete(self, notification_id):
-        self.notification_repository.delete(notification_id)
+        try:
+            self.notification_repository.delete(notification_id)
+        except Notification.DoesNotExist:
+            raise Exception(f"Unable to delete notification {notification_id}, does not exist")
     
     def mark_as_read(self, notification_id):
-        notification = self.get(notification_id)
-        if (notification is None):
-            raise Notification.DoesNotExist
-        
-        return
+        try:
+            return self.notification_repository.mark_as_read(notification_id)
+        except Notification.DoesNotExist:
+            raise Exception(f"Unable to mark notification {notification_id} as read, does not exist")
     
     def mark_all_as_read(self, user_id):
-        return
+        user = User.objects.get(id=user_id)
+        self.notification_repository.mark_all_as_read(user)
     
 class UserPreferencesService(BaseService):
     def __init__(self, repository=None):

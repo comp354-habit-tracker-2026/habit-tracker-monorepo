@@ -19,14 +19,28 @@ class NotificationRepository(BaseRepository):
         notification.save()
         return notification
     
-    def get_all(self, user_id: int):
-        return Notification.objects.filter(user_id=user_id)
+    def get_all(self, user: User):
+        return Notification.objects.filter(user=user)
     
     def get(self, notification_id: int):
         return Notification.objects.get(id=notification_id)
     
     def delete(self, notification_id: int):
         Notification.objects.filter(id=notification_id).delete()
+    
+    def mark_as_read(self, notification_id: int):
+        notification = self.get(notification_id)
+
+        if notification.read:
+            return notification
+        
+        notification.read = True
+        notification.save()
+
+        return notification
+    
+    def mark_all_as_read(self, user: User):
+        Notification.objects.filter(user=user).update(read=True)
     
 class UserPreferenceRepository(BaseRepository):
     def __init__(self):
