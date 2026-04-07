@@ -76,7 +76,7 @@ class TestAuthentication:
 
         access = response.data['access']
         token = AccessToken(access)
-        assert token['user_id'] == user.id
+        assert int(token['user_id']) == user.id
         assert token['username'] == user.username
         assert token['email'] == user.email
         assert token['is_staff'] is False
