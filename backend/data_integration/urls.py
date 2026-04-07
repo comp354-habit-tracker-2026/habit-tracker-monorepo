@@ -1,11 +1,32 @@
 from django.urls import include, path
+from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
+from .views import StravaAuthViewSet
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
-from .views import DataIntegrationViewSet
+# 1. Create a simple view for the root of the integration path
+# Use this to test that you can connect to this subsystem in the first place
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@authentication_classes([])
+def integration_root(request):
+    return JsonResponse({"message": "This is the data-integration route"})
 
+# 2. Setup the Router
+# We register 'strava' as the prefix. 
+# The @action decorators in your ViewSet (connect/refresh) 
+# will automatically become /strava/connect/ and /strava/refresh/
 router = DefaultRouter()
-router.register("", DataIntegrationViewSet, basename="data-integration")
+router.register(r'strava', StravaAuthViewSet, basename="strava")
+# Later you can add: router.register(r'mywhoosh', MyWhooshViewSet, basename="mywhoosh")
+# etc. for other integrations.
 
 urlpatterns = [
-    path("", include(router.urls)),
+        # This handles the literal "/data-integration/" path
+        path('', integration_root, name='integration-root'),
+        
+        # This includes all the routes the router generated
+        # Result: /data-integration/strava/connect/
+        path('', include(router.urls)),
 ]
