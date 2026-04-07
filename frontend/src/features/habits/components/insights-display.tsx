@@ -74,6 +74,30 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
       weeklySteps += activity.summary.steps || 0;
     }
 
+    // Weekly comparison logic
+    const now = new Date();
+    let thisWeekCalories = 0;
+    let lastWeekCalories = 0;
+
+    for (const activity of mockActivities) {
+      const date = new Date(activity.startedAt);
+      const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 7) {
+        thisWeekCalories += activity.summary.calories || 0;
+      } else if (diffDays <= 14) {
+        lastWeekCalories += activity.summary.calories || 0;
+      }
+    }
+
+    let calorieChange = 0;
+
+    if (lastWeekCalories > 0) {
+      calorieChange = Math.round(
+        ((thisWeekCalories - lastWeekCalories) / lastWeekCalories) * 100
+      );
+    }
+
     const averageHeartRate = heartrateCount > 0 ? Math.round(totalHeartRate / heartrateCount) : 0;
 
 
@@ -98,6 +122,12 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                     <p><strong>Average heart rate:</strong> {averageHeartRate} bpm</p>
                     <p><strong>Weekly total calories:</strong> {weeklyCalories} kcal</p>
                     <p><strong>Weekly total steps:</strong> {weeklySteps}</p>
+                    <p>
+                      <strong>Weekly trend:</strong>{' '}
+                      {calorieChange >= 0
+                        ? `+${calorieChange}% more calories than last week 📈`
+                        : `${calorieChange}% fewer calories than last week 📉`}
+                    </p>
                     </div>
                  </div> 
                 ) 
