@@ -65,7 +65,7 @@ def base_adapter(test_schema) -> ActivityAdapter:
 def valid_activity(test_schema, base_adapter) -> str:
     return VALID_ACTIVITY.copy()
 
-class TestAdapter:
+class TestAdapterValidate:
 
     def _validate_dict(adapter, activity):
         valid, _ = adapter.validate(json.dumps(activity))
@@ -73,14 +73,14 @@ class TestAdapter:
 
     # Valid cases
     def test_valid_activity_passes(test_schema, base_adapter, valid_activity):
-        assert TestAdapter._validate_dict(base_adapter, valid_activity)
+        assert TestAdapterValidate._validate_dict(base_adapter, valid_activity)
 
 
     def test_optional_fields_missing(test_schema, base_adapter, valid_activity):
         data = valid_activity
         del data["average_speed"]
         del data["max_speed"]
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # REQUIRED FIELD TESTS
@@ -89,7 +89,7 @@ class TestAdapter:
     def test_missing_required_fields_fail(self, field, test_schema, base_adapter, valid_activity):
         data = valid_activity
         del data[field]
-        assert not TestAdapter._validate_dict(base_adapter, data)
+        assert not TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # TYPE VALIDATION
@@ -109,7 +109,7 @@ class TestAdapter:
     def test_wrong_types_fail(self, field, bad_value, test_schema, base_adapter, valid_activity):
         data = valid_activity
         data[field] = bad_value
-        assert not TestAdapter._validate_dict(base_adapter, data)
+        assert not TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # DATETIME VALIDATION
@@ -124,7 +124,7 @@ class TestAdapter:
     def test_invalid_datetime_format(self, field, bad_value, test_schema, base_adapter, valid_activity):
         data = valid_activity
         data[field] = bad_value
-        assert not TestAdapter._validate_dict(base_adapter, data)
+        assert not TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # EDGE CASES
@@ -133,19 +133,19 @@ class TestAdapter:
         data = valid_activity
         data["distance"] = 0
         data["moving_time"] = 0
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     def test_empty_strings(test_schema, base_adapter, valid_activity):
         data = valid_activity
         data["name"] = ""
-        assert TestAdapter._validate_dict(base_adapter, data)  # allowed unless you restrict
+        assert TestAdapterValidate._validate_dict(base_adapter, data)  # allowed unless you restrict
 
 
     def test_extra_fields_allowed(test_schema, base_adapter, valid_activity):
         data = valid_activity
         data["extra_field"] = "extra"
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # SCHEMA VARIATION TESTS
@@ -155,10 +155,10 @@ class TestAdapter:
         schema["required"] = schema["required"] + ["sport_type"]
 
         data = valid_activity
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
 
         del data["sport_type"]
-        assert not TestAdapter._validate_dict(base_adapter, data)
+        assert not TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     def test_schema_with_stricter_raw_data(test_schema, base_adapter, valid_activity):
@@ -172,10 +172,10 @@ class TestAdapter:
         }
 
         data = valid_activity
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
 
         data["raw_data"] = {}
-        assert not TestAdapter._validate_dict(base_adapter, data)
+        assert not TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # NULL / NONE HANDLING
@@ -183,7 +183,7 @@ class TestAdapter:
     def test_none_in_required_field(test_schema, base_adapter, valid_activity):
         data = valid_activity
         data["name"] = None
-        assert not TestAdapter._validate_dict(base_adapter, data)
+        assert not TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     # STRESS / ROBUSTNESS
@@ -191,10 +191,191 @@ class TestAdapter:
     def test_large_numbers(test_schema, base_adapter, valid_activity):
         data = valid_activity
         data["distance"] = 1e12
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
 
 
     def test_nested_raw_data(test_schema, base_adapter, valid_activity):
         data = valid_activity
         data["raw_data"] = {"nested": {"deep": {"value": 1}}}
-        assert TestAdapter._validate_dict(base_adapter, data)
+        assert TestAdapterValidate._validate_dict(base_adapter, data)
+
+class TestAdapterHooks:
+
+    def test_register_hooks_appends_hooks(self, base_adapter):
+        calls = []
+
+        def hook1(): calls.append("start1")
+        def hook2(): calls.append("success1")
+        def hook3(): calls.append("fail1")
+
+        base_adapter.register_hooks(([hook1], [hook2], [hook3]))
+
+        # Trigger manually
+        base_adapter._start_parse()
+        base_adapter._succeed_parse()
+        base_adapter._fail_parse()
+
+        assert calls == ["start1", "success1", "fail1"]
+
+
+    def test_register_hooks_multiple_calls_accumulate(self, base_adapter):
+        calls = []
+
+        def hook1(): calls.append("a")
+        def hook2(): calls.append("b")
+
+        base_adapter.register_hooks(([hook1], [], []))
+        base_adapter.register_hooks(([hook2], [], []))
+
+        base_adapter._start_parse()
+
+        assert calls == ["a", "b"]
+
+
+    def test_hooks_run_in_order(self, base_adapter):
+        calls = []
+
+        def hook1(): calls.append(1)
+        def hook2(): calls.append(2)
+        def hook3(): calls.append(3)
+
+        base_adapter.register_hooks(([hook1, hook2, hook3], [], []))
+        base_adapter._start_parse()
+
+        assert calls == [1, 2, 3]
+
+
+    def test_empty_hooks_do_nothing(self, base_adapter):
+        # Should not raise
+        base_adapter.register_hooks(([], [], []))
+        base_adapter._start_parse()
+        base_adapter._succeed_parse()
+        base_adapter._fail_parse()
+
+
+    def test_hook_exception_propagates(self, base_adapter):
+        def bad_hook():
+            raise RuntimeError("hook failed")
+
+        base_adapter.register_hooks(([bad_hook], [], []))
+
+        with pytest.raises(RuntimeError):
+            base_adapter._start_parse()
+
+
+class TestAdapterParse:
+
+    def test_parse_returns_activity_object(self, base_adapter, valid_activity):
+        result = base_adapter.parse(json.dumps(valid_activity))
+
+        # We don't import Activity class, so check attributes instead
+        assert result.external_id == valid_activity["external_id"]
+        assert result.name == valid_activity["name"]
+
+
+    def test_parse_sets_all_attributes(self, base_adapter, valid_activity):
+        result = base_adapter.parse(json.dumps(valid_activity))
+
+        for key, value in valid_activity.items():
+            assert getattr(result, key) == value
+
+
+    def test_parse_invalid_input_raises(self, base_adapter, valid_activity):
+        data = valid_activity
+        del data["external_id"]
+
+        with pytest.raises(ValueError, match="Input data was not valid"):
+            base_adapter.parse(json.dumps(data))
+
+
+    def test_parse_calls_validate(self, base_adapter, valid_activity, monkeypatch):
+        called = {"validate": False}
+
+        def fake_validate(_):
+            called["validate"] = True
+            return True, None
+
+        monkeypatch.setattr(base_adapter, "validate", fake_validate)
+
+        base_adapter.parse(json.dumps(valid_activity))
+        assert called["validate"]
+
+
+    def test_parse_does_not_continue_on_invalid(self, base_adapter, valid_activity, monkeypatch):
+        def fake_validate(_):
+            return False, "bad"
+
+        monkeypatch.setattr(base_adapter, "validate", fake_validate)
+
+        with pytest.raises(ValueError):
+            base_adapter.parse(json.dumps(valid_activity))
+
+
+    def test_parse_uses_conversion_method(self, base_adapter, valid_activity, monkeypatch):
+        called = {"convert": False}
+
+        def fake_convert(_):
+            called["convert"] = True
+            return valid_activity
+
+        monkeypatch.setattr(base_adapter, "_convert_raw_input_data_to_dict", fake_convert)
+
+        base_adapter.parse(json.dumps(valid_activity))
+        assert called["convert"]
+
+
+    def test_parse_overwrites_existing_attributes(self, base_adapter, valid_activity, monkeypatch):
+        # Ensure setattr is actually used dynamically
+        modified = valid_activity.copy()
+        modified["name"] = "Modified Name"
+
+        monkeypatch.setattr(
+            base_adapter,
+            "_convert_raw_input_data_to_dict",
+            lambda _: modified
+        )
+
+        result = base_adapter.parse(json.dumps(valid_activity))
+        assert result.name == "Modified Name"
+
+
+    def test_parse_handles_empty_object(self, base_adapter, monkeypatch):
+        # Simulate valid but empty dict
+        monkeypatch.setattr(base_adapter, "validate", lambda _: (True, None))
+        monkeypatch.setattr(base_adapter, "_convert_raw_input_data_to_dict", lambda _: {})
+
+        result = base_adapter.parse("{}")
+
+        # Should not crash, just return empty Activity
+        assert result is not None
+
+
+    def test_parse_with_hooks_integration(self, base_adapter, valid_activity):
+        calls = []
+
+        def start(): calls.append("start")
+        def success(): calls.append("success")
+
+        base_adapter.register_hooks(([start], [success], []))
+
+        base_adapter.parse(json.dumps(valid_activity))
+
+        assert calls == ["start", "success"]
+
+    def test_parse_invalid_triggers_failure_hook(self, base_adapter, valid_activity):
+        calls = []
+
+        def start(): calls.append("start")
+        def success(): calls.append("success")
+        def fail(): calls.append("fail")
+
+        base_adapter.register_hooks(([start], [success], [fail]))
+
+        # Make data invalid
+        invalid = valid_activity
+        del invalid["external_id"]
+
+        with pytest.raises(ValueError):
+            base_adapter.parse(json.dumps(invalid))
+
+        assert calls == ["start", "fail"]

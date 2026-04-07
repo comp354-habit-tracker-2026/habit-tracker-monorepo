@@ -49,18 +49,25 @@ class ActivityAdapter(IActivityAdapter):
 
     def parse(self, raw_input_data):
         """Parse raw activity data into a standard Activity object."""
-        
-        valid_input, error = self.validate(raw_input_data)
-        if not valid_input:
-            raise ValueError(f"Input data was not valid. Error: {error}")
-        
-        activity = Activity()
-        input_data_dict = self._convert_raw_input_data_to_dict(raw_input_data)
 
-        for attribute, value in input_data_dict.items():
-            setattr(activity, attribute, value)
+        try:    
+            self._start_parse()
 
-        return activity
+            valid_input, error = self.validate(raw_input_data)
+            if not valid_input:
+                raise ValueError(f"Input data was not valid. Error: {error}")
+            
+            activity = Activity()
+            input_data_dict = self._convert_raw_input_data_to_dict(raw_input_data)
+
+            for attribute, value in input_data_dict.items():
+                setattr(activity, attribute, value)
+
+            self._succeed_parse()
+            return activity
+        except BaseException as e:
+            self._fail_parse()
+            raise e
 
     #validate(raw_input_data) -> bool
     #Validate raw input data before parsing.

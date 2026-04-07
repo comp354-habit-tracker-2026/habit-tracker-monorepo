@@ -28,6 +28,9 @@ class Activity:
     duration_minutes: float
     distance_meters: float
     calories_kcal: float
+
+    def __init__(self):
+        pass
     
 
 # Placeholders
