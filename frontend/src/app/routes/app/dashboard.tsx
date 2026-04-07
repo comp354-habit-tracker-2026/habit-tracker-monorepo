@@ -1,5 +1,5 @@
 import { useState } from 'react';
-
+import { InsightsDisplay } from '@/features/habits/components/insights-display.tsx';
 import { ContentLayout } from '@/components/layouts/content-layout';
 import '@coreui/coreui-pro/dist/css/coreui.min.css';
 import { CCalendar } from '@coreui/react-pro';
@@ -230,6 +230,9 @@ function DashboardRoute() {
               />
              <div className="mt-4">
                 <GoalsContainer />
+              </div>
+              <div className="mt-4">
+                <InsightsDisplay/>
               </div>            
             </div>
           </div>
