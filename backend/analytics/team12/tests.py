@@ -356,3 +356,20 @@ class TestTeam12AnalyticsService:
 
         assert result["current_streak"] == 0
         assert result["longest_streak"] == 3
+    
+    def test_personal_record_for_habit(self, create_user, create_activity, team12_service):
+        user = create_user()
+
+        create_activity(user, duration=30)
+        create_activity(user, duration=60)
+        create_activity(user, duration=50)
+
+        result = team12_service.personal_record_for_habit(
+            user=user,
+            habit_id=1,
+            metric_type="DURATION"
+        )
+
+        assert result["currentPersonalBest"] == 60
+        assert result["previousBest"] == 50
+        assert result["improved"] is True

@@ -1,8 +1,10 @@
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Avg, Count, Max, Sum
 
+VALID_METRICS = ["COUNT", "DURATION", "STREAK", "CUSTOM"]
 from activities.models import Activity
 
 
@@ -273,3 +275,65 @@ class Team12AnalyticsRepository:
                 current = current.replace(month=current.month + 1)
 
         return result
+    
+    def personal_record_for_habit(self, user, habit_id, metric_type):
+        if metric_type not in VALID_METRICS:
+            raise ValueError("Invalid metric type")
+
+        queryset = Activity.objects.filter(user=user, id=habit_id)
+
+        if not queryset.exists():
+            raise ObjectDoesNotExist("Habit not found")
+
+        # Map metric → field
+        metric_map = {
+            "COUNT": "calories",  
+            "DURATION": "duration",
+            "STREAK": None,         
+            "CUSTOM": "distance",   
+        }
+
+        field = metric_map.get(metric_type)
+
+        if metric_type == "STREAK":
+            streak_data = self.activity_streaks(user)
+            return {
+                "habitId": habit_id,
+                "metricType": "STREAK",
+                "currentPersonalBest": streak_data["longest_streak"],
+                "previousBest": None,
+                "achievedAt": None,
+                "improved": False,
+                "unit": "days",
+            }
+
+        # Get top 2 values
+        logs = (
+            Activity.objects.filter(user=user)
+            .exclude(**{f"{field}__isnull": True})
+            .order_by(f"-{field}", "-date")[:2]
+        )
+
+        if not logs:
+            return None
+
+        best = logs[0]
+        previous = logs[1] if len(logs) > 1 else None
+
+        return {
+            "habitId": habit_id,
+            "metricType": metric_type,
+            "currentPersonalBest": getattr(best, field),
+            "previousBest": getattr(previous, field) if previous else None,
+            "achievedAt": best.date,
+            "improved": previous is None or getattr(best, field) > getattr(previous, field),
+            "unit": self._get_unit(field),
+        }
+
+    def _get_unit(self, field):
+        return {
+            "duration": "minutes",
+            "distance": "km",
+            "calories": "kcal",
+        }.get(field, None)
+
