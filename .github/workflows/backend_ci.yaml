@@ -24,6 +24,7 @@ jobs:
       POSTGRES_USER: ${{ vars.POSTGRES_USER }}
       POSTGRES_IMAGE: ${{ vars.POSTGRES_IMAGE }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      PYTHONPATH: ${{ github.workspace }} #G13
     services:
       postgres:
         image: ${{ vars.POSTGRES_IMAGE }}
@@ -54,7 +55,6 @@ jobs:
         working-directory: ./backend
 
       - name: Run tests
-        # run: pytest --cov --cov-branch --cov-report=xml:coverage.xml
         run: pytest --cov --cov-branch --cov-report=xml:coverage.xml --junitxml=test-results.xml
         working-directory: ./backend
 
