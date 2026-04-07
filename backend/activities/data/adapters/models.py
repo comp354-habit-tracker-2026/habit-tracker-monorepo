@@ -29,3 +29,17 @@ class Activity:
     distance_meters: float
     calories_kcal: float
     
+
+# Placeholders
+
+class MyWhooshActivity(Activity):
+    pass
+
+class StravaActivity(Activity):
+    pass
+
+class WeSkiActivity(Activity):
+    pass
+
+class MapMyRunActivity(Activity):
+    pass

@@ -68,7 +68,8 @@ def valid_activity(test_schema, base_adapter) -> str:
 class TestAdapter:
 
     def _validate_dict(adapter, activity):
-        return adapter.validate(json.dumps(activity))
+        valid, _ = adapter.validate(json.dumps(activity))
+        return valid
 
     # Valid cases
     def test_valid_activity_passes(test_schema, base_adapter, valid_activity):

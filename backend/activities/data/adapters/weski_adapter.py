@@ -1,27 +1,21 @@
-""" Name: Kabeya Ngoyi
-    Student ID: 27214545
+""" Name: Kabeya Ngoyi + Jeffrey Bringolf
+    Student ID: 27214545 + 40282898
     File: weski_adapter.py
     
     Description: 
     This file contains the WeSki adapter. It converts raw WeSki activity
     into the unified Activity format used by the system. """
 
-class WeSkiAdapter:
-    def __init__(self):
-        self.provider = "weski"
+from .activity_adapter_base import ActivityAdapter
+from .models import ActivitySource, WeSkiActivity
+from .config.config import AdapterConfig
 
-    def transform(self, raw_activity):
-        """
-            Conversion of raw WeSki data into Activity format
-        """
-        return {
-            "activity_type": raw_activity.get("type", "unknown"),
-            "duration": raw_activity.get("duration", 0), 
-            "date": raw_activity.get("date"),
-            "provider": self.provider, 
-            "external_id": raw_activity.get("id"), 
-            "raw_data": raw_activity, 
-            "distance": raw_activity.get("distance"),
-            "calories": raw_activity.get("calories"),
-        }
+class WeSkiAdapter(ActivityAdapter):
+    def __init__(self):
+        super().__init__(
+            ActivitySource.WE_SKI, 
+            AdapterConfig.get_activity_schema(AdapterConfig.WE_SKI_ADAPTER_SCHEMA_FILENAME), 
+            WeSkiActivity
+            )
+
     

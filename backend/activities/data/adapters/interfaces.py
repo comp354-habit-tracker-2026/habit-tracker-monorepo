@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from .models import Activity
 
-from typing import Callable
+from typing import Callable, Optional
 
 # NOTE: This interface skeleton was generated with the help of ChatGPT (OpenAI)
 
@@ -56,15 +56,8 @@ class IActivityAdapter(ABC):
     #validate(raw_input_data) -> bool
     #Validate raw input data before parsing.
     @abstractmethod
-    def validate(self, raw_input_data: str):
+    def validate(self, raw_input_data: str) -> tuple[bool, Optional[Exception]]:
         """Validate raw data before parsing."""
-        pass
-
-    #mapToActivity(self, raw_input_data) -> Activity object
-    #Convert raw input data into a standardized Activity object.
-    @abstractmethod
-    def mapToActivity(self, raw_input_data: str):
-        """Convert raw input data into a standardized Activity object."""
         pass
 
 
