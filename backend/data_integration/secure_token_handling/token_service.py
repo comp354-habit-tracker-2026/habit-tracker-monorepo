@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
 from token_model import ProviderToken  # database model related
+import logging
 
 # --- GENERATE A FERNET KEY (USING TERMINAL) ----
 # terminal: python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
@@ -133,7 +134,9 @@ class ProviderTokenManager:
             encrypted_access_token = self.encrypt_token(access_token)
             encrypted_refresh_token = self.encrypt_token(refresh_token) if refresh_token else None
         except Exception as e:
-            return self.build_error_response(provider_name, f"Encryption failed: {str(e)}")
+            # Log the detailed exception server-side but do not expose it to the client
+            logging.exception("Encryption failed while saving provider token for provider '%s' and user '%s'.", provider_name, user_id)
+            return self.build_error_response(provider_name, "Encryption failed")
 
         token_last_4 = self.get_token_last_4(access_token)
 
@@ -141,9 +144,12 @@ class ProviderTokenManager:
             existing_provider_token = self.find_provider_token(user_id, provider_name)
 
             if existing_provider_token:
-                token_action = self.update_existing_provider_token(existing_provider_token=existing_provider_token,
-                    encrypted_access_token=encrypted_access_token, encrypted_refresh_token=encrypted_refresh_token,
-                    token_last_4=token_last_4, access_token_expires_at=access_token_expires_at
+                token_action = self.update_existing_provider_token(
+                    existing_provider_token=existing_provider_token,
+                    encrypted_access_token=encrypted_access_token,
+                    encrypted_refresh_token=encrypted_refresh_token,
+                    token_last_4=token_last_4,
+                    access_token_expires_at=access_token_expires_at
                 )
             else:
                 token_action = self.create_new_provider_token(
@@ -162,7 +168,9 @@ class ProviderTokenManager:
 
         except Exception as e:
             self.database_session.rollback()
-            return self.build_error_response(provider_name, f"Database save failed: {str(e)}")
+            # Log the detailed exception server-side but do not expose it to the client
+            logging.exception("Database save failed while saving provider token for provider '%s' and user '%s'.", provider_name, user_id)
+            return self.build_error_response(provider_name, "Database save failed")
 
     # Function that checks if the access token is expired or about to expire within 5 minutes
     # Returns True if the token is expired or about to expire, otherwise returns False
