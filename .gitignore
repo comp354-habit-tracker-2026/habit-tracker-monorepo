@@ -1,9 +1,17 @@
-.venv
+venv/
+.venv/
+
 .env
 .env.local
 .env.*.local
 
-# Python / Group 14
 __pycache__/
 *.pyc
+*.pyo
+
+*.db
+provider_tokens.db
+
 dataset-generation/artifacts/
+
+.DS_Store
