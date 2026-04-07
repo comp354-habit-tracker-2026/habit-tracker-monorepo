@@ -1,0 +1,27 @@
+name: Block PR After Contribution Deadline
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  block:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+
+    steps:
+      - uses: yykamei/block-merge-based-on-time@main
+        id: block
+        with:
+          timezone: "UTC-4"
+          base-branches: "(default)"
+          prohibited-days-dates: "2026-04-22, 2026-04-23, 2026-04-24, 2026-04-25" #can modify the dates 
+
+      - name: Force Failure if Blocked
+        if: steps.block.outputs.pr-blocked == 'true'
+        run: |
+            echo "Current date/time is within a prohibited window."
+            exit 1
