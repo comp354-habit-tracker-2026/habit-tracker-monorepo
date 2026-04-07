@@ -3,3 +3,8 @@
 .env.local
 .env.*.local
 .idea
+
+# Python / Group 14
+__pycache__/
+*.pyc
+dataset-generation/artifacts/
