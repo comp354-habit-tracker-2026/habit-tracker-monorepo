@@ -3,6 +3,15 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
  export function InsightsDisplay() { 
     const [show, setShow] = useState(false); 
 
+    if (mockActivities.length === 0) {
+      return (
+        <div>
+          <h2>Insights</h2>
+          <p>No activity data available.</p>
+        </div>
+      );
+    }
+
     const activitiesperDay: Record<string, number>={};
     const caloriesperDay: Record<string, number> = {};
 
@@ -28,23 +37,41 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     }
 
     let mostActiveDay = '';
-    let mostActivites = 0;
+    let mostActivities = 0;
 
     for (const day in activitiesperDay) {
-        if (activitiesperDay[day]> mostActivites) {
-            mostActivites = activitiesperDay[day];
+        if (activitiesperDay[day]> mostActivities) {
+            mostActivities = activitiesperDay[day];
             mostActiveDay = day;
         }
     }
 
-    let highestCaloryDay = '';
+    let leastActiveDay = '';
+    let leastActivities = Infinity;
+
+    for (const day in activitiesperDay) {
+      if (activitiesperDay[day] < leastActivities) {
+        leastActivities = activitiesperDay[day];
+        leastActiveDay = day;
+      }
+    }
+
+    let highestCalorieDay = '';
     let highestCalories = 0;
 
     for (const day in caloriesperDay) {
         if (caloriesperDay[day]> highestCalories) {
             highestCalories = caloriesperDay[day];
-            highestCaloryDay = day;
+            highestCalorieDay = day;
         }
+    }
+
+    let weeklyCalories = 0;
+    let weeklySteps = 0;
+
+    for (const activity of mockActivities) {
+      weeklyCalories += activity.summary.calories || 0;
+      weeklySteps += activity.summary.steps || 0;
     }
 
     const averageHeartRate = heartrateCount > 0 ? Math.round(totalHeartRate / heartrateCount) : 0;
@@ -63,11 +90,14 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                  </button> 
                  <div> 
                     <h2>Insights</h2> 
-                    <p><strong>Most active day:</strong> {mostActiveDay} ({mostActivites} activities)</p>
-                    <p><strong>Highest calories in one day:</strong> {highestCaloryDay} ({highestCalories} calories)</p>
+                    <p><strong>Most active day:</strong> {mostActiveDay} ({mostActivities} activities)</p>
+                    <p><strong>Least active day:</strong> {leastActiveDay} ({leastActivities} activities)</p>
+                    <p><strong>Highest calories in one day:</strong> {highestCalorieDay} ({highestCalories} calories)</p>
                     <p><strong>Most intense activity:</strong> {mostIntenseActivity.title} ({mostIntenseActivity.activityType}) -{' '}
                      {mostIntenseActivity.summary.calories || 0} calories</p>
                     <p><strong>Average heart rate:</strong> {averageHeartRate} bpm</p>
+                    <p><strong>Weekly total calories:</strong> {weeklyCalories} kcal</p>
+                    <p><strong>Weekly total steps:</strong> {weeklySteps}</p>
                     </div>
                  </div> 
                 ) 
