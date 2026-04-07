@@ -1,3 +1,3 @@
-from users.presentation.views import RegisterView
+from users.presentation.views import RegisterView, UserDeleteView
 
-__all__ = ["RegisterView"]
+__all__ = ["RegisterView", "UserDeleteView"]
