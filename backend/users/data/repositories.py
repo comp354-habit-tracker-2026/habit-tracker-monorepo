@@ -17,7 +17,7 @@ class UserRepository(BaseRepository):
         Update a user's profile: name, height, weight, avatar.
         Validates inputs before saving.
         """
-        user = self.model.objects.filter(id=user_id).first()
+        user = self.model.objects.filter(id=user_id).first() 
         if not user:
             raise ValidationError(f"User with id {user_id} does not exist.")
 
