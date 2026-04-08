@@ -3,6 +3,7 @@ Django==6.0.2
 django-allauth==65.14.3
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
+Faker==24.8.0
 iniconfig==2.3.0
 packaging==26.0
 pluggy==1.6.0
