@@ -149,3 +149,34 @@ def validate_normalize_data(data):
 
     
     return normalized_validated_data, None
+
+# Feature #137 : parse uploaded MapMyRun file from blob URL
+def parse_mapmyrun_file(file_url: str):
+    try:
+        df = pd.read_excel(file_url)
+
+        required_columns = [
+            "Workout Date",
+            "Workout Time (seconds)",
+            "Distance (km)",
+        ]
+
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return None, f"Missing required columns: {', '.join(missing_columns)}"
+
+        if df.empty:
+            return None, "The uploaded MapMyRun file contains no activity rows."
+        
+        parsed_data = df[required_columns].rename(
+            columns={
+                "Workout Date": "date",
+                "Workout Time (seconds)": "duration",
+                "Distance (km)": "distance",
+            }
+        ).to_dict(orient="records")
+        
+        return parsed_data, None
+
+    except Exception as e:
+        return None, f"Parsing failed: {str(e)}"
