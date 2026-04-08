@@ -24,11 +24,6 @@ const Login = () => {
 
   useEffect(() => { userRef.current?.focus();
   }, [])
-
-  //Still works despite error
-  useEffect(() => {
-    setErrMsg("");
-  }, [user, pwd])
   
   //(e)
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,7 +98,10 @@ const Login = () => {
             id = "username"
             ref = {userRef}
             autoComplete='off'
-            onChange = {(e) => setUser(e.target.value)}
+            onChange={(e) => {
+                  setUser(e.target.value);
+                  if (errMsg) setErrMsg("");
+                }}
             value = {user}
             required
             />
@@ -111,7 +109,10 @@ const Login = () => {
         <input
             type = "password"
             id = "passwword"
-            onChange = {(e) => setPwd(e.target.value)}
+            onChange={(e) => {
+                  setPwd(e.target.value);
+                  if (errMsg) setErrMsg("");
+                }}
             value = {pwd}
             required
             /> <br />
