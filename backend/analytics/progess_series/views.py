@@ -67,11 +67,11 @@ class GoalProgressSeriesView(View):
                 status=404,
             )
         except InvalidGranularityError as exc:
-            return JsonResponse({"error": str(exc)}, status=400)
+            return JsonResponse({"error": "Invalid granularity parameter."}, status=400)
         except UnsupportedGoalTypeError as exc:
-            return JsonResponse({"error": str(exc)}, status=400)
+            return JsonResponse({"error": "Unsupported goal type for progress series."}, status=400)
         except ProgressSeriesError as exc:
-            return JsonResponse({"error": str(exc)}, status=400)
+            return JsonResponse({"error": "Unable to compute progress series."}, status=400)
         except Exception as exc:
             # Avoid leaking internal exception details in production responses.
             return JsonResponse(
