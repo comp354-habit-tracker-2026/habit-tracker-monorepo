@@ -12,6 +12,10 @@ def evaluate_achievements_on_activity(sender, instance, created, **kwargs):
     if not created:
         return
 
+    # If the activity has no connected account (e.g. seeded/legacy data), skip gamification
+    if not instance.account_id:
+        return
+
     from gamification.business.services import GamificationService
 
     service = GamificationService()
