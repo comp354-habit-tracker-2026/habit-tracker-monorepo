@@ -81,12 +81,12 @@ class GoalProgressSeriesTests(TestCase):
         activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(self.goal, activities, "daily")
 
-        self.assertEqual(result["actual_value"], 10.0)
-        self.assertEqual(result["percent_complete"], 50.0)
-        self.assertEqual(len(result["points"]), 7)
-        self.assertEqual(result["points"][0]["value"], 2.5)
-        self.assertEqual(result["points"][1]["cumulative"], 6.0)
-        self.assertEqual(result["points"][2]["value"], 0.0)
+        self.assertEqual(result.actual_value, 10.0)
+        self.assertEqual(result.percent_complete, 50.0)
+        self.assertEqual(len(result.points), 7)
+        self.assertEqual(result.points[0].value, 2.5)
+        self.assertEqual(result.points[1].cumulative, 6.0)
+        self.assertEqual(result.points[2].value, 0.0)
 
     def test_weekly_series_basic_case(self):
         Activity.objects.create(
@@ -117,17 +117,17 @@ class GoalProgressSeriesTests(TestCase):
         activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(self.goal, activities, "weekly")
 
-        self.assertEqual(result["actual_value"], 10.0)
-        self.assertGreaterEqual(len(result["points"]), 1)
-        self.assertTrue(result["points"][0]["label"].startswith("week_of_"))
+        self.assertEqual(result.actual_value, 10.0)
+        self.assertGreaterEqual(len(result.points), 1)
+        self.assertTrue(result.points[0].label.startswith("week_of_"))
 
     def test_no_activities_returns_zero_series(self):
         activities = Activity.objects.filter(account__user=self.user)
         result = generate_progress_series(self.goal, activities, "daily")
 
-        self.assertEqual(result["actual_value"], 0.0)
-        self.assertTrue(result["no_data"])
-        self.assertEqual(len(result["points"]), 7)
+        self.assertEqual(result.actual_value, 0.0)
+        self.assertTrue(result.no_data)
+        self.assertEqual(len(result.points), 7)
 
     def test_activities_outside_timeframe_are_ignored(self):
         Activity.objects.create(
@@ -158,7 +158,7 @@ class GoalProgressSeriesTests(TestCase):
         activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(self.goal, activities, "daily")
 
-        self.assertEqual(result["actual_value"], 4.0)
+        self.assertEqual(result.actual_value, 4.0)
 
     def test_frequency_goal_counts_activities(self):
         frequency_goal = Goal.objects.create(
@@ -193,8 +193,8 @@ class GoalProgressSeriesTests(TestCase):
         activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(frequency_goal, activities, "daily")
 
-        self.assertEqual(result["actual_value"], 2.0)
-        self.assertEqual(result["percent_complete"], 66.67)
+        self.assertEqual(result.actual_value, 2.0)
+        self.assertEqual(result.percent_complete, 66.67)
 
     def test_invalid_granularity_raises_error(self):
         activities = Activity.objects.filter(account__user=self.user).order_by("date")
@@ -242,5 +242,5 @@ class GoalProgressSeriesTests(TestCase):
         activities = Activity.objects.all().order_by("date")
         result = generate_progress_series(self.goal, activities, "daily")
 
-        self.assertEqual(result["actual_value"], 0.0)
-        self.assertTrue(result["no_data"])
+        self.assertEqual(result.actual_value, 0.0)
+        self.assertTrue(result.no_data)

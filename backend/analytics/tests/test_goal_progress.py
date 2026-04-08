@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date as date_type
 from decimal import Decimal
 import json
 
@@ -72,6 +72,8 @@ def _create_activity_from_payload(user, payload, **overrides):
             provider=provider,
             defaults={"external_user_id": f"test_{provider}_{user.id}"},
         )
+    if isinstance(data.get("date"), str):
+        data["date"] = date_type.fromisoformat(data["date"])
     activity = Activity.objects.create(account=account, **data)
     activity.refresh_from_db()
     return activity
