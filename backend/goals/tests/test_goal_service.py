@@ -1,3 +1,11 @@
+# Generated with assistance from Claude (Anthropic AI).
+# Source: Claude Sonnet 4.6 via Claude Code CLI (Anthropic, 2026).
+# Required disclosure per COMP 354 AI-generated code traceability policy.
+#
+# Gorav-K — GitHub: Gorav-K
+# Issue #196: Unit tests for GoalService business logic
+# Branch: feature/group-15-health-indicators
+
 """Unit tests for GoalService business logic.
 
 These tests use mocks instead of the database so they run fast and
@@ -193,6 +201,52 @@ class TestGetStatusSummary:
         goal = make_goal(target_value=3, current_value=1)
         result = self.service.get_status_summary(goal)
         assert result["percentComplete"] == pytest.approx(33.33, abs=0.01)
+
+
+class TestGetUserQueryset:
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.service = GoalService(repository=self.repo)
+
+    def test_staff_user_gets_all_goals(self):
+        user = MagicMock(is_staff=True, is_superuser=False)
+        params = {}
+        self.service.get_user_queryset(user, params)
+        self.repo.model.objects.all.assert_called_once()
+        self.repo.apply_filters.assert_called_once()
+
+    def test_superuser_gets_all_goals(self):
+        user = MagicMock(is_staff=False, is_superuser=True)
+        params = {}
+        self.service.get_user_queryset(user, params)
+        self.repo.model.objects.all.assert_called_once()
+
+    def test_regular_user_gets_own_goals(self):
+        user = MagicMock(is_staff=False, is_superuser=False)
+        params = {}
+        self.service.get_user_queryset(user, params)
+        self.repo.for_user.assert_called_once_with(user)
+        self.repo.apply_filters.assert_called_once()
+
+
+class TestGetUserGoal:
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.service = GoalService(repository=self.repo)
+
+    def test_returns_matching_goal(self):
+        user = MagicMock()
+        goal_id = 42
+        result = self.service.get_user_goal(user, goal_id)
+        self.repo.for_user.assert_called_once_with(user)
+        self.repo.for_user().filter.assert_called_once_with(pk=goal_id)
+        assert result == self.repo.for_user().filter().first()
+
+    def test_returns_none_when_not_found(self):
+        user = MagicMock()
+        self.repo.for_user.return_value.filter.return_value.first.return_value = None
+        result = self.service.get_user_goal(user, 99)
+        assert result is None
 
 
 class TestProgressPercentage:
