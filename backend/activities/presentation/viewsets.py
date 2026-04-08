@@ -6,11 +6,13 @@ from rest_framework.permissions import IsAuthenticated
 from activities.business import ActivityService
 from activities.emit_event import emit_event
 from activities.serializers import ActivitySerializer
+from core.presentation import UserScopedCreateMixin
+from core.presentation.permissions import IsAdminOrOwner
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
     serializer_class = ActivitySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrOwner]
     filter_backends = [SearchFilter, OrderingFilter]
     # Provider is now on ConnectedAccount, so we search through account__provider
     search_fields = ["activity_type", "account__provider", "external_id"]

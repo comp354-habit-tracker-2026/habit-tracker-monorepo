@@ -1,7 +1,7 @@
 from django.urls import include, path
 from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
-from .views import FileRecordViewSet, StravaAuthViewSet
+from .views import FileRecordViewSet, StravaAuthViewSet, WeskiUploadViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
@@ -20,8 +20,7 @@ def integration_root(request):
 router = DefaultRouter()
 router.register(r'files', FileRecordViewSet, basename="file-record")
 router.register(r'strava', StravaAuthViewSet, basename="strava")
-# Later you can add: router.register(r'mywhoosh', MyWhooshViewSet, basename="mywhoosh")
-# etc. for other integrations.
+router.register(r'weski', WeskiUploadViewSet, basename="weski")
 
 urlpatterns = [
         # This handles the literal "/data-integration/" path

@@ -34,6 +34,19 @@ def authenticated_client(api_client, create_user):
     return api_client
 
 @pytest.fixture
+def admin_client(api_client, create_user):
+    admin = create_user(
+        username='adminuser',
+        email='admin@test.com',
+        is_staff=True,
+        is_superuser=True,
+    )
+    refresh = RefreshToken.for_user(admin)
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    api_client.user = admin
+    return api_client
+
+@pytest.fixture
 def create_goal():
     def _create_goal(user, **kwargs):
         defaults = {
@@ -180,3 +193,24 @@ class TestGoals:
 
         with pytest.raises(IntegrityError):
             ProgressLog.objects.create(goal=goal, activity=activity)
+
+    def test_admin_can_list_all_users_goals(self, admin_client, create_user, create_goal):
+        """Test admin can list goals from all users."""
+        user_one = create_user(username='goalsuser1', email='goals1@example.com')
+        user_two = create_user(username='goalsuser2', email='goals2@example.com')
+        create_goal(user_one, title='User 1 Goal')
+        create_goal(user_two, title='User 2 Goal')
+
+        response = admin_client.get('/api/v1/goals/')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 2
+
+    def test_admin_can_delete_other_users_goal(self, admin_client, create_user, create_goal):
+        """Test admin can delete another user's goal."""
+        regular_user = create_user(username='goalsregular', email='goalsregular@example.com')
+        goal = create_goal(regular_user, title='Delete Goal')
+
+        response = admin_client.delete(f'/api/v1/goals/{goal.id}/')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Goal.objects.filter(id=goal.id).exists()
+

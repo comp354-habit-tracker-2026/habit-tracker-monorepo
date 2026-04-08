@@ -7,7 +7,10 @@ class ActivityService(BaseService):
         self.repository = repository or ActivityRepository()
 
     def get_user_queryset(self, user, params):
-        queryset = self.repository.for_user(user)
+        if user.is_staff or user.is_superuser:
+            queryset = self.repository.model.objects.all().order_by("-date", "-created_at")
+        else:
+            queryset = self.repository.for_user(user)
         return self.repository.apply_filters(queryset, params)
 
     def validate_external_activity_uniqueness(self, data, instance=None):
