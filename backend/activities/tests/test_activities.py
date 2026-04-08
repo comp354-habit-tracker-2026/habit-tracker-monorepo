@@ -204,21 +204,21 @@ class TestActivities:
         expected = f"{activity.activity_type} - {activity.date} ({authenticated_client.account.provider})"
         assert str(activity) == expected
 
-    def test_admin_can_list_all_users_activities(self, admin_client, create_user, create_activity):
+    def test_admin_can_list_all_users_activities(self, admin_client, create_user, create_connected_account, create_activity):
         """Test admin can list activities across all users."""
         user_one = create_user(username='userone', email='one@example.com')
         user_two = create_user(username='usertwo', email='two@example.com')
-        create_activity(user_one, activity_type='User One Activity')
-        create_activity(user_two, activity_type='User Two Activity')
+        create_activity(create_connected_account(user_one, external_user_id='one_ext'), activity_type='User One Activity')
+        create_activity(create_connected_account(user_two, external_user_id='two_ext'), activity_type='User Two Activity')
 
         response = admin_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 2
 
-    def test_admin_can_delete_other_users_activity(self, admin_client, create_user, create_activity):
+    def test_admin_can_delete_other_users_activity(self, admin_client, create_user, create_connected_account, create_activity):
         """Test admin can delete another user's activity."""
         regular_user = create_user(username='regularuser', email='regular@example.com')
-        activity = create_activity(regular_user, activity_type='Delete Me')
+        activity = create_activity(create_connected_account(regular_user, external_user_id='reg_ext'), activity_type='Delete Me')
 
         response = admin_client.delete(f'/api/v1/activities/{activity.id}/')
         assert response.status_code == status.HTTP_204_NO_CONTENT
