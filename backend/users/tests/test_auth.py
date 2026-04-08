@@ -63,7 +63,7 @@ class TestAuthentication:
         assert 'access' in response.data
         assert 'refresh' in response.data
 
-       def test_login_access_token_contains_user_claims(self, api_client, create_user):
+    def test_login_access_token_contains_user_claims(self, api_client, create_user):
         """Test login access token includes expected user id claim."""
         user = create_user(email='claims@test.com')
         data = {
