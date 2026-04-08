@@ -97,17 +97,6 @@ class TestAuthentication:
         assert not hasattr(user, 'oauth_provider')
         assert not hasattr(user, 'oauth_provider_id')
 
-    def test_oauth_user_creation(self):
-        """Test creating user with OAuth provider info"""
-        user = User.objects.create_user(
-            username='oauth_user',
-            email='oauth@test.com',
-            password='unused_password',
-        )
-  
-        assert user.oauth_provider == 'strava'
-        assert user.oauth_provider_id == 'strava_12345'
-
     def test_token_refresh(self, api_client, create_user):
         """Test refreshing access token"""
         create_user()
