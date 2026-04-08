@@ -108,7 +108,10 @@ def generate_progress_series(
 
         # Ignore records that belong to a different user. This keeps the
         # service safe even if the queryset passed in is broader than expected.
-        activity_user_id = activity.account.user_id if activity.account_id else None
+        if getattr(activity, 'account_id', None):
+            activity_user_id = activity.account.user_id
+        else:
+            activity_user_id = getattr(activity, 'user_id', None)
         if activity_user_id != goal.user_id:
             continue
 
