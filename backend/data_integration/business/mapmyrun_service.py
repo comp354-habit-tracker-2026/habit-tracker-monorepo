@@ -1,5 +1,6 @@
 import os
 import uuid
+import pandas as pd
 from pathlib import Path
 from azure.storage.blob import BlobClient
 
@@ -78,3 +79,47 @@ def upload_file_to_blob(file, file_key):
         "size": file.size,
         "url": blob_client.url,
     }
+
+def parse_mapmyrun_file(uploaded_file):
+    try:
+        uploaded_file.seek(0)
+        df = pd.read_excel(uploaded_file)
+
+        required_columns = [
+            "Workout Date",
+            "Activity Type",
+            "Calories Burned (kCal)",
+            "Distance (km)",
+            "Workout Time (seconds)",
+            "Avg Pace (min/km)",
+            "Max Pace (min/km)",
+            "Avg Speed (km/h)",
+            "Max Speed (km/h)",
+        ]
+
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            return None, f"Missing required columns: {', '.join(missing_columns)}"
+
+        if df.empty:
+            return None, "The uploaded MapMyRun file contains no activity rows."
+
+        parsed_data = []
+
+        for _, row in df.iterrows():
+            parsed_data.append({
+                "workout_date": pd.to_datetime(row["Workout Date"]).date() if pd.notna(row["Workout Date"]) else None,
+                "activity_type": str(row["Activity Type"]).strip() if pd.notna(row["Activity Type"]) else None,
+                "calories_burned_kcal": float(row["Calories Burned (kCal)"]) if pd.notna(row["Calories Burned (kCal)"]) else None,
+                "distance_km": float(row["Distance (km)"]) if pd.notna(row["Distance (km)"]) else None,
+                "workout_time_seconds": int(row["Workout Time (seconds)"]) if pd.notna(row["Workout Time (seconds)"]) else None,
+                "avg_pace_min_per_km": float(row["Avg Pace (min/km)"]) if pd.notna(row["Avg Pace (min/km)"]) else None,
+                "max_pace_min_per_km": float(row["Max Pace (min/km)"]) if pd.notna(row["Max Pace (min/km)"]) else None,
+                "avg_speed_kmh": float(row["Avg Speed (km/h)"]) if pd.notna(row["Avg Speed (km/h)"]) else None,
+                "max_speed_kmh": float(row["Max Speed (km/h)"]) if pd.notna(row["Max Speed (km/h)"]) else None,
+            })
+
+        return parsed_data, None
+
+    except Exception as e:
+        return None, f"Parsing failed: {str(e)}"
