@@ -7,11 +7,12 @@ from activities.business import ActivityService
 from activities.serializers import ActivitySerializer
 from activities.emit_event import emit_event
 from core.presentation import UserScopedCreateMixin
+from core.presentation.permissions import IsAdminOrOwner
 
 
 class ActivityViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
     serializer_class = ActivitySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminOrOwner]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ["activity_type", "provider", "external_id"]
     ordering_fields = ["date", "created_at", "duration", "calories", "distance"]
