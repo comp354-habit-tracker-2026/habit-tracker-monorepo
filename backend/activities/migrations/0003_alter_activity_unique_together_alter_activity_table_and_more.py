@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='activity',
-            constraint=models.UniqueConstraint(condition=models.Q(('external_id__isnull', False)), fields=('account', 'external_id'), name='unique_account_external_id'),
+            constraint=models.UniqueConstraint(condition=models.Q(('external_id__isnull', False)) & ~models.Q(('external_id', '')), fields=('account', 'external_id'), name='unique_account_external_id'),
         ),
         migrations.RemoveField(
             model_name='activity',

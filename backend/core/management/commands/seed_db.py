@@ -10,7 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from faker import Faker
 
-from activities.models import Activity
+from activities.models import Activity, ConnectedAccount
 from goals.models import Goal
 
 
@@ -145,12 +145,19 @@ class Command(BaseCommand):
 
         calories = random.randint(100, 900)
 
-        return Activity.objects.create(
+        # Activities must be linked to a ConnectedAccount, not directly to a user.
+        # We use a shared "manual" account for seeded data.
+        account, _ = ConnectedAccount.objects.get_or_create(
             user=user,
+            provider="manual",
+            defaults={"external_user_id": f"seed_{user.pk}"},
+        )
+
+        return Activity.objects.create(
+            account=account,
             activity_type=activity_type,
             duration=duration,
             date=activity_date,
-            provider="manual",
             distance=distance,
             calories=calories,
         )
