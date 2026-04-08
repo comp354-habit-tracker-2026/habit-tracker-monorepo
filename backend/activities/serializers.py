@@ -58,5 +58,32 @@ class ActivitySerializer(serializers.ModelSerializer):
         return data
 
 
+class ConnectedAccountSerializer(serializers.ModelSerializer):
+    """
+    Serializer for ConnectedAccount model.
+    
+    Displays provider info and linked account details.
+    Sensitive tokens are never exposed in responses.
+    """
+    provider_display = serializers.CharField(source='get_provider_display', read_only=True)
+    
+    class Meta:
+        model = ConnectedAccount
+        fields = [
+            "id",
+            "provider",
+            "provider_display",
+            "external_user_id",
+            "connected_at",
+        ]
+        read_only_fields = [
+            "id",
+            "provider",
+            "provider_display",
+            "external_user_id",
+            "connected_at",
+        ]
+
+
 # Backwards-compatible naming alias.
 ActivitySerialiser = ActivitySerializer

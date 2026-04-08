@@ -1,0 +1,12 @@
+/* Profile Route */
+.profile-route {
+  width: 100%;
+}
+
+.profile-route__section {
+  margin-bottom: 3rem;
+}
+
+.profile-route__section:last-child {
+  margin-bottom: 0;
+}
