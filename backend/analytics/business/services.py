@@ -23,6 +23,9 @@ class AnalyticsService(BaseService):
         return predict(X_last, horizon=3)
         #return self.repository.forecast_preview(user)
 
-    def evaluate_goal_progress(self, goal, computed_at=None):
-        """Entry point future schedulers, signals, or APIs can call for goal checks."""
-        return GoalProgressService().evaluate_goal(goal, computed_at=computed_at)
+
+# ============================================================
+# G13 - cathytham - InactivityDetector - PR #241
+# ============================================================        
+    def inactivity_evaluation(self, user):
+        return self.repository.inactivity_evaluation(user)
