@@ -72,7 +72,9 @@ def _create_activity_from_payload(user, payload, **overrides):
             provider=provider,
             defaults={"external_user_id": f"test_{provider}_{user.id}"},
         )
-    return Activity.objects.create(account=account, **data)
+    activity = Activity.objects.create(account=account, **data)
+    activity.refresh_from_db()
+    return activity
 
 
 def _sync_goal_distance(goal, *activities):

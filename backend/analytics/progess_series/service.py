@@ -108,7 +108,8 @@ def generate_progress_series(
 
         # Ignore records that belong to a different user. This keeps the
         # service safe even if the queryset passed in is broader than expected.
-        if activity.user_id != goal.user_id:
+        activity_user_id = activity.account.user_id if activity.account_id else None
+        if activity_user_id != goal.user_id:
             continue
 
         # Ignore out-of-range activity rows so callers can safely pass in an
