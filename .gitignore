@@ -1,0 +1,9 @@
+.venv
+.env
+.env.local
+.env.*.local
+
+# Python / Group 14
+__pycache__/
+*.pyc
+dataset-generation/artifacts/
