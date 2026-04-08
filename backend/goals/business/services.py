@@ -20,7 +20,7 @@ class GoalService(BaseService):
             return min(Decimal("100"), (current_value / target_value) * 100)
         return Decimal("0")
 
-    def getGoalProgress(self, pk, user):
+    def get_goal_progress(self, pk, user):
         try:
             goal = Goal.objects.get(pk=pk)
         except Goal.DoesNotExist:
@@ -64,6 +64,7 @@ class GoalService(BaseService):
             "on_track": on_track,
             "days_remaining": days_remaining,
             "summary": summary,
+        }
     def delete_goal(self, goal_id, user):
         if not str(goal_id).isdigit():
             return "invalid_id"
@@ -132,3 +133,16 @@ class GoalService(BaseService):
             "error": type(e).__name__, 
             "msg": str(e)
         }
+    def retrieve_goal(self, goal_id, user):
+        if not str(goal_id).isdigit():
+            return "invalid_id"
+            
+        goal = Goal.objects.filter(id=goal_id).first() 
+        
+        if goal is None:
+            return "not_found"
+            
+        if goal.user != user:
+            return "forbidden"
+            
+        return goal

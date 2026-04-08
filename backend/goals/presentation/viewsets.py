@@ -90,4 +90,23 @@ class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
         
         serializer = self.get_serializer(result)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def retrieve(self, request, *args, **kwargs):
+        """
+        GET /api/v1/goals/{id}/
+        Retrieves a specific goal belonging to the authenticated user.
+        """
+        pk = kwargs.get("pk")
+        
+        result = self.service.retrieve_goal(pk, request.user)
+
+        if result == "not_found":
+            return Response({"detail": "Goal not found."}, status=status.HTTP_404_NOT_FOUND)
+        if result == "forbidden":
+            return Response({"detail": "You do not have permission to view this goal."}, status=status.HTTP_403_FORBIDDEN)
+        if result == "invalid_id":
+            return Response({"detail": "Invalid goal ID format."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        serializer = self.get_serializer(result)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
