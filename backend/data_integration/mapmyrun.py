@@ -1,6 +1,7 @@
 import os
 import uuid
 from pathlib import Path
+import sqlite3
 from azure.storage.blob import BlobClient
 from dotenv import load_dotenv
 import pandas as pd
@@ -151,6 +152,62 @@ def validate_normalize_data(data):
     return normalized_validated_data, None
 
 #Upload MapMyrun Data Service (Feature #135)
+
+class SQLiteRepository:
+    #Simulate the app database for uploading
+    def __init__(self, db_name="activities.db"):
+        self.db_name = db_name
+        self._create_table()
+    #Open connection to SQLite database file
+    def _connect(self):
+        return sqlite3.connect(self.db_name)
+
+    #Create the table if it doesn't already exist
+    def _create_table(self):
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                activity_key TEXT NOT NULL,
+                date TEXT,
+                duration INTEGER,
+                distance REAL,
+                UNIQUE(user_id, activity_key)
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+    #Checks if the activity already exists for the given user
+    def exists(self, user_id: str, activity_key: str) -> bool:
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM activities WHERE user_id = ? AND activity_key = ?",
+            (user_id, activity_key)
+        )
+        result = cursor.fetchone()
+        conn.close()
+        return result is not None
+
+    #Saves a non duplicate activity in the database
+    def save(self, user_id: str, activity: dict, activity_key: str):
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO activities (user_id, activity_key, date, duration, distance)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            user_id,
+            activity_key,
+            activity.get("date"),
+            activity.get("duration"),
+            activity.get("distance")
+        ))
+        conn.commit()
+        conn.close()
 
 #Helper for creation of the activity key for feature #135
 def build_activity_key(activity: dict) -> str:
