@@ -137,6 +137,38 @@ curl -X POST http://localhost:8000/api/v1/auth/login/ \
   -d '{"username":"demo1","password":"StrongPass_123"}'
 ```
 
+## Admin user
+Load the .env into your shell and run: 
+
+```bash
+POSTGRES_HOST=127.0.0.1 \
+DJANGO_SUPERUSER_USERNAME=admin \
+DJANGO_SUPERUSER_EMAIL=admin@example.com \
+DJANGO_SUPERUSER_PASSWORD=StrongPass_123 \
+python3.12 manage.py createsuperuser --noinput
+```
+
+## Database Seeding
+
+Seed sample users, goals, and activities using the Django management command.
+
+Local run:
+
+```bash
+python manage.py seed_db --users 10 --habits-per-user 3 --activities-per-user 12
+```
+
+Docker Compose run:
+
+```bash
+docker compose exec api python manage.py seed_db --users 10 --habits-per-user 3 --activities-per-user 12
+```
+
+Optional flags:
+
+- `--clear` deletes activities, goals, and non-superuser accounts before seeding
+- `--seed <int>` makes the data deterministic
+
 ## Testing
 
 ```bash

@@ -48,9 +48,37 @@ class Goal(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.status})"
-    
+
     @property
     def progress_percentage(self):
         if self.target_value > 0:
             return min(100, (self.current_value / self.target_value) * 100)
         return 0
+
+
+class ProgressLog(models.Model):
+    """Records which activities contribute to which goals.
+
+    This is a many-to-many link between Goal and Activity — one activity
+    can count towards multiple goals, and one goal can be fed by many activities.
+
+    Added by Group 9 as part of the DB schema (issue #66).
+    Groups 22/23 (goal logic) may want to add queries on top of this.
+    """
+
+    goal = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name='progress_logs')
+    activity = models.ForeignKey(
+        'activities.Activity',
+        on_delete=models.CASCADE,
+        related_name='progress_logs',
+    )
+
+    class Meta:
+        db_table = 'progress_log'
+        constraints = [
+            # The same activity should only be counted towards a goal once
+            models.UniqueConstraint(fields=['goal', 'activity'], name='unique_goal_activity'),
+        ]
+
+    def __str__(self):
+        return f"Activity {self.activity_id} → Goal {self.goal_id}"

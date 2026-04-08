@@ -6,7 +6,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from activities.models import Activity
+from activities.models import Activity, ConnectedAccount
 from data_integration.data.weski import WeskiGpxService
 
 logger = logging.getLogger(__name__)
@@ -48,8 +48,15 @@ class WeskiUploadViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Get or create a weski ConnectedAccount for this user
+        account, _ = ConnectedAccount.objects.get_or_create(
+            user=request.user,
+            provider="weski",
+            defaults={"external_user_id": f"weski_{request.user.pk}"},
+        )
+
         # Check for duplicate
-        if Activity.objects.filter(provider="weski", external_id=summary.external_id).exists():
+        if Activity.objects.filter(account=account, external_id=summary.external_id).exists():
             return Response(
                 {"error": "This GPX session has already been uploaded."},
                 status=status.HTTP_409_CONFLICT,
@@ -58,11 +65,10 @@ class WeskiUploadViewSet(viewsets.ViewSet):
         # Create the Activity record
         duration_minutes = int(summary.total_time_seconds / 60) if summary.total_time_seconds else 0
         activity = Activity.objects.create(
-            user=request.user,
+            account=account,
             activity_type="skiing",
             duration=duration_minutes,
             date=summary.start_time.date() if summary.start_time else None,
-            provider="weski",
             external_id=summary.external_id,
             distance=round(summary.total_distance_km, 2),
             raw_data={
@@ -82,7 +88,7 @@ class WeskiUploadViewSet(viewsets.ViewSet):
                 "date": str(activity.date),
                 "duration_minutes": activity.duration,
                 "distance_km": float(activity.distance),
-                "provider": activity.provider,
+                "provider": account.provider,
                 "external_id": activity.external_id,
                 "track_name": summary.track_name,
                 "number_of_runs": summary.number_of_runs,

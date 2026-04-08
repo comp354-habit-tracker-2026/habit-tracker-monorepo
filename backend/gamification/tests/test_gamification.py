@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
+from activities.models import ConnectedAccount
 from gamification.business.services import GamificationService
 from gamification.models import Badge, Streak
 
@@ -382,14 +383,14 @@ class SignalTest(TestCase):
         mock_service.evaluate_milestones.return_value = []
 
         activity = MagicMock()
-        activity.user = MagicMock(pk=1)
+        activity.account.user = MagicMock(pk=1)
         activity.date = date.today()
 
         evaluate_achievements_on_activity(
             sender=MagicMock(), instance=activity, created=True,
         )
 
-        mock_service.update_streak.assert_called_once_with(activity.user, activity.date)
+        mock_service.update_streak.assert_called_once_with(activity.account.user, activity.date)
         mock_service.evaluate_badges.assert_called_once()
         mock_service.evaluate_milestones.assert_called_once()
 
@@ -564,6 +565,9 @@ class EvaluateAPITest(TestCase):
         self.user = User.objects.create_user(
             username='testuser5', email='test5@test.com', password='testpass123',
         )
+        self.account = ConnectedAccount.objects.create(
+            user=self.user, provider='strava', external_user_id='eval_ext',
+        )
         self.client.force_authenticate(user=self.user)
 
     def test_evaluate_no_activities(self):
@@ -579,7 +583,7 @@ class EvaluateAPITest(TestCase):
     def test_evaluate_with_activity(self):
         from activities.models import Activity
         activity = Activity.objects.create(
-            user=self.user, activity_type='running',
+            account=self.account, activity_type='running',
             duration=30, date=date.today(),
             distance=Decimal('5.00'),
         )
@@ -729,6 +733,9 @@ class RepositoryTest(TestCase):
         self.user = User.objects.create_user(
             username='repouser', email='repo@test.com', password='testpass123',
         )
+        self.account = ConnectedAccount.objects.create(
+            user=self.user, provider='strava', external_user_id='repo_ext',
+        )
 
     def test_badge_repo_get_all(self):
         from gamification.data.repositories import BadgeRepository
@@ -803,7 +810,7 @@ class RepositoryTest(TestCase):
         from gamification.data.repositories import ActivityStatsRepository
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('10.00'), calories=200,
         )
         repo = ActivityStatsRepository()
@@ -815,11 +822,11 @@ class RepositoryTest(TestCase):
         from gamification.data.repositories import ActivityStatsRepository
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('10.00'),
         )
         Activity.objects.create(
-            user=self.user, activity_type='cycling', duration=60,
+            account=self.account, activity_type='cycling', duration=60,
             date=date.today(), distance=Decimal('25.00'),
         )
         repo = ActivityStatsRepository()
@@ -830,7 +837,7 @@ class RepositoryTest(TestCase):
         from gamification.data.repositories import ActivityStatsRepository
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         repo = ActivityStatsRepository()
@@ -841,7 +848,7 @@ class RepositoryTest(TestCase):
         from gamification.data.repositories import ActivityStatsRepository
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         repo = ActivityStatsRepository()
@@ -852,7 +859,7 @@ class RepositoryTest(TestCase):
         from gamification.data.repositories import ActivityStatsRepository
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         repo = ActivityStatsRepository()
@@ -866,11 +873,11 @@ class RepositoryTest(TestCase):
         from gamification.data.repositories import ActivityStatsRepository
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=60,
+            account=self.account, activity_type='running', duration=60,
             date=date.today(), distance=Decimal('15.00'),
         )
         repo = ActivityStatsRepository()
@@ -888,6 +895,9 @@ class SignalIntegrationTest(TestCase):
         self.user = User.objects.create_user(
             username='siguser', email='sig@test.com', password='testpass123',
         )
+        self.account = ConnectedAccount.objects.create(
+            user=self.user, provider='strava', external_user_id='sig_ext',
+        )
         Badge.objects.create(
             name='Signal Badge', badge_type='single', activity_type='running',
             threshold=Decimal('1'), metric='duration', points=10,
@@ -898,7 +908,7 @@ class SignalIntegrationTest(TestCase):
         from activities.models import Activity
         from gamification.models import UserBadge
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         # Signal should have evaluated and awarded the badge
@@ -907,7 +917,7 @@ class SignalIntegrationTest(TestCase):
     def test_signal_updates_streak_on_create(self):
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         streak = Streak.objects.get(user=self.user)
@@ -929,6 +939,9 @@ class ServiceProgressTest(TestCase):
         self.user = User.objects.create_user(
             username='proguser', email='prog@test.com', password='testpass123',
         )
+        self.account = ConnectedAccount.objects.create(
+            user=self.user, provider='strava', external_user_id='prog_ext',
+        )
 
     def test_get_badge_progress(self):
         Badge.objects.create(
@@ -937,7 +950,7 @@ class ServiceProgressTest(TestCase):
         )
         from activities.models import Activity
         Activity.objects.create(
-            user=self.user, activity_type='running', duration=30,
+            account=self.account, activity_type='running', duration=30,
             date=date.today(), distance=Decimal('5.00'),
         )
         service = GamificationService()
