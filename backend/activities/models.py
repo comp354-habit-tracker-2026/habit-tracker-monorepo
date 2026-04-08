@@ -69,12 +69,19 @@ class Activity(models.Model):
         db_table = 'activities'
         constraints = [
             # Same activity can't be imported twice from the same account.
+            # Empty strings are also excluded so only real external IDs are checked.
             models.UniqueConstraint(
                 fields=['account', 'external_id'],
                 name='unique_account_external_id',
-                condition=models.Q(external_id__isnull=False),
+                condition=models.Q(external_id__isnull=False) & ~models.Q(external_id=''),
             )
         ]
+
+    def save(self, *args, **kwargs):
+        # Treat blank external_id as no ID (NULL) so it doesn't trigger the unique constraint
+        if self.external_id is not None and self.external_id.strip() == '':
+            self.external_id = None
+        super().save(*args, **kwargs)
 
     def __str__(self):
         provider = self.account.provider if self.account_id else 'unknown'
