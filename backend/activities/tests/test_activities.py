@@ -34,6 +34,19 @@ def authenticated_client(api_client, create_user):
     return api_client
 
 @pytest.fixture
+def admin_client(api_client, create_user):
+    admin = create_user(
+        username='adminuser',
+        email='admin@example.com',
+        is_staff=True,
+        is_superuser=True,
+    )
+    refresh = RefreshToken.for_user(admin)
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    api_client.user = admin
+    return api_client
+
+@pytest.fixture
 def create_activity():
     def _create_activity(user, **kwargs):
         defaults = {
@@ -163,3 +176,23 @@ class TestActivities:
         response = authenticated_client.get('/api/v1/activities/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    def test_admin_can_list_all_users_activities(self, admin_client, create_user, create_activity):
+        """Test admin can list activities across all users."""
+        user_one = create_user(username='userone', email='one@example.com')
+        user_two = create_user(username='usertwo', email='two@example.com')
+        create_activity(user_one, activity_type='User One Activity')
+        create_activity(user_two, activity_type='User Two Activity')
+
+        response = admin_client.get('/api/v1/activities/')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 2
+
+    def test_admin_can_delete_other_users_activity(self, admin_client, create_user, create_activity):
+        """Test admin can delete another user's activity."""
+        regular_user = create_user(username='regularuser', email='regular@example.com')
+        activity = create_activity(regular_user, activity_type='Delete Me')
+
+        response = admin_client.delete(f'/api/v1/activities/{activity.id}/')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Activity.objects.filter(id=activity.id).exists()
