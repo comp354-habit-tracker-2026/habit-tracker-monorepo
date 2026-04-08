@@ -1,5 +1,5 @@
 
-from analytics.presentation import (
+from .views import (
     AnalyticsOverviewView,
     ActivityStatisticsView,
     PersonalRecordsView,
