@@ -12,13 +12,13 @@ def personal_record_view(request, habit_id):
     user = request.user
     metric_type = request.GET.get("metricType")
 
-    try:
-        result = service.personal_record_for_habit(user, habit_id, metric_type)
+    # try:
+    #     result = service.personal_record_for_habit(user, habit_id, metric_type)
 
-        if result is None:
-            return JsonResponse(None, safe=False)
+    #     if result is None:
+    #         return JsonResponse(None, safe=False)
 
-        return JsonResponse(result)
+    #     return JsonResponse(result)
 
-    except ValueError:
-        return JsonResponse({"error": "Invalid metric type"}, status=400)
+    # except ValueError:
+    #     return JsonResponse({"error": "Invalid metric type"}, status=400)
