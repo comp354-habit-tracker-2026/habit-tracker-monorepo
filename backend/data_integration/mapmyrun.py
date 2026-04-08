@@ -1,6 +1,7 @@
 import os
 import uuid
 from pathlib import Path
+import sqlite3
 from azure.storage.blob import BlobClient
 from dotenv import load_dotenv
 import pandas as pd
@@ -150,6 +151,127 @@ def validate_normalize_data(data):
     
     return normalized_validated_data, None
 
+#Upload MapMyrun Data Service (Feature #135)
+
+class SQLiteRepository:
+    #Simulate the app database for uploading
+    def __init__(self, db_name="activities.db"):
+        self.db_name = db_name
+        self._create_table()
+    #Open connection to SQLite database file
+    def _connect(self):
+        return sqlite3.connect(self.db_name)
+
+    #Create the table if it doesn't already exist
+    def _create_table(self):
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS activities (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                activity_key TEXT NOT NULL,
+                date TEXT,
+                duration INTEGER,
+                distance REAL,
+                UNIQUE(user_id, activity_key)
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+    #Checks if the activity already exists for the given user
+    def exists(self, user_id: str, activity_key: str) -> bool:
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT 1 FROM activities WHERE user_id = ? AND activity_key = ?",
+            (user_id, activity_key)
+        )
+        result = cursor.fetchone()
+        conn.close()
+        return result is not None
+
+    #Saves a non duplicate activity in the database
+    def save(self, user_id: str, activity: dict, activity_key: str):
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO activities (user_id, activity_key, date, duration, distance)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            user_id,
+            activity_key,
+            activity.get("date"),
+            activity.get("duration"),
+            activity.get("distance")
+        ))
+        conn.commit()
+        conn.close()
+
+#Helper for creation of the activity key for feature #135
+def build_activity_key(activity: dict) -> str:
+    date_val = str(activity.get("date", activity.get("Date", ""))).strip().lower()
+    duration_val = str(activity.get("duration", activity.get("Duration", ""))).strip().lower()
+    distance_val = str(activity.get("distance", activity.get("Distance", ""))).strip().lower()
+
+    return f"{date_val}|{duration_val}|{distance_val}"
+
+#Feature #135 take normalized activities, skip duplicates, give summary
+def upload_mapmyrun_data(user_id: str, normalized_activities: list[dict], repository) -> dict:
+    summary = {
+        "imported_count": 0,
+        "duplicate_count": 0,
+        "failed_count": 0,
+        "errors": [],
+    }
+
+    #If there are no user id, upload cannot continue
+    if not user_id:
+        summary["failed_count"] = len(normalized_activities)
+        summary["errors"].append("Missing user_id.")
+        return summary
+
+    #If there are no normalized activities return empty summary
+    if not normalized_activities:
+        return summary
+
+    #Tracks duplicates in the same upload batch
+    duplicates = set()
+
+    #Process each normalized activity one by one
+    for index, activity in enumerate(normalized_activities, start=1):
+        try:
+            #make a copy to avoid modifying original data directly
+            activity_copy = dict(activity)
+            #Build a unique activity key
+            activity_key = build_activity_key(activity_copy)
+
+            #Skips any activity that was detected as a duplicate
+            if activity_key in duplicates:
+                summary["duplicate_count"] += 1
+                continue
+            #Skip the activity if it already exists in storage for current user
+            if repository.exists(user_id, activity_key):
+                summary["duplicate_count"] += 1
+                continue
+            
+            #Link the activity to the current user before storing it
+            activity_copy["user_id"] = user_id
+            #Store/upload data
+            repository.save(user_id, activity_copy, activity_key)
+
+            #Add activity key to the duplicates pile so it is not repeated next time
+            duplicates.add(activity_key)
+            #Record successful import
+            summary["imported_count"] += 1
+
+        #In case failure occurs
+        except Exception as e:
+            summary["failed_count"] += 1
+            summary["errors"].append(f"Activity {index}: {str(e)}")
+
+    return summary
 # Feature #137 : parse uploaded MapMyRun file from blob URL
 def parse_mapmyrun_file(file_url: str):
     try:
