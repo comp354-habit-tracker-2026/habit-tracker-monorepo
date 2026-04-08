@@ -24,8 +24,19 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    const data = error.response?.data;
+
+    const fieldMessage =
+      data && typeof data === 'object'
+        ? Object.values(data).flat().find((value) => typeof value === 'string')
+        : undefined;
+
     const message =
-      error.response?.data?.message ?? error.message ?? 'An error occurred';
+      data?.message ??
+      fieldMessage ??
+      error.message ??
+      'An error occurred';
+
     return Promise.reject(new Error(message));
   },
 );

@@ -140,6 +140,69 @@ class TestGoals:
         assert response.status_code == status.HTTP_200_OK
         assert response.data['status'] == 'completed'
         assert float(response.data['current_value']) == 100.00
+
+    def test_rejects_zero_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Zero Goal',
+            'description': 'Should fail',
+            'target_value': '0',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'target_value' in response.data
+        assert not Goal.objects.filter(title='Weekly Zero Goal').exists()
+
+    def test_rejects_negative_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Negative Goal',
+            'description': 'Should fail',
+            'target_value': '-5',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'target_value' in response.data
+        assert not Goal.objects.filter(title='Weekly Negative Goal').exists()
+
+    def test_rejects_unrealistic_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Too Large Goal',
+            'description': 'Should fail',
+            'target_value': '1500',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'target_value' in response.data
+        assert not Goal.objects.filter(title='Weekly Too Large Goal').exists()
+
+    def test_accepts_realistic_positive_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Realistic Goal',
+            'description': 'Should save',
+            'target_value': '42.5',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Goal.objects.filter(title='Weekly Realistic Goal').exists()
         
     def test_filter_goals_by_status(self, authenticated_client, create_goal):
         """Test filtering goals by status"""
