@@ -103,17 +103,14 @@ class TestActivities:
             'external_id': '12345'
         }
         
-        # Create first activity
         response1 = authenticated_client.post('/api/v1/activities/', data, format='json')
         assert response1.status_code == status.HTTP_201_CREATED
         
-        # Try to create duplicate
         response2 = authenticated_client.post('/api/v1/activities/', data, format='json')
         assert response2.status_code == status.HTTP_400_BAD_REQUEST
         
     def test_list_activities_with_pagination(self, authenticated_client, create_activity):
         """Test activities list is paginated"""
-        # Create 25 activities
         for i in range(25):
             create_activity(
                 authenticated_client.user,
@@ -126,13 +123,12 @@ class TestActivities:
         assert 'results' in response.data
         assert 'count' in response.data
         assert 'next' in response.data
-        assert len(response.data['results']) == 20  # Default page size
+        assert len(response.data['results']) == 20
         
     def test_list_activities_only_own(self, authenticated_client, create_user, create_activity):
         """Test user can only see their own activities"""
         other_user = create_user(username='otheruser', email='other@example.com')
         
-        # Create activities for different users
         create_activity(other_user, activity_type='Swimming')
         create_activity(authenticated_client.user, activity_type='Running')
         
@@ -178,16 +174,13 @@ class TestActivities:
         assert response.status_code == status.HTTP_200_OK
         assert response.data['id'] == activity.id
         assert response.data['activity_type'] == 'Cycling'
-        # Verification of "Full activity details including raw_data"
         assert response.data['raw_data'] == raw_data
-
 
     def test_retrieve_other_user_activity_returns_404(self, authenticated_client, create_user, create_activity):
         """Test ownership validation (Acceptance Criteria: 404 Not Found)"""
         other_user = create_user(username='other_person', email='otherp@example.com')
         other_activity = create_activity(other_user, activity_type='Private Run')
         
-        # Try to access an existing ID that belongs to someone else
         response = authenticated_client.get(f'/api/v1/activities/{other_activity.id}/')
         
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -197,7 +190,89 @@ class TestActivities:
         user = create_user(username='auth_user', email='auth@example.com')
         activity = create_activity(user)
         
-        # Use the unauthenticated api_client
         response = api_client.get(f'/api/v1/activities/{activity.id}/')
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_create_activity_unauthorized(self, api_client):
+        data = {
+            'activity_type': 'Running',
+            'duration': 45,
+            'date': date.today().isoformat(),
+            'distance': '10.5',
+            'calories': 450
+        }
+
+        response = api_client.post('/api/v1/activities/', data, format='json')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_create_activity_missing_activity_type(self, authenticated_client):
+        data = {
+            'activity_type': '',
+            'duration': 45,
+            'date': date.today().isoformat(),
+            'distance': '10.5',
+            'calories': 450
+        }
+
+        response = authenticated_client.post('/api/v1/activities/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_activity_invalid_duration(self, authenticated_client):
+        data = {
+            'activity_type': 'Running',
+            'duration': -10,
+            'date': date.today().isoformat(),
+            'distance': '10.5',
+            'calories': 450
+        }
+
+        response = authenticated_client.post('/api/v1/activities/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_activity_invalid_date_format(self, authenticated_client):
+        data = {
+            'activity_type': 'Running',
+            'duration': 45,
+            'date': 'invalid-date',
+            'distance': '10.5',
+            'calories': 450
+        }
+
+        response = authenticated_client.post('/api/v1/activities/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_activity_negative_distance(self, authenticated_client):
+        data = {
+            'activity_type': 'Cycling',
+            'duration': 30,
+            'date': date.today().isoformat(),
+            'distance': '-5.0',
+            'calories': 300
+        }
+
+        response = authenticated_client.post('/api/v1/activities/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_delete_own_activity_success(self, authenticated_client, create_activity):
+        """Test successful deletion of an owned activity (Ticket #100)"""
+        activity = create_activity(authenticated_client.user)
+        
+        response = authenticated_client.delete(f'/api/v1/activities/{activity.id}/')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['message'] == "Activity successfully deleted"
+        assert not Activity.objects.filter(id=activity.id).exists()
+
+    def test_delete_other_user_activity_returns_403(self, authenticated_client, create_user, create_activity):
+        other_user = create_user(username='other_owner', email='otherowner@test.com')
+        other_activity = create_activity(other_user)
+
+        response = authenticated_client.delete(f'/api/v1/activities/{other_activity.id}/')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Activity.objects.filter(id=other_activity.id).exists()
+
+    def test_delete_nonexistent_activity_returns_404(self, authenticated_client):
+        response = authenticated_client.delete('/api/v1/activities/99999/')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
