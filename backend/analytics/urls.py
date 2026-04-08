@@ -1,6 +1,12 @@
 from django.urls import path
 from .views import AnalyticsOverviewView, HealthIndicatorsView
 
+from .views import AnalyticsOverviewView, HealthIndicatorsView
+
+urlpatterns = [
+    path("overview/", AnalyticsOverviewView.as_view(), name="analytics_overview"),
+    path("health-indicators/", HealthIndicatorsView.as_view(), name="health_indicators"),
+]
 from analytics.views import (
     AnalyticsOverviewView,
     ActivityStatisticsView,
@@ -10,6 +16,11 @@ from analytics.views import (
     ActivityStreaksView,
     ActivityForecastView,
     PaginatedActivityHistoryView,
+    HealthIndicatorsView,
+    InactivitiesView,
+    HealthForecastView,
+    HealthTrackingView,
+     
 )
 
 urlpatterns = [
@@ -21,6 +32,10 @@ urlpatterns = [
     path("activity-streaks/", ActivityStreaksView.as_view(), name="activity_streaks"),
     path("overview/", AnalyticsOverviewView.as_view(), name="analytics_overview"),
     path("health-indicators/", HealthIndicatorsView.as_view(), name="health_indicators"),
+    path("inactivities/", InactivitiesView.as_view(), name="inactivities"),
+    path("health-forecast/", HealthForecastView.as_view(), name="health_forecast"),
+    path("health-tracking/", HealthTrackingView.as_view(), name="health_tracking"),
     path("forecast/", ActivityForecastView.as_view(), name="activity_forecast"),
     path("activity-history/", PaginatedActivityHistoryView.as_view(), name="activity_history"),
 ]
+

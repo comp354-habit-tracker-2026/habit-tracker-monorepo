@@ -25,3 +25,9 @@ class AnalyticsService(BaseService):
     def inactivity_evaluation(self, user):
         return self.repository.inactivity_evaluation(user)
 
+
+# ============================================================
+# G13 - cathytham - InactivityDetector - PR #241
+# ============================================================        
+    def inactivity_evaluation(self, user):
+        return self.repository.inactivity_evaluation(user)

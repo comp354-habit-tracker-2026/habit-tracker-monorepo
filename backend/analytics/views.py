@@ -15,5 +15,3 @@ __all__ = ["AnalyticsOverviewView", "ActivityStatisticsView",
            "ActivityTypeBreakdownView",
            "WeeklySummaryView",
            "ActivityStreaksView", "HealthIndicatorsView", "ActivityForecastView"]
-
-
