@@ -30,7 +30,7 @@ class TestSeedDbCommand:
 
         for activity in Activity.objects.all():
             assert activity.account is not None
-            assert activity.account.provider == "manual"
+            assert activity.account.provider == "strava"
 
     def test_seed_clear_flag_removes_existing_data(self):
         """--clear deletes all activities, goals, and non-superuser accounts before seeding."""

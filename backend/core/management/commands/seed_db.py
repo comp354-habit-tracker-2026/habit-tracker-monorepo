@@ -146,10 +146,10 @@ class Command(BaseCommand):
         calories = random.randint(100, 900)
 
         # Activities must be linked to a ConnectedAccount, not directly to a user.
-        # We use a shared "manual" account for seeded data.
+        # We use strava as the default provider for seeded data.
         account, _ = ConnectedAccount.objects.get_or_create(
             user=user,
-            provider="manual",
+            provider="strava",
             defaults={"external_user_id": f"seed_{user.pk}"},
         )
 
