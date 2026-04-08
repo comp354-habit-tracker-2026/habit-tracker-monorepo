@@ -103,7 +103,7 @@ class InactivitiesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        service = AnalyticsRepository()
+        service = AnalyticsService()
         data_from_service = service.inactivity_evaluation(request.user)
         data = {
             "days_since_last_activity": data_from_service.get("days_since_last_activity"),
@@ -116,7 +116,7 @@ class HealthTrackingView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        service = AnalyticsRepository()
+        service = AnalyticsService()
         data = {
             "weekly_goal_completion":service.trend_snapshot(request.user), #currently no data yet
         }
@@ -127,7 +127,7 @@ class HealthForecastView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        service = AnalyticsRepository()
+        service = AnalyticsService()
         data = {
             "next_week_prediction" : service.forecast_preview(request.user), #currently no data yet
         }
