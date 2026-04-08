@@ -2,6 +2,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class SmallResultsPagination(PageNumberPagination):
@@ -145,8 +149,12 @@ class ActivityForecastView(APIView):
                 }
             }
             return Response(response_data)
-        except Exception as e:
-            return Response({"Forecasting Engine Error": str(e)}, status=500)
+        except Exception:
+            logger.exception("Error while generating activity forecast")
+            return Response(
+                {"Forecasting Engine Error": "An internal error occurred while generating the activity forecast."},
+                status=500,
+            )
 
 class GoalsAnalyticsSummaryView(APIView): #top level goals summary
     permission_classes = [IsAuthenticated]
