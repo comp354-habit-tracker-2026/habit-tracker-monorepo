@@ -6,7 +6,9 @@ from rest_framework import status
 from rest_framework.views import APIView
 from users.business.services import UserDeletionService
 
-from users.serializers import RegisterSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from users.serializers import RegisterSerializer, CustomTokenObtainPairSerializer
 
 User = get_user_model()
 
@@ -24,3 +26,7 @@ class UserDeleteView(APIView):
         service.execute(request.user)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class LoginView(TokenObtainPairView):
+    permission_classes = (AllowAny,)
+    serializer_class = CustomTokenObtainPairSerializer
