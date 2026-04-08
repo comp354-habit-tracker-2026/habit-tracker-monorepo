@@ -149,3 +149,69 @@ def validate_normalize_data(data):
 
     
     return normalized_validated_data, None
+
+#Upload MapMyrun Data Service (Feature #135)
+
+#Helper for creation of the activity key for feature #135
+def build_activity_key(activity: dict) -> str:
+    date_val = str(activity.get("date", activity.get("Date", ""))).strip().lower()
+    duration_val = str(activity.get("duration", activity.get("Duration", ""))).strip().lower()
+    distance_val = str(activity.get("distance", activity.get("Distance", ""))).strip().lower()
+
+    return f"{date_val}|{duration_val}|{distance_val}"
+
+#Feature #135 take normalized activities, skip duplicates, give summary
+def upload_mapmyrun_data(user_id: str, normalized_activities: list[dict], repository) -> dict:
+    summary = {
+        "imported_count": 0,
+        "duplicate_count": 0,
+        "failed_count": 0,
+        "errors": [],
+    }
+
+    #If there are no user id, upload cannot continue
+    if not user_id:
+        summary["failed_count"] = len(normalized_activities)
+        summary["errors"].append("Missing user_id.")
+        return summary
+
+    #If there are no normalized activities return empty summary
+    if not normalized_activities:
+        return summary
+
+    #Tracks duplicates in the same upload batch
+    duplicates = set()
+
+    #Process each normalized activity one by one
+    for index, activity in enumerate(normalized_activities, start=1):
+        try:
+            #make a copy to avoid modifying original data directly
+            activity_copy = dict(activity)
+            #Build a unique activity key
+            activity_key = build_activity_key(activity_copy)
+
+            #Skips any activity that was detected as a duplicate
+            if activity_key in duplicates:
+                summary["duplicate_count"] += 1
+                continue
+            #Skip the activity if it already exists in storage for current user
+            if repository.exists(user_id, activity_key):
+                summary["duplicate_count"] += 1
+                continue
+            
+            #Link the activity to the current user before storing it
+            activity_copy["user_id"] = user_id
+            #Store/upload data
+            repository.save(user_id, activity_copy, activity_key)
+
+            #Add activity key to the duplicates pile so it is not repeated next time
+            duplicates.add(activity_key)
+            #Record successful import
+            summary["imported_count"] += 1
+
+        #In case failure occurs
+        except Exception as e:
+            summary["failed_count"] += 1
+            summary["errors"].append(f"Activity {index}: {str(e)}")
+
+    return summary
