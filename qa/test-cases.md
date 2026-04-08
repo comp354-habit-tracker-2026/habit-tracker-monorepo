@@ -29,7 +29,6 @@ Accessibility Issues:
 Evidence:
 See qa/evidence.md
 
-
 ### TC-11: Accessibility & Performance Audit (Lighthouse)
 
 Tool: Lighthouse (Chrome DevTools)
@@ -66,7 +65,13 @@ Related Requirements:
 - Accessibility Audit (#152)
 - Usability Testing (#130)
 - UX Audit (#136)
+### Reported Issues
 
+The following issues were identified and reported:
+
+- #297 – Dashboard navigation and usability issues
+- #299 – Accessibility issues (labels and contrast)
+- #300 – Performance issues (JavaScript size)
 
 ## Group 18 – Mobile UI Testing
 
