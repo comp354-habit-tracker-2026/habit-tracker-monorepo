@@ -38,7 +38,7 @@ class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
             payload = self.service.get_status_summary(goal)
         except DomainValidationError as exc:
             return Response(
-                {"errorCode": "GOAL_INVALID", "message": str(exc)},
+                {"errorCode": "GOAL_INVALID", "message": "Goal is invalid."},
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
         except Exception:
