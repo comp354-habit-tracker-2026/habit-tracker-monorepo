@@ -3,7 +3,7 @@ from decimal import Decimal
 import json
 
 import pytest
-from activities.serializers import ActivitySerializer
+from activities.models import Activity, ConnectedAccount
 from django.contrib.auth import get_user_model
 from goals.serializers import GoalSerializer
 from django.utils import timezone
@@ -63,9 +63,16 @@ def _create_goal_from_payload(user, **overrides):
 
 
 def _create_activity_from_payload(user, payload, **overrides):
-    serializer = ActivitySerializer(data={**payload, **overrides})
-    assert serializer.is_valid(), serializer.errors
-    return serializer.save(user=user)
+    data = {**payload, **overrides}
+    provider = data.pop("provider", None)
+    account = None
+    if provider:
+        account, _ = ConnectedAccount.objects.get_or_create(
+            user=user,
+            provider=provider,
+            defaults={"external_user_id": f"test_{provider}_{user.id}"},
+        )
+    return Activity.objects.create(account=account, **data)
 
 
 def _sync_goal_distance(goal, *activities):

@@ -5,7 +5,7 @@ from datetime import date
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from activities.models import Activity
+from activities.models import Activity, ConnectedAccount
 from goals.models import Goal
 from analytics.progess_series.service import (
     InvalidGranularityError,
@@ -30,6 +30,16 @@ class GoalProgressSeriesTests(TestCase):
             password="testpass123",
         )
 
+        self.strava_account = ConnectedAccount.objects.create(
+            user=self.user, provider="strava", external_user_id="strava_user_1"
+        )
+        self.mapmyrun_account = ConnectedAccount.objects.create(
+            user=self.user, provider="mapmyrun", external_user_id="mapmyrun_user_1"
+        )
+        self.other_strava_account = ConnectedAccount.objects.create(
+            user=self.other_user, provider="strava", external_user_id="strava_other_1"
+        )
+
         self.goal = Goal.objects.create(
             title="Run 20 km this week",
             description="Weekly running distance goal",
@@ -47,8 +57,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=30,
             date=date(2026, 3, 1),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=2.5,
             calories=200,
         )
@@ -56,8 +65,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=40,
             date=date(2026, 3, 2),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=3.5,
             calories=250,
         )
@@ -65,13 +73,12 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=50,
             date=date(2026, 3, 4),
-            user=self.user,
-            provider="mapmyrun",
+            account=self.mapmyrun_account,
             distance=4.0,
             calories=300,
         )
 
-        activities = Activity.objects.filter(user=self.user).order_by("date")
+        activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(self.goal, activities, "daily")
 
         self.assertEqual(result["actual_value"], 10.0)
@@ -86,8 +93,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=30,
             date=date(2026, 3, 1),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=2.0,
             calories=200,
         )
@@ -95,8 +101,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=30,
             date=date(2026, 3, 2),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=3.0,
             calories=220,
         )
@@ -104,13 +109,12 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=45,
             date=date(2026, 3, 6),
-            user=self.user,
-            provider="mapmyrun",
+            account=self.mapmyrun_account,
             distance=5.0,
             calories=350,
         )
 
-        activities = Activity.objects.filter(user=self.user).order_by("date")
+        activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(self.goal, activities, "weekly")
 
         self.assertEqual(result["actual_value"], 10.0)
@@ -118,7 +122,7 @@ class GoalProgressSeriesTests(TestCase):
         self.assertTrue(result["points"][0]["label"].startswith("week_of_"))
 
     def test_no_activities_returns_zero_series(self):
-        activities = Activity.objects.filter(user=self.user)
+        activities = Activity.objects.filter(account__user=self.user)
         result = generate_progress_series(self.goal, activities, "daily")
 
         self.assertEqual(result["actual_value"], 0.0)
@@ -130,8 +134,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=20,
             date=date(2026, 2, 28),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=100,
             calories=100,
         )
@@ -139,8 +142,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=20,
             date=date(2026, 3, 3),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=4,
             calories=100,
         )
@@ -148,13 +150,12 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=20,
             date=date(2026, 3, 8),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=100,
             calories=100,
         )
 
-        activities = Activity.objects.filter(user=self.user).order_by("date")
+        activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(self.goal, activities, "daily")
 
         self.assertEqual(result["actual_value"], 4.0)
@@ -176,8 +177,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=30,
             date=date(2026, 3, 1),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=2,
             calories=200,
         )
@@ -185,20 +185,19 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="cycling",
             duration=45,
             date=date(2026, 3, 2),
-            user=self.user,
-            provider="mapmyrun",
+            account=self.mapmyrun_account,
             distance=10,
             calories=300,
         )
 
-        activities = Activity.objects.filter(user=self.user).order_by("date")
+        activities = Activity.objects.filter(account__user=self.user).order_by("date")
         result = generate_progress_series(frequency_goal, activities, "daily")
 
         self.assertEqual(result["actual_value"], 2.0)
         self.assertEqual(result["percent_complete"], 66.67)
 
     def test_invalid_granularity_raises_error(self):
-        activities = Activity.objects.filter(user=self.user).order_by("date")
+        activities = Activity.objects.filter(account__user=self.user).order_by("date")
 
         with self.assertRaises(InvalidGranularityError):
             generate_progress_series(self.goal, activities, "monthly")
@@ -220,13 +219,12 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=30,
             date=date(2026, 3, 1),
-            user=self.user,
-            provider="strava",
+            account=self.strava_account,
             distance=2,
             calories=200,
         )
 
-        activities = Activity.objects.filter(user=self.user).order_by("date")
+        activities = Activity.objects.filter(account__user=self.user).order_by("date")
 
         with self.assertRaises(UnsupportedGoalTypeError):
             generate_progress_series(unsupported_goal, activities, "daily")
@@ -236,8 +234,7 @@ class GoalProgressSeriesTests(TestCase):
             activity_type="running",
             duration=30,
             date=date(2026, 3, 1),
-            user=self.other_user,
-            provider="strava",
+            account=self.other_strava_account,
             distance=25,
             calories=200,
         )
