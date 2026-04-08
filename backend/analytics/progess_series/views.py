@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+import logging
 
 from django.http import JsonResponse
 from django.views import View
@@ -16,6 +17,8 @@ from analytics.progess_series.service import (
     UnsupportedGoalTypeError,
     generate_progress_series,
 )
+
+logger = logging.getLogger(__name__)
 
 class GoalProgressSeriesView(View):
     """Return chart-ready goal progress data for the authenticated user."""
@@ -73,8 +76,9 @@ class GoalProgressSeriesView(View):
         except ProgressSeriesError as exc:
             return JsonResponse({"error": "Unable to compute progress series."}, status=400)
         except Exception as exc:
-            # Avoid leaking internal exception details in production responses.
+            # Log unexpected errors server-side and avoid leaking internal details in responses.
+            logger.exception("Unexpected error while generating goal progress series")
             return JsonResponse(
-                {"error": "Unexpected server error.", "details": str(exc)},
+                {"error": "Unexpected server error."},
                 status=500,
             )
