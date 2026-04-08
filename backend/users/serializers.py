@@ -33,13 +33,19 @@ class RegisterSerializer(serializers.ModelSerializer):
 RegisterSerialiser = RegisterSerializer
 
 
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.IntegerField()
+    token = serializers.CharField()
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+    )
+
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token["user_id"] = user.id
-        token["username"] = user.username
-        token["email"] = user.email or ""
-        token["is_staff"] = user.is_staff
-        token["is_superuser"] = user.is_superuser
-        return token
+    pass
