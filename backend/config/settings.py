@@ -125,4 +125,11 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/6.0/howto/static-files/
+
 STATIC_URL = 'static/'
+
+STRAVA_CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
+STRAVA_CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
