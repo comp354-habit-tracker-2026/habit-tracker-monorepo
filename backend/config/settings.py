@@ -62,6 +62,10 @@ INSTALLED_APPS = [
     
     # third-party apps
     'rest_framework',
+    # SimpleJWT blacklist support creates OutstandingToken/BlacklistedToken tables.
+    # Ensure deployments run migrations for this app and schedule
+    # `python manage.py flushexpiredtokens` periodically so expired tokens
+    # are removed and the database does not grow indefinitely.
     'rest_framework_simplejwt.token_blacklist',
     'allauth',
     'allauth.account',
