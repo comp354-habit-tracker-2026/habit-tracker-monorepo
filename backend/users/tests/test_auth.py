@@ -135,6 +135,7 @@ class TestAuthentication:
     def test_logout_without_token_fails(self, api_client):
         """Test logout without a refresh token returns 400"""
         response = api_client.post('/api/v1/auth/logout/', {}, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
     def test_password_reset_request_existing_user(self, api_client, create_user):
         user = create_user(email='reset@test.com')
 
