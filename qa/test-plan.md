@@ -63,3 +63,23 @@ Reported Issues:
 
 - Results may not fully reflect final system behavior
 - Some features could not be fully tested due to incomplete implementation
+
+---
+
+## 8. Test Execution & Results (Member 1 - Salma Benlemlih)
+
+### 8.1 Accessibility Audit (AXE & Lighthouse)
+- **Target:** Group 17 Dashboard Components.
+- **Action:** Ran automated Lighthouse scans on the Navigation Bar and Goal Cards.
+- **Findings:** Identified critical missing `aria-label` tags on the "Add Activity" buttons.
+- **Status:** Logged as Issue #299.
+
+### 8.2 Manual Navigation Test
+- **Target:** Group 18 Responsive UI.
+- **Action:** Performed a "Keyboard-Only" navigation test (Tab key) to check for focus traps.
+- **Findings:** Focus ring is missing on the mobile menu toggle; navigation is difficult for screen-reader users.
+- **Status:** Report submitted to Group 18.
+
+### 8.3 Evidence of Implementation
+- **Tools Used:** Chrome DevTools, AXE-core extension.
+- **Context:** Tests performed using static mock data as per Section 5.
