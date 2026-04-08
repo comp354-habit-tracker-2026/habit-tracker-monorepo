@@ -6,7 +6,9 @@ from rest_framework.response import Response
 from activities.models import ConnectedAccount
 from activities.serializers import ConnectedAccountSerializer
 from core.presentation.permissions import IsAdminOrOwner
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ConnectedAccountViewSet(viewsets.ModelViewSet):
     """
@@ -77,9 +79,10 @@ class ConnectedAccountViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
         except Exception as e:
+            logger.exception("Failed to disconnect %s account.", provider)
             return Response(
                 {
-                    "error": f"Failed to disconnect {provider} account: {str(e)}",
+                    "error": "An internal error occurred while disconnecting the account.",
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
