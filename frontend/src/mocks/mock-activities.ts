@@ -14,6 +14,7 @@ import type {
   ActivityDetail,
   ActivityListItem,
   ActivityStreamPayload,
+  ActivityTimeSeriesPoint,
 } from './activity-types';
 
 export const mockActivities: ActivityListItem[] = [
@@ -248,4 +249,34 @@ export const mockPieChartByDistanceWithDates: ActivityBreakdownItem[] = [
   { label: ActivityType.Walking, value: 37.9, color: activityColors[ActivityType.Walking] ?? '#8884d8', date: '2026-02-10' },
   { label: ActivityType.Run, value: 55.3, color: activityColors[ActivityType.Run] ?? '#8884d8', date: '2026-02-14' },
   { label: ActivityType.Snowboarding, value: 28.8, color: activityColors[ActivityType.Snowboarding] ?? '#8884d8', date: '2026-02-18' },
+];
+
+export const mockActivitiesOverTimeBySessionCount: ActivityTimeSeriesPoint[] = [
+  { date: '2026-01-05', value: 4 },
+  { date: '2026-01-12', value: 5 },
+  { date: '2026-01-19', value: 6 },
+  { date: '2026-01-26', value: 5 },
+  { date: '2026-02-02', value: 7 },
+  { date: '2026-02-09', value: 8 },
+  { date: '2026-02-16', value: 6 },
+  { date: '2026-02-23', value: 9 },
+  { date: '2026-03-02', value: 10 },
+  { date: '2026-03-09', value: 9 },
+  { date: '2026-03-16', value: 11 },
+  { date: '2026-03-23', value: 12 },
+];
+
+export const mockActivitiesOverTimeByDistance: ActivityTimeSeriesPoint[] = [
+  { date: '2026-01-05', value: 18.4 },
+  { date: '2026-01-12', value: 21.7 },
+  { date: '2026-01-19', value: 25.8 },
+  { date: '2026-01-26', value: 24.1 },
+  { date: '2026-02-02', value: 29.2 },
+  { date: '2026-02-09', value: 33.5 },
+  { date: '2026-02-16', value: 30.4 },
+  { date: '2026-02-23', value: 35.8 },
+  { date: '2026-03-02', value: 39.1 },
+  { date: '2026-03-09', value: 36.9 },
+  { date: '2026-03-16', value: 42.2 },
+  { date: '2026-03-23', value: 45.7 },
 ];

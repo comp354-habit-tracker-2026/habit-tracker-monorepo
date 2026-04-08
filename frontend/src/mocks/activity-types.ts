@@ -119,3 +119,8 @@ export type ActivityBreakdownItem = {
   color: string;
   date?: string | Date;
 };
+
+export type ActivityTimeSeriesPoint = {
+  date: string | Date;
+  value: number;
+};
