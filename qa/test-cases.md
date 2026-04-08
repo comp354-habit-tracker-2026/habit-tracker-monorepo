@@ -167,3 +167,7 @@ Performance is low due to heavy network payloads and lack of optimization.
 
 Evidence:
 See qa/evidence.md
+
+The following issues are also applicable for group 19:
+- #299 – Accessibility issues (labels and contrast)
+- #300 – Performance issues (JavaScript size)
