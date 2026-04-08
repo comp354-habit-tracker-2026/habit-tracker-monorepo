@@ -13,8 +13,6 @@ from analytics.presentation import (
     ActivityForecastView,
     PaginatedActivityHistoryView,  
 )
-
-from .views import AnalyticsOverviewView, HealthIndicatorsView
 __all__ = [
     "AnalyticsOverviewView",
     "ActivityStatisticsView",
