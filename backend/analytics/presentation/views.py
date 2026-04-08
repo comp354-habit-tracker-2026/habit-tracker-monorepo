@@ -98,8 +98,11 @@ class InactivitiesView(APIView):
 
     def get(self, request):
         service = AnalyticsRepository()
+        data_from_service = service.inactivity_evaluation(request.user)
         data = {
-            "inactivity_evaluation": service.inactivity_evaluation(request.user),
+            "days_since_last_activity": data_from_service.get("days_since_last_activity"),
+            "inactive": data_from_service.get("inactive"),
+            "severity": data_from_service.get("severity"),
         }
         return Response(data)
     
@@ -108,7 +111,10 @@ class HealthTrackingView(APIView):
 
     def get(self, request):
         service = AnalyticsRepository()
-        data = service.trend_snapshot(request.user),        
+        data = {
+            "weekly_goal_completion":service.trend_snapshot(request.user), #currently no data yet
+        }
+               
         return Response(data)
     
 class HealthForecastView(APIView):
@@ -116,7 +122,10 @@ class HealthForecastView(APIView):
 
     def get(self, request):
         service = AnalyticsRepository()
-        data = service.forecast_preview(request.user),        
+        data = {
+            "next_week_prediction" : service.forecast_preview(request.user), #currently no data yet
+        }
+               
         return Response(data)
     
 #team 14
