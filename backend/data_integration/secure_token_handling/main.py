@@ -44,6 +44,11 @@ class RevokeProviderTokenRequest(BaseModel):
     user_id: int
     provider_name: str
 
+#class for the verification of tokens
+class VerifyProviderTokenRequest(BaseModel):
+    user_id: int
+    provider_name: str
+    scope: str
 # Function that checks if api_key is valid or not
 # Returns 401 if the x-api-key value is wrong
 def check_api_key(x_api_key: str = Header(default="")):
@@ -131,6 +136,30 @@ def get_provider_token_route(user_id: int, provider_name: str, database_session:
     # Call the get_valid_provider_token method of the token manager
     # Returns that method's result as the API response
     return token_manager.get_valid_provider_token(user_id=user_id, provider_name=provider_name)
+
+@app.post("/api/permissions/verify")
+def verify_permission(
+    request: VerifyProviderTokenRequest,
+    database_session: Session = Depends(open_database_session),
+    _: None = Depends(check_api_key),
+    x_caller_service: str = Header(default="")
+):
+    user_id = request.user_id
+    provider_name = normalize_provider_name(request.provider_name)
+
+    # --- WAITING ON USERS TABLE OWNER ---
+    # if user.is_deleted:
+    #     return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
+
+    token_manager = ProviderTokenManager(database_session)
+
+    # Both checks passed
+    return token_manager.verify_provider_token(
+        user_id=user_id,
+        provider_name=provider_name,
+        scope=request.scope,
+        caller_service=x_caller_service
+    )
 
 if __name__ == "__main__":
     import uvicorn
