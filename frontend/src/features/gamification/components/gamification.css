@@ -1,0 +1,322 @@
+/* =========================================================================
+   Gamification – Group 24 styles
+   ========================================================================= */
+
+.gamification {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* --- Demo notice --- */
+.gamification__demo-notice {
+  text-align: center;
+  font-size: 0.85em;
+  opacity: 0.6;
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+/* --- Top row: points + streak side by side --- */
+.gamification__top-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+  .gamification__top-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Section titles --- */
+.gamification__section-title {
+  font-size: 1.3em;
+  margin: 0 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #646cff;
+  text-align: left;
+}
+
+/* --- Points banner --- */
+.gamification__banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 1.5rem 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #646cff, #535bf2);
+  color: #fff;
+}
+
+.gamification__banner-label {
+  font-size: 0.95em;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gamification__banner-value {
+  font-size: 2.8em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* --- Streak card --- */
+.gamification__streak {
+  padding: 1.5rem 1.25rem;
+  border-radius: 14px;
+  background-color: rgba(100, 108, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.gamification__streak .gamification__section-title {
+  margin-top: 0;
+  text-align: center;
+}
+
+.gamification__streak-grid {
+  display: flex;
+  gap: 2.5rem;
+  justify-content: center;
+}
+
+.gamification__streak-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gamification__streak-number {
+  font-size: 2.8em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gamification__streak-label {
+  font-size: 0.8em;
+  opacity: 0.6;
+  margin-top: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gamification__streak-date {
+  font-size: 0.8em;
+  opacity: 0.5;
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+/* --- Badge grid --- */
+.gamification__badges {
+  margin-bottom: 2rem;
+}
+
+.gamification__badge-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1000px) {
+  .gamification__badge-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .gamification__badge-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.gamification__badge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.4rem;
+  padding: 1.25rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.03);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.gamification__badge-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(100, 108, 255, 0.2);
+}
+
+.gamification__badge-card--earned {
+  border-color: #646cff;
+  background-color: rgba(100, 108, 255, 0.1);
+}
+
+.gamification__badge-icon {
+  font-size: 2.2em;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.gamification__icon--locked {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.gamification__badge-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.gamification__badge-name {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.gamification__badge-type {
+  font-size: 0.7em;
+  opacity: 0.45;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.gamification__badge-desc {
+  font-size: 0.78em;
+  opacity: 0.55;
+  line-height: 1.3;
+}
+
+/* --- Progress bar (shared) --- */
+.gamification__badge-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  width: 100%;
+}
+
+.gamification__progress-bar {
+  flex: 1;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.gamification__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #646cff, #535bf2);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.gamification__progress-text {
+  font-size: 0.75em;
+  font-weight: 600;
+  min-width: 3.5em;
+  text-align: right;
+}
+
+/* --- Milestone grid --- */
+.gamification__milestones {
+  margin-bottom: 2rem;
+}
+
+.gamification__milestone-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 700px) {
+  .gamification__milestone-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gamification__milestone-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.gamification__milestone-card--reached {
+  border-color: rgba(100, 200, 100, 0.4);
+  background-color: rgba(100, 200, 100, 0.07);
+}
+
+.gamification__milestone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gamification__milestone-name {
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.gamification__milestone-points {
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #646cff;
+  white-space: nowrap;
+}
+
+.gamification__milestone-desc {
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+
+.gamification__milestone-metric {
+  font-size: 0.7em;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* --- Light mode overrides --- */
+@media (prefers-color-scheme: light) {
+  .gamification__badge-card {
+    border-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .gamification__badge-card--earned {
+    border-color: #646cff;
+    background-color: rgba(100, 108, 255, 0.07);
+  }
+
+  .gamification__progress-bar {
+    background-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .gamification__milestone-card {
+    border-color: rgba(0, 0, 0, 0.08);
+    background-color: rgba(0, 0, 0, 0.01);
+  }
+
+  .gamification__milestone-card--reached {
+    border-color: rgba(50, 150, 50, 0.3);
+    background-color: rgba(50, 150, 50, 0.05);
+  }
+
+  .gamification__streak {
+    background-color: rgba(100, 108, 255, 0.05);
+  }
+}

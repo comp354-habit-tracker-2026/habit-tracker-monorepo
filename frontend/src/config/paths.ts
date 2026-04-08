@@ -40,6 +40,10 @@ export const paths = {
       path: 'habits/:habitId',
       getHref: (id: string) => `/app/habits/${id}`,
     },
+    achievements: {
+      path: 'achievements',
+      getHref: () => '/app/achievements',
+    },
     profile: {
       path: 'profile',
       getHref: () => '/app/profile',

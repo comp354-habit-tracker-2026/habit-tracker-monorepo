@@ -16,6 +16,8 @@ function AppRoot() {
         {' · '}
         <Link to={paths.app.habits.getHref()}>Habits</Link>
         {' · '}
+        <Link to={paths.app.achievements.getHref()}>Achievements</Link>
+        {' · '}
         <Link to={paths.app.profile.getHref()}>Profile</Link>
       </nav>
       <main className="app-root__main">
