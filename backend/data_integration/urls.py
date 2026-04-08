@@ -1,7 +1,7 @@
 from django.urls import include, path
 from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
-from .views import FileRecordViewSet, StravaAuthViewSet, WeskiUploadViewSet
+from .views import FileRecordViewSet, StravaAuthViewSet, WeskiUploadViewSet, upload_mapmyrun_file
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
@@ -29,4 +29,6 @@ urlpatterns = [
         # This includes all the routes the router generated
         # Result: /data-integration/strava/connect/
         path('', include(router.urls)),
+
+        path('upload/mapmyrun/', upload_mapmyrun_file, name='upload-mapmyrun-file'),
 ]

@@ -21,3 +21,4 @@ pytest-cov==7.0.0
 joblib==1.4.2
 numpy==1.26.4
 scikit-learn==1.4.2
+azure-storage-blob==12.14.0
