@@ -6,6 +6,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .repositories import UserRepository
+
 from users.serializers import (
     RegisterSerializer,
     PasswordResetRequestSerializer,
@@ -86,3 +91,19 @@ class PasswordResetConfirmView(APIView):
 class LoginView(TokenObtainPairView):
     permission_classes = (AllowAny,)
     serializer_class = CustomTokenObtainPairSerializer
+
+
+user_repo = UserRepository()
+@api_view(['PATCH'])
+def update_user_profile(request, user_id):
+    try:
+        user = user_repo.update_user(user_id, **request.data)
+        return Response({
+            "id": user.id,
+            "name": user.name,
+            "height": user.height,
+            "weight": user.weight,
+            "avatar": user.avatar.url if user.avatar else None
+        })
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
