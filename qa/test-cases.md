@@ -141,3 +141,29 @@ Accessibility Issues:
 
 Evidence:
 See qa/evidence.md
+
+### TC-31: Accessibility and Perfomance Audit 
+Tool: Lighthouse (Chrome DevTools)
+
+Steps:
+1. Open chart components
+2. Run Lighthouse audit on mobile and desktop
+
+Expected:
+High accessibility and performance scores
+
+Actual:
+- Performance: Mobile (41-46), Desktop (73-75)
+- Accessibility: Mobile (100), Desktop (94-97).
+
+Issues:
+- Very slow load times on mobile, with First Contentful Paint taking up to 14 seconds.
+- Enormous network payloads exceeding 5MB due to unoptimized assets.
+- Significant unused JavaScript (est. savings >2.5MB)
+- Low contrast elements and improper HTML list structures
+
+Notes:
+Performance is low due to heavy network payloads and lack of optimization.
+
+Evidence:
+See qa/evidence.md
