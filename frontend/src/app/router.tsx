@@ -46,6 +46,10 @@ function createAppRouter() {
           lazy: () => lazyRoute(() => import('./routes/app/habit-detail')),
         },
         {
+        path: paths.app.activities.path,//added this code derived from chatGPT
+        lazy: () => lazyRoute(() => import('./routes/app/activities')),
+        },
+        {
           path: paths.app.profile.path,
           lazy: () => lazyRoute(() => import('./routes/app/profile')),
         },
