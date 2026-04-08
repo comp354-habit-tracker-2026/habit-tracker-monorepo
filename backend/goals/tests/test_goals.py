@@ -4,7 +4,8 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from goals.business import GoalService
-from goals.models import Goal
+from goals.models import Goal, ProgressLog
+from activities.models import Activity, ConnectedAccount
 from datetime import date, timedelta
 
 User = get_user_model()
