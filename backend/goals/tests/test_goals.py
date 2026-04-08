@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from goals.models import Goal
+from goals.models import Goal, ProgressLog
+from activities.models import Activity, ConnectedAccount
 from datetime import date, timedelta
 
 User = get_user_model()
@@ -139,18 +140,122 @@ class TestGoals:
         assert response.status_code == status.HTTP_200_OK
         assert response.data['status'] == 'completed'
         assert float(response.data['current_value']) == 100.00
+
+    def test_rejects_zero_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Zero Goal',
+            'description': 'Should fail',
+            'target_value': '0',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'target_value' in response.data
+        assert not Goal.objects.filter(title='Weekly Zero Goal').exists()
+
+    def test_rejects_negative_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Negative Goal',
+            'description': 'Should fail',
+            'target_value': '-5',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'target_value' in response.data
+        assert not Goal.objects.filter(title='Weekly Negative Goal').exists()
+
+    def test_rejects_unrealistic_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Too Large Goal',
+            'description': 'Should fail',
+            'target_value': '1500',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'target_value' in response.data
+        assert not Goal.objects.filter(title='Weekly Too Large Goal').exists()
+
+    def test_accepts_realistic_positive_distance_target(self, authenticated_client):
+        data = {
+            'title': 'Weekly Realistic Goal',
+            'description': 'Should save',
+            'target_value': '42.5',
+            'goal_type': 'distance',
+            'start_date': date.today().isoformat(),
+            'end_date': (date.today() + timedelta(days=7)).isoformat(),
+        }
+
+        response = authenticated_client.post('/api/v1/goals/', data, format='json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Goal.objects.filter(title='Weekly Realistic Goal').exists()
         
     def test_filter_goals_by_status(self, authenticated_client, create_goal):
         """Test filtering goals by status"""
         create_goal(authenticated_client.user, title='Active Goal', status='active')
         create_goal(authenticated_client.user, title='Completed Goal', status='completed')
         create_goal(authenticated_client.user, title='Paused Goal', status='paused')
-        
+
         # Would need to implement filtering in the viewset
         # This is a placeholder for when filtering is added
         response = authenticated_client.get('/api/v1/goals/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    def test_progress_log_links_activity_to_goal(self, authenticated_client, create_goal):
+        """Test that a ProgressLog entry correctly links an activity to a goal"""
+        goal = create_goal(authenticated_client.user)
+        account = ConnectedAccount.objects.create(
+            user=authenticated_client.user,
+            provider='strava',
+            external_user_id='pl_ext_123',
+        )
+        activity = Activity.objects.create(
+            account=account,
+            activity_type='Running',
+            duration=30,
+            date=date.today(),
+        )
+        log = ProgressLog.objects.create(goal=goal, activity=activity)
+
+        assert log.goal == goal
+        assert log.activity == activity
+        assert str(log) == f"Activity {activity.id} → Goal {goal.id}"
+
+    def test_progress_log_prevents_duplicates(self, authenticated_client, create_goal):
+        """Test that the same activity cannot be linked to the same goal twice"""
+        from django.db import IntegrityError
+
+        goal = create_goal(authenticated_client.user)
+        account = ConnectedAccount.objects.create(
+            user=authenticated_client.user,
+            provider='strava',
+            external_user_id='pl_ext_456',
+        )
+        activity = Activity.objects.create(
+            account=account,
+            activity_type='Running',
+            duration=30,
+            date=date.today(),
+        )
+        ProgressLog.objects.create(goal=goal, activity=activity)
+
+        with pytest.raises(IntegrityError):
+            ProgressLog.objects.create(goal=goal, activity=activity)
 
     def test_admin_can_list_all_users_goals(self, admin_client, create_user, create_goal):
         """Test admin can list goals from all users."""
@@ -171,3 +276,4 @@ class TestGoals:
         response = admin_client.delete(f'/api/v1/goals/{goal.id}/')
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Goal.objects.filter(id=goal.id).exists()
+
