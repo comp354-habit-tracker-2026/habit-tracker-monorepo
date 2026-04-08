@@ -44,5 +44,10 @@ export const paths = {
       path: 'profile',
       getHref: () => '/app/profile',
     },
+
+    activities: { //added this code developed from chatGPT (by lauren)
+      path: 'activities',
+      getHref: () => '/app/activities',
+    },
   },
 } as const;

@@ -60,7 +60,7 @@ class ActivityStatsRepository:
     def get_cumulative_stats(self, user, activity_type=None):
         from activities.models import Activity
 
-        qs = Activity.objects.filter(user=user)
+        qs = Activity.objects.filter(account__user=user)
         if activity_type:
             qs = qs.filter(activity_type=activity_type)
 
@@ -74,7 +74,7 @@ class ActivityStatsRepository:
     def get_active_dates(self, user, since=None):
         from activities.models import Activity
 
-        qs = Activity.objects.filter(user=user)
+        qs = Activity.objects.filter(account__user=user)
         if since:
             qs = qs.filter(date__gte=since)
 
@@ -83,7 +83,7 @@ class ActivityStatsRepository:
     def get_activity_count_in_period(self, user, activity_type, start_date, end_date):
         from activities.models import Activity
 
-        qs = Activity.objects.filter(user=user, date__gte=start_date, date__lte=end_date)
+        qs = Activity.objects.filter(account__user=user, date__gte=start_date, date__lte=end_date)
         if activity_type:
             qs = qs.filter(activity_type=activity_type)
         return qs.count()
@@ -93,7 +93,7 @@ class ActivityStatsRepository:
         from activities.models import Activity
         from django.db.models import Max
 
-        qs = Activity.objects.filter(user=user)
+        qs = Activity.objects.filter(account__user=user)
         if activity_type:
             qs = qs.filter(activity_type=activity_type)
 

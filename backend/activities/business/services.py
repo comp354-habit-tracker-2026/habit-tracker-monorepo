@@ -7,19 +7,23 @@ class ActivityService(BaseService):
         self.repository = repository or ActivityRepository()
 
     def get_user_queryset(self, user, params):
-        queryset = self.repository.for_user(user)
+        if user.is_staff or user.is_superuser:
+            queryset = self.repository.model.objects.all().order_by("-date", "-created_at")
+        else:
+            queryset = self.repository.for_user(user)
         return self.repository.apply_filters(queryset, params)
 
     def validate_external_activity_uniqueness(self, data, instance=None):
-        provider = data.get("provider")
+        account = data.get("account")
         external_id = data.get("external_id")
 
-        if not external_id or provider == "manual":
+        # Only check for duplicates when both fields are present
+        if not account or not external_id:
             return
 
         exclude_pk = instance.pk if instance else None
-        if self.repository.has_duplicate_external_activity(provider, external_id, exclude_pk):
+        if self.repository.has_duplicate_external_activity(account, external_id, exclude_pk):
             raise DomainValidationError(
-                "Activity with this external ID already exists for this provider.",
+                "This activity has already been imported from this account.",
                 code="duplicate_external_activity",
             )

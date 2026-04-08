@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from goals.models import Goal
+from goals.models import Goal, ProgressLog
+from activities.models import Activity, ConnectedAccount
 from datetime import date, timedelta
 
 User = get_user_model()
@@ -30,6 +31,19 @@ def authenticated_client(api_client, create_user):
     refresh = RefreshToken.for_user(user)
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
     api_client.user = user
+    return api_client
+
+@pytest.fixture
+def admin_client(api_client, create_user):
+    admin = create_user(
+        username='adminuser',
+        email='admin@test.com',
+        is_staff=True,
+        is_superuser=True,
+    )
+    refresh = RefreshToken.for_user(admin)
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+    api_client.user = admin
     return api_client
 
 @pytest.fixture
@@ -132,9 +146,71 @@ class TestGoals:
         create_goal(authenticated_client.user, title='Active Goal', status='active')
         create_goal(authenticated_client.user, title='Completed Goal', status='completed')
         create_goal(authenticated_client.user, title='Paused Goal', status='paused')
-        
+
         # Would need to implement filtering in the viewset
         # This is a placeholder for when filtering is added
         response = authenticated_client.get('/api/v1/goals/')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['count'] == 3
+
+    def test_progress_log_links_activity_to_goal(self, authenticated_client, create_goal):
+        """Test that a ProgressLog entry correctly links an activity to a goal"""
+        goal = create_goal(authenticated_client.user)
+        account = ConnectedAccount.objects.create(
+            user=authenticated_client.user,
+            provider='strava',
+            external_user_id='pl_ext_123',
+        )
+        activity = Activity.objects.create(
+            account=account,
+            activity_type='Running',
+            duration=30,
+            date=date.today(),
+        )
+        log = ProgressLog.objects.create(goal=goal, activity=activity)
+
+        assert log.goal == goal
+        assert log.activity == activity
+        assert str(log) == f"Activity {activity.id} → Goal {goal.id}"
+
+    def test_progress_log_prevents_duplicates(self, authenticated_client, create_goal):
+        """Test that the same activity cannot be linked to the same goal twice"""
+        from django.db import IntegrityError
+
+        goal = create_goal(authenticated_client.user)
+        account = ConnectedAccount.objects.create(
+            user=authenticated_client.user,
+            provider='strava',
+            external_user_id='pl_ext_456',
+        )
+        activity = Activity.objects.create(
+            account=account,
+            activity_type='Running',
+            duration=30,
+            date=date.today(),
+        )
+        ProgressLog.objects.create(goal=goal, activity=activity)
+
+        with pytest.raises(IntegrityError):
+            ProgressLog.objects.create(goal=goal, activity=activity)
+
+    def test_admin_can_list_all_users_goals(self, admin_client, create_user, create_goal):
+        """Test admin can list goals from all users."""
+        user_one = create_user(username='goalsuser1', email='goals1@example.com')
+        user_two = create_user(username='goalsuser2', email='goals2@example.com')
+        create_goal(user_one, title='User 1 Goal')
+        create_goal(user_two, title='User 2 Goal')
+
+        response = admin_client.get('/api/v1/goals/')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['count'] == 2
+
+    def test_admin_can_delete_other_users_goal(self, admin_client, create_user, create_goal):
+        """Test admin can delete another user's goal."""
+        regular_user = create_user(username='goalsregular', email='goalsregular@example.com')
+        goal = create_goal(regular_user, title='Delete Goal')
+
+        response = admin_client.delete(f'/api/v1/goals/{goal.id}/')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Goal.objects.filter(id=goal.id).exists()
+
