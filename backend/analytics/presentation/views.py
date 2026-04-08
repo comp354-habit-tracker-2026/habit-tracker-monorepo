@@ -16,3 +16,16 @@ class AnalyticsOverviewView(APIView):
             "forecast": service.forecast_preview(request.user),
         }
         return Response(data)
+    
+# ============================================================
+# G13 - cathytham - InactivityDetector - PR #241
+# ============================================================
+class HealthIndicatorsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsService()
+        return Response({
+            "activity_statistics": service.activity_statistics(request.user),
+            "inactivity_evaluation": service.inactivity_evaluation(request.user),
+        })
