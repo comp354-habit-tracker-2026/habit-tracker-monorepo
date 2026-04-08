@@ -75,3 +75,56 @@ def test_grant_and_revoke_data_integration_consent(authenticated_client):
     assert revoke_response.data["consent_granted"] is False
     assert revoke_response.data["status"] == "revoked"
 
+
+@pytest.mark.django_db
+def test_privacy_history_records_each_user_status_change(authenticated_client):
+    authenticated_client.post(
+        "/api/v1/data-integrations/consent/",
+        {"provider": "strava", "consent_granted": True},
+        format="json",
+    )
+    authenticated_client.post(
+        "/api/v1/data-integrations/consent/",
+        {"provider": "strava", "consent_granted": False},
+        format="json",
+    )
+
+    history_response = authenticated_client.get("/api/v1/data-integrations/privacy-history/")
+
+    assert history_response.status_code == status.HTTP_200_OK
+    assert len(history_response.data) == 2
+    assert history_response.data[0]["provider"] == "strava"
+    assert history_response.data[0]["consent_granted"] is False
+    assert history_response.data[1]["consent_granted"] is True
+
+
+@pytest.mark.django_db
+def test_privacy_history_is_personal_to_authenticated_user(api_client, create_user):
+    user_one = create_user(username="userone", email="userone@test.com", password="TestPass123!")
+    user_two = create_user(username="usertwo", email="usertwo@test.com", password="TestPass123!")
+
+    user_one_client = APIClient()
+    user_one_refresh = RefreshToken.for_user(user_one)
+    user_one_client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_one_refresh.access_token}")
+
+    user_two_client = APIClient()
+    user_two_refresh = RefreshToken.for_user(user_two)
+    user_two_client.credentials(HTTP_AUTHORIZATION=f"Bearer {user_two_refresh.access_token}")
+
+    user_one_client.post(
+        "/api/v1/data-integrations/consent/",
+        {"provider": "strava", "consent_granted": False},
+        format="json",
+    )
+    user_two_client.post(
+        "/api/v1/data-integrations/consent/",
+        {"provider": "mapmyrun", "consent_granted": False},
+        format="json",
+    )
+
+    user_one_history = user_one_client.get("/api/v1/data-integrations/privacy-history/")
+
+    assert user_one_history.status_code == status.HTTP_200_OK
+    assert len(user_one_history.data) == 1
+    assert user_one_history.data[0]["provider"] == "strava"
+

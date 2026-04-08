@@ -27,3 +27,22 @@ class DataConsent(models.Model):
     def __str__(self):
         status = 'granted' if self.consent_granted else 'revoked'
         return f"{self.user.username} - {self.provider} consent={status}"
+
+
+class DataConsentHistory(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='data_consent_history',
+    )
+    provider = models.CharField(max_length=20, choices=DataConsent.PROVIDER_CHOICES)
+    consent_granted = models.BooleanField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'data_integration_data_consent_history'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        status = 'granted' if self.consent_granted else 'revoked'
+        return f"{self.user.username} - {self.provider} privacy={status}"

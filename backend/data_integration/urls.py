@@ -1,7 +1,7 @@
 from django.urls import include, path
 from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
-from .views import StravaAuthViewSet, WeskiUploadViewSet
+from .views import DataIntegrationViewSet, StravaAuthViewSet, WeskiUploadViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
@@ -18,12 +18,13 @@ def integration_root(request):
 # The @action decorators in your ViewSet (connect/refresh) 
 # will automatically become /strava/connect/ and /strava/refresh/
 router = DefaultRouter()
+router.register(r'', DataIntegrationViewSet, basename='data-integrations')
 router.register(r'strava', StravaAuthViewSet, basename="strava")
 router.register(r'weski', WeskiUploadViewSet, basename="weski")
 
 urlpatterns = [
-        # This handles the literal "/data-integration/" path
-        path('', integration_root, name='integration-root'),
+    # Health endpoint for this subsystem.
+    path('health/', integration_root, name='integration-root'),
         
         # This includes all the routes the router generated
         # Result: /data-integration/strava/connect/

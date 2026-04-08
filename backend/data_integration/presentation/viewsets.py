@@ -6,7 +6,7 @@ from rest_framework.response import Response
 import logging
 
 from data_integration.business import DataIntegrationService
-from data_integration.models import DataConsent
+from data_integration.models import DataConsent, DataConsentHistory
 
 
 class DataIntegrationSerializer(serializers.Serializer):
@@ -24,6 +24,12 @@ class DataIntegrationSerializer(serializers.Serializer):
 class DataIntegrationConsentSerializer(serializers.Serializer):
     provider = serializers.ChoiceField(choices=DataConsent.PROVIDER_CHOICES)
     consent_granted = serializers.BooleanField()
+
+
+class DataIntegrationPrivacyHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DataConsentHistory
+        fields = ["provider", "consent_granted", "created_at"]
 
 
 class DataIntegrationViewSet(viewsets.ViewSet):
@@ -59,3 +65,9 @@ class DataIntegrationViewSet(viewsets.ViewSet):
         integrations = self.service.get_user_integrations(request.user, request.query_params)
         provider_data = next((item for item in integrations if item["provider"] == provider), None)
         return Response(provider_data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="privacy-history")
+    def privacy_history(self, request):
+        history = self.service.get_user_privacy_history(request.user)
+        serializer = DataIntegrationPrivacyHistorySerializer(history, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

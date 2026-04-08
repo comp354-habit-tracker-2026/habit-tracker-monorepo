@@ -2,11 +2,10 @@ from core.business import BaseService
 # business/services.py
 
 
-from data_integration.models import DataConsent
+from data_integration.models import DataConsent, DataConsentHistory
 
 
 class DataIntegrationService(BaseService):
-<<<<<<< HEAD
     def __init__(self, strava_fetcher=None):
         super().__init__()
         from data_integration.data.strava import StravaActivityFetcher
@@ -42,11 +41,6 @@ class DataIntegrationService(BaseService):
             integration["is_synced"] = self.is_synced(integration["last_synced_at"])
 
         return integrations
-=======
-    def __init__(self, strava_fetcher=None):
-        from data_integration.data.strava import StravaActivityFetcher
-        self.strava_fetcher = strava_fetcher or StravaActivityFetcher()
->>>>>>> origin/main
 
     def set_user_consent(self, user, provider, consent_granted):
         provider_keys = [choice[0] for choice in DataConsent.PROVIDER_CHOICES]
@@ -56,7 +50,17 @@ class DataIntegrationService(BaseService):
         consent, _ = DataConsent.objects.get_or_create(user=user, provider=provider)
         consent.consent_granted = consent_granted
         consent.save(update_fields=["consent_granted", "updated_at"])
+
+        DataConsentHistory.objects.create(
+            user=user,
+            provider=provider,
+            consent_granted=consent_granted,
+        )
+
         return consent
+
+    def get_user_privacy_history(self, user):
+        return DataConsentHistory.objects.filter(user=user).order_by("-created_at")
 
     @staticmethod
     def is_synced(last_synced_at):
