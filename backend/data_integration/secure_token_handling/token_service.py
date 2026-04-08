@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
 from token_model import ProviderToken  # database model related
+import logging
+
+logger = logging.getLogger(__name__)
 
 # --- GENERATE A FERNET KEY (USING TERMINAL) ----
 # terminal: python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
@@ -133,7 +136,8 @@ class ProviderTokenManager:
             encrypted_access_token = self.encrypt_token(access_token)
             encrypted_refresh_token = self.encrypt_token(refresh_token) if refresh_token else None
         except Exception as e:
-            return self.build_error_response(provider_name, f"Encryption failed: {str(e)}")
+            logger.exception("Encryption failed while saving provider token")
+            return self.build_error_response(provider_name, "Encryption failed")
 
         token_last_4 = self.get_token_last_4(access_token)
 
@@ -161,8 +165,9 @@ class ProviderTokenManager:
             return self.build_save_success_response(provider_name, access_token, token_action)
 
         except Exception as e:
+            logger.exception("Database save failed while saving provider token")
             self.database_session.rollback()
-            return self.build_error_response(provider_name, f"Database save failed: {str(e)}")
+            return self.build_error_response(provider_name, "Database save failed")
 
     # Function that checks if the access token is expired or about to expire within 5 minutes
     # Returns True if the token is expired or about to expire, otherwise returns False
