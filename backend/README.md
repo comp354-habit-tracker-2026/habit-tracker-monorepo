@@ -148,6 +148,27 @@ DJANGO_SUPERUSER_PASSWORD=StrongPass_123 \
 python3.12 manage.py createsuperuser --noinput
 ```
 
+## Database Seeding
+
+Seed sample users, goals, and activities using the Django management command.
+
+Local run:
+
+```bash
+python manage.py seed_db --users 10 --habits-per-user 3 --activities-per-user 12
+```
+
+Docker Compose run:
+
+```bash
+docker compose exec api python manage.py seed_db --users 10 --habits-per-user 3 --activities-per-user 12
+```
+
+Optional flags:
+
+- `--clear` deletes activities, goals, and non-superuser accounts before seeding
+- `--seed <int>` makes the data deterministic
+
 ## Testing
 
 ```bash

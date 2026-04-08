@@ -64,17 +64,18 @@ class TestAuthentication:
         response = api_client.get('/api/v1/goals/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         
-    def test_oauth_user_creation(self):
-        """Test creating user with OAuth provider info"""
+    def test_oauth_fields_moved_to_connected_account(self):
+        """oauth_provider and oauth_provider_id no longer live on User.
+        External provider links are stored in ConnectedAccount (activities app)
+        so that a user can connect more than one platform at a time.
+        """
         user = User.objects.create_user(
             username='oauth_user',
             email='oauth@test.com',
             password='unused_password',
-            oauth_provider='strava',
-            oauth_provider_id='strava_12345'
         )
-        assert user.oauth_provider == 'strava'
-        assert user.oauth_provider_id == 'strava_12345'
+        assert not hasattr(user, 'oauth_provider')
+        assert not hasattr(user, 'oauth_provider_id')
         
     def test_token_refresh(self, api_client, create_user):
         """Test refreshing access token"""
