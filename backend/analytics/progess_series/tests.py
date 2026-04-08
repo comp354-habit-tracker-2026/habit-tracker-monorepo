@@ -9,17 +9,20 @@
 from __future__ import annotations
 
 from datetime import date
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 
 from activities.models import Activity, ConnectedAccount
 from goals.models import Goal
 from analytics.progess_series.service import (
     InvalidGranularityError,
+    ProgressSeriesError,
     UnsupportedGoalTypeError,
     generate_progress_series,
 )
+from analytics.progess_series.views import GoalProgressSeriesView
 
 
 User = get_user_model()
@@ -252,3 +255,72 @@ class GoalProgressSeriesTests(TestCase):
 
         self.assertEqual(result.actual_value, 0.0)
         self.assertTrue(result.no_data)
+
+
+class GoalProgressSeriesViewTests(TestCase):
+    """Unit tests for GoalProgressSeriesView using RequestFactory."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = GoalProgressSeriesView.as_view()
+
+    def _get(self, goal_id=1, **query_params):
+        qs = "&".join(f"{k}={v}" for k, v in query_params.items())
+        request = self.factory.get(f"/progress-series/{goal_id}/", query_params)
+        return self.view(request, goal_id=goal_id)
+
+    def test_demo_mode_returns_200(self):
+        response = self._get(goal_id=1, demo="true")
+        self.assertEqual(response.status_code, 200)
+
+    def test_demo_mode_with_invalid_granularity_returns_400(self):
+        response = self._get(goal_id=1, demo="true", granularity="monthly")
+        self.assertEqual(response.status_code, 400)
+
+    @patch("analytics.progess_series.views.Goal.objects.get")
+    @patch("analytics.progess_series.views.Activity.objects.filter")
+    @patch("analytics.progess_series.views.generate_progress_series")
+    def test_non_demo_success_returns_200(self, mock_gen, mock_filter, mock_get):
+        mock_result = MagicMock()
+        mock_result.to_dict.return_value = {"points": []}
+        mock_gen.return_value = mock_result
+        mock_filter.return_value.order_by.return_value = []
+        response = self._get(goal_id=1)
+        self.assertEqual(response.status_code, 200)
+
+    @patch("analytics.progess_series.views.Goal.objects.get", side_effect=Goal.DoesNotExist)
+    def test_goal_not_found_returns_404(self, _):
+        response = self._get(goal_id=999)
+        self.assertEqual(response.status_code, 404)
+
+    @patch("analytics.progess_series.views.Goal.objects.get")
+    @patch("analytics.progess_series.views.Activity.objects.filter")
+    @patch("analytics.progess_series.views.generate_progress_series", side_effect=InvalidGranularityError("bad"))
+    def test_invalid_granularity_returns_400(self, mock_gen, mock_filter, mock_get):
+        mock_filter.return_value.order_by.return_value = []
+        response = self._get(goal_id=1)
+        self.assertEqual(response.status_code, 400)
+
+    @patch("analytics.progess_series.views.Goal.objects.get")
+    @patch("analytics.progess_series.views.Activity.objects.filter")
+    @patch("analytics.progess_series.views.generate_progress_series", side_effect=UnsupportedGoalTypeError("bad"))
+    def test_unsupported_goal_type_returns_400(self, mock_gen, mock_filter, mock_get):
+        mock_filter.return_value.order_by.return_value = []
+        response = self._get(goal_id=1)
+        self.assertEqual(response.status_code, 400)
+
+    @patch("analytics.progess_series.views.Goal.objects.get")
+    @patch("analytics.progess_series.views.Activity.objects.filter")
+    @patch("analytics.progess_series.views.generate_progress_series", side_effect=ProgressSeriesError("bad"))
+    def test_progress_series_error_returns_400(self, mock_gen, mock_filter, mock_get):
+        mock_filter.return_value.order_by.return_value = []
+        response = self._get(goal_id=1)
+        self.assertEqual(response.status_code, 400)
+
+    @patch("analytics.progess_series.views.Goal.objects.get")
+    @patch("analytics.progess_series.views.Activity.objects.filter")
+    @patch("analytics.progess_series.views.generate_progress_series", side_effect=RuntimeError("unexpected"))
+    def test_unexpected_error_returns_500(self, mock_gen, mock_filter, mock_get):
+        mock_filter.return_value.order_by.return_value = []
+        response = self._get(goal_id=1)
+        self.assertEqual(response.status_code, 500)
