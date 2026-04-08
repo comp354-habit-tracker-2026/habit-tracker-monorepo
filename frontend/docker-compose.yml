@@ -1,0 +1,11 @@
+services:
+  frontend:
+    image: habit-tracker-frontend
+    container_name: habit-tracker-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - BUILD_MODE=prod
+    ports:
+      - '3000:3000'
