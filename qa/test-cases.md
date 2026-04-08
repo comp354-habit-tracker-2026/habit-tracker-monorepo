@@ -110,3 +110,34 @@ Evidence:
 - Accessibility Audit (#152)
 - Usability Testing (#130)
 - UX Audit (#136)
+
+## Group 19 – Data Visualization Testing
+
+### TC-30: Chart Usability and Clarity
+Steps:
+1. Open data visualization section.
+2. View activity pie charts and bar charts on both desktop and mobile views.
+3. Attempt to toggle between different visualization modes.
+
+Expected:
+The charts should have distinct colors for each activity being displayed. There should be an intuitive way to swap between data views.
+
+Actual:
+The data is displayed in a very clear an intuitive manner where most users would understand what they are looking at. The problem arises when the toggling to different views as there is no such button that can swap between views.
+
+Notes:
+Missing button to toggle different views of data for different dates!
+
+Persona: Beginner User
+
+UX Issues:
+- Bar charts lack clear axis labels for "sessions" and "activity".
+- No navigation or toggle elements to change chart types.
+- Data insight is a little cluttered with the bar charts. The legend (right side) isnt necessary when all the necessary data is already in the bar chart
+
+Accessibility Issues:
+-  Lower contrast ratio detected in the desktop version of the chart types
+-  the list items in the legend (right side) are not properly contained in parent elements which may affect screen readers.
+
+Evidence:
+See qa/evidence.md
