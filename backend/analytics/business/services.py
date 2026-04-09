@@ -1,5 +1,6 @@
 from core.business import BaseService
 from analytics.data import AnalyticsRepository
+from analytics.business.goal_progress import GoalProgressService
 from core.business.predict_model import predict
 
 
