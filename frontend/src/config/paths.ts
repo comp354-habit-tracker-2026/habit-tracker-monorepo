@@ -48,5 +48,10 @@ export const paths = {
       path: 'activities',
       getHref: () => '/app/activities',
     },
+    goals: { //Goals page route
+      path:'goals',
+      getHref: ()=>'/app/goals'
+    },
   },
 } as const;
+

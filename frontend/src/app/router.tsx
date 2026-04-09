@@ -54,6 +54,10 @@ function createAppRouter() {
         lazy: () => lazyRoute(() => import('./routes/app/activities')),
         },
         {
+        path: paths.app.goals.path,//added for goals
+        lazy: () => lazyRoute(()=> import('./routes/app/goals')),
+        },
+        {
           path: paths.app.profile.path,
           lazy: () => lazyRoute(() => import('./routes/app/profile')),
         },
