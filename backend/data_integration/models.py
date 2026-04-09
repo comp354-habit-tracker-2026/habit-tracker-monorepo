@@ -36,3 +36,8 @@ class MapMyRunActivity(models.Model):
 
     def __str__(self):
         return f"{self.workout_date} - {self.activity_type or 'Activity'}"
+    
+class Meta:
+    constraints = [
+        models.UniqueConstraint(fields=["user_id", "activity_key"], name="unique_user_activity_key")
+    ]
