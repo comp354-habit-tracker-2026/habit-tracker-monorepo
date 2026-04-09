@@ -9,13 +9,6 @@ MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
 def validate_uploaded_file(file):
-    """
-    Validates a Django uploaded file.
-
-    Returns:
-        (True, None) if valid
-        (False, error_message) if invalid
-    """
 
     if not file:
         return False, "No file provided."
@@ -41,13 +34,6 @@ def validate_uploaded_file(file):
 
 
 def upload_file_to_blob(file, file_key):
-    """
-    file: InMemoryUploadedFile or TemporaryUploadedFile
-    file_key: key used in form-data (e.g., 'file')
-
-    Returns:
-        dict with upload result or raises ValueError / Exception
-    """
 
     is_valid, error_message = validate_uploaded_file(file)
     if not is_valid:
@@ -123,3 +109,108 @@ def parse_mapmyrun_file(uploaded_file):
 
     except Exception as e:
         return None, f"Parsing failed: {str(e)}"
+    
+def validate_normalize_mapmyrun_data(parsed_data):
+
+    if not parsed_data:
+        return None, ["No parsed activity data was provided."]
+
+    field_rules = {
+        "workout_date": {
+            "required": True,
+            "converter": lambda v: v,
+            "validator": None,
+        },
+        "activity_type": {
+            "required": False,
+            "converter": lambda v: str(v).strip() if v is not None else None,
+            "validator": None,
+        },
+        "calories_burned_kcal": {
+            "required": False,
+            "converter": lambda v: float(v) if v is not None else None,
+            "validator": lambda v: v is None or v >= 0,
+            "error": "calories_burned_kcal cannot be negative",
+        },
+        "distance_km": {
+            "required": True,
+            "converter": float,
+            "validator": lambda v: v >= 0,
+            "error": "distance_km cannot be negative",
+        },
+        "workout_time_seconds": {
+            "required": True,
+            "converter": int,
+            "validator": lambda v: v > 0,
+            "error": "workout_time_seconds must be greater than 0",
+        },
+        "avg_pace_min_per_km": {
+            "required": False,
+            "converter": lambda v: float(v) if v is not None else None,
+            "validator": lambda v: v is None or v >= 0,
+            "error": "avg_pace_min_per_km cannot be negative",
+        },
+        "max_pace_min_per_km": {
+            "required": False,
+            "converter": lambda v: float(v) if v is not None else None,
+            "validator": lambda v: v is None or v >= 0,
+            "error": "max_pace_min_per_km cannot be negative",
+        },
+        "avg_speed_kmh": {
+            "required": False,
+            "converter": lambda v: float(v) if v is not None else None,
+            "validator": lambda v: v is None or v >= 0,
+            "error": "avg_speed_kmh cannot be negative",
+        },
+        "max_speed_kmh": {
+            "required": False,
+            "converter": lambda v: float(v) if v is not None else None,
+            "validator": lambda v: v is None or v >= 0,
+            "error": "max_speed_kmh cannot be negative",
+        },
+    }
+
+    normalized_data = []
+    errors = []
+
+    for index, activity in enumerate(parsed_data, start=1):
+        row_number = index + 1
+        normalized_activity = {}
+        row_has_error = False
+
+        for field_name, rule in field_rules.items():
+            raw_value = activity.get(field_name)
+
+            is_missing = raw_value is None or str(raw_value).strip() == ""
+
+            if rule["required"] and is_missing:
+                errors.append(f"Row {row_number}: missing required field: {field_name}")
+                row_has_error = True
+                continue
+
+            if is_missing:
+                normalized_activity[field_name] = None
+                continue
+
+            try:
+                normalized_value = rule["converter"](raw_value)
+            except (ValueError, TypeError) as e:
+                errors.append(f"Row {row_number}: invalid value for {field_name} - {str(e)}")
+                row_has_error = True
+                continue
+
+            validator = rule.get("validator")
+            if validator and not validator(normalized_value):
+                errors.append(f"Row {row_number}: {rule['error']}")
+                row_has_error = True
+                continue
+
+            normalized_activity[field_name] = normalized_value
+
+        if not row_has_error:
+            normalized_data.append(normalized_activity)
+
+    if not normalized_data:
+        return None, errors
+
+    return normalized_data, errors
