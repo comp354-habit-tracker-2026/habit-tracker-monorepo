@@ -3,6 +3,7 @@ import uuid
 import pandas as pd
 from pathlib import Path
 from azure.storage.blob import BlobClient
+from data_integration.data.mapmyrun_repository import save_mapmyrun_activities
 
 SUPPORTED_EXTENSIONS = (".xlsx", ".xls")
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -109,7 +110,8 @@ def parse_mapmyrun_file(uploaded_file):
 
     except Exception as e:
         return None, f"Parsing failed: {str(e)}"
-    
+
+
 def validate_normalize_mapmyrun_data(parsed_data):
 
     if not parsed_data:
@@ -214,3 +216,28 @@ def validate_normalize_mapmyrun_data(parsed_data):
         return None, errors
 
     return normalized_data, errors
+
+
+def process_mapmyrun_upload(uploaded_file, file_key, user_id):
+    upload_result = upload_file_to_blob(uploaded_file, file_key)
+
+    uploaded_file.seek(0)
+    parsed_data, parse_error = parse_mapmyrun_file(uploaded_file)
+    if parse_error:
+        raise ValueError(parse_error)
+
+    normalized_data, validation_errors = validate_normalize_mapmyrun_data(parsed_data)
+    if normalized_data is None:
+        raise ValueError("No valid MapMyRun activities found.")
+
+    saved_count = save_mapmyrun_activities(user_id, normalized_data)
+
+    return {
+        "message": "File uploaded, parsed, normalized, and saved successfully.",
+        "upload_result": upload_result,
+        "parsed_count": len(parsed_data),
+        "normalized_count": len(normalized_data),
+        "saved_count": saved_count,
+        "validation_errors": validation_errors,
+        "normalized_preview": normalized_data[:5],
+    }

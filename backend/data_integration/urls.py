@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import FileRecordViewSet, StravaAuthViewSet, WeskiUploadViewSet, upload_mapmyrun_file
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from data_integration.presentation.mapmyrun_views import get_mapmyrun_activities
 
 # 1. Create a simple view for the root of the integration path
 # Use this to test that you can connect to this subsystem in the first place
@@ -30,5 +31,6 @@ urlpatterns = [
         # Result: /data-integration/strava/connect/
         path('', include(router.urls)),
 
-        path('upload/mapmyrun/', upload_mapmyrun_file, name='upload-mapmyrun-file'),
+        path('upload/mapmyrun/<int:user_id>/', upload_mapmyrun_file, name='upload-mapmyrun-file'),
+        path("activities/mapmyrun/<int:user_id>/", get_mapmyrun_activities, name='get-mapmyrun-activities'),
 ]
