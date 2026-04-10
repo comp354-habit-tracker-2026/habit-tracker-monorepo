@@ -44,12 +44,6 @@ export const paths = {
       path: 'profile',
       getHref: () => '/app/profile',
     },
-<<<<<<< HEAD
-    consentTest: {
-      path: 'consent-test',
-      getHref: () => '/app/consent-test',
-=======
-
     activities: { //added this code developed from chatGPT (by lauren)
       path: 'activities',
     consentTest: {
