@@ -4,6 +4,7 @@ venv/
 .env
 .env.local
 .env.*.local
+CLAUDE.md
 
 __pycache__/
 *.pyc
@@ -15,3 +16,4 @@ provider_tokens.db
 dataset-generation/artifacts/
 
 .DS_Store
+.idea
