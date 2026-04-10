@@ -1,6 +1,5 @@
 from datetime import datetime
 import os
-from dotenv import load_dotenv
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, Depends, HTTPException, Header
@@ -8,8 +7,12 @@ from database import Base, database_connection, open_database_session
 from token_service import ProviderTokenManager
 
 # Load values from .env into environment variables
-load_dotenv()  # this is to keep the test api key in local .env
-
+# load_dotenv()  # this is to keep the test api key in local .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
 # Install first libraries in the requirement.txt
 # WHEN RUNNING TYPE IN TERMINAL:
 # source venv/bin/activate
