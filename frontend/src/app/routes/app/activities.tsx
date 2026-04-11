@@ -1,24 +1,19 @@
 import { ContentLayout } from '@/components/layouts/content-layout';
+import { ActivitiesList } from '@/features/activities/components/activities-list';
 
-export default function ActivitiesRoute() {
-  const isLoading = false;
-  const hasError = false;
-
+/**
+ * Activities page - displays all user activities.
+ * 
+ * Original scaffold by Group 18 (developed from ChatGPT code).
+ * Enhanced in User Story #192 to integrate ActivitiesList.
+ * TODO (#191): Add AuthGuard when auth feature is implemented by team member
+ */
+function ActivitiesRoute() {
   return (
     <ContentLayout title="Activities">
-      {isLoading ? (
-        <div className="animate-pulse rounded-md border p-4">
-          Loading activities...
-        </div>
-      ) : hasError ? (
-        <div className="rounded-md border border-red-300 p-4">
-          Something went wrong while loading activities.
-        </div>
-      ) : (
-        <p>Activities page scaffold (Group 18)</p>
-      )}
+      <ActivitiesList />
     </ContentLayout>
   );
 }
 
-//this code was developed from chatGPT code
+export default ActivitiesRoute;
