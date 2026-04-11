@@ -110,7 +110,7 @@ button:focus-visible {
    Content Layout
    ========================================================================== */
 
-.content-layout {
+/* .content-layout {
   padding: 1rem;
   margin: 0 auto;
   width: 100%;
@@ -128,7 +128,7 @@ button:focus-visible {
 
 .content-layout__body {
   color: rgba(255, 255, 255, 0.7);
-}
+} */
 
 /* Layout with action button (for refresh/sync) */
 .content-layout__header {
