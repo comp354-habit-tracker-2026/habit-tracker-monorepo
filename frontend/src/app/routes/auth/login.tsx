@@ -72,61 +72,82 @@ const Login = () => {
   return (
     <>
       {success ? (
-        <section>
-          <h1>You are logged in!</h1>
-          <br />
-          <p>
-            <Link to={paths.home.getHref()}>Go to Home</Link>
-            <Link to={paths.app.root.getHref()}><br />To Dashboard</Link>
-          </p>
-        </section>
+        <div 
+          style={{
+            display: 'flex',
+            height: '100vh',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}>
+          <section>
+            <h1>You are logged in!</h1>
+            <br />
+            <p>
+              <Link to={paths.home.getHref()}>Go to Home</Link>
+              <Link to={paths.app.root.getHref()}><br />To Dashboard</Link>
+            </p>
+          </section>
+        </div>
       ) : (
-    <section> 
-      <p ref = {errRef} 
-      className = {errMsg ? "errmsg" : "offscreen"} 
-      aria-live = "assertive"
-      > 
-        {errMsg}
-      </p>
-      <h1>Sign In</h1>
-      <Link to={paths.home.getHref()}>Turn Back</Link>
-      <Link to={paths.app.root.getHref()}><br />To Dashboard</Link>
-      <form onSubmit = {handleSubmit}>
-        <label htmlFor = 'username'>Username: </label>
-        <input
-            type = "text"
-            id = "username"
-            ref = {userRef}
-            autoComplete='off'
-            onChange={(e) => {
-                  setUser(e.target.value);
-                  if (errMsg) setErrMsg("");
-                }}
-            value = {user}
-            required
-            />
-        <label htmlFor = 'passwword'><br />Passwword: </label>
-        <input
-            type = "password"
-            id = "passwword"
-            onChange={(e) => {
-                  setPwd(e.target.value);
-                  if (errMsg) setErrMsg("");
-                }}
-            value = {pwd}
-            required
-            /> <br />
-        <button>Sign In</button>
-      </form> 
-      <p>
-        Need an Account?<br />
-        <span className = "line">
-          {/*put router link to register here*/}
-          <a href = '#'>Sign Up</a>
-        </span>
-      </p>
-    </section>
-      )}
+    <div
+       style={{
+          display: 'flex',
+          height: '100vh',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: '1rem',
+        }}
+      >
+      <section> 
+        <p ref = {errRef} 
+        className = {errMsg ? "errmsg" : "offscreen"} 
+        aria-live = "assertive"
+        > 
+          {errMsg}
+        </p>
+        <h1>Sign In</h1>
+        <Link to={paths.app.root.getHref()}>To Dashboard</Link>
+        <Link to={paths.home.getHref()}><br />Turn Back<br /><br /></Link>
+        <form onSubmit = {handleSubmit}>
+          <label htmlFor = 'username'>Username: </label>
+          <input
+              type = "text"
+              id = "username"
+              ref = {userRef}
+              autoComplete='off'
+              onChange={(e) => {
+                    setUser(e.target.value);
+                    if (errMsg) setErrMsg("");
+                  }}
+              value = {user}
+              required
+              />
+          <label htmlFor = 'passwword'><br />Passwword: </label>
+          <input
+              type = "password"
+              id = "passwword"
+              onChange={(e) => {
+                    setPwd(e.target.value);
+                    if (errMsg) setErrMsg("");
+                  }}
+              value = {pwd}
+              required
+              /> <br />
+          <button>Sign In</button>
+        </form> 
+        <p>
+          Need an Account?<br />
+          <span className = "line">
+            {/*put router link to register here*/}
+            <a href = {paths.auth.register.getHref()}>Sign Up</a>
+          </span>
+        </p>
+      </section>
+      </div>  
+        )}
       </>
   )
 }

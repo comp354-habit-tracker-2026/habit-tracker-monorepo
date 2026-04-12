@@ -31,7 +31,11 @@ function createAppRouter() {
     },
     {
       path: paths.auth.login.path,
-      lazy: () => lazyRoute(() => import('./routes/login')),
+      lazy: () => lazyRoute(() => import('./routes/auth/login')),
+    },
+    {
+      path: paths.auth.register.path,
+      lazy: () => lazyRoute(() => import('./routes/auth/register')),
     },
     {
       path: paths.app.root.path,

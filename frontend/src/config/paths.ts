@@ -13,12 +13,11 @@ export const paths = {
   auth: {
     login: {
       path: '/auth/login',
-      getHref: () => '/auth/login'
+      getHref: () => '/auth/login',
     },
     register: {
       path: '/auth/register',
-      getHref: (redirectTo?: string | null) =>
-        `/auth/register${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
+      getHref: () => '/auth/register',
     },
   },
 
@@ -50,7 +49,7 @@ export const paths = {
     },
     goals: { //Goals page route
       path:'goals',
-      getHref: ()=>'/app/goals'
+      getHref: ()=>'/app/goals',
     },
   },
 } as const;
