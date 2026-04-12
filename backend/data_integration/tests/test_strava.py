@@ -157,6 +157,36 @@ def test_data_integration_service_delegates_to_strava_fetcher():
     )
 
 
+def test_get_skiing_activities_filters_all_supported_ski_types():
+    fetcher = StravaActivityFetcher()
+    ski_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 1, "sport_type": "AlpineSki"})
+    backcountry_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 2, "sport_type": "BackcountrySki"})
+    nordic_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 3, "sport_type": "NordicSki"})
+    roller_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 4, "sport_type": "RollerSki"})
+    run_activity = StravaActivityFactory.create_activity_summary(RAW_ACTIVITY)
+
+    activities = [
+        ski_activity,
+        backcountry_activity,
+        nordic_activity,
+        roller_activity,
+        run_activity,
+    ]
+    filtered_activities = fetcher.get_skiing_activities(activities)
+
+    assert [activity.external_id for activity in filtered_activities] == ["1", "2", "3", "4"]
+
+
+def test_get_indoor_cycling_activities_filters_virtual_rides():
+    fetcher = StravaActivityFetcher()
+    virtual_ride = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 10, "type": "Ride", "sport_type": "VirtualRide"})
+    outdoor_ride = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 11, "type": "Ride", "sport_type": "Ride"})
+
+    activities = fetcher.getIndoorCyclingActivities([virtual_ride, outdoor_ride])
+
+    assert [activity.external_id for activity in activities] == ["10"]
+
+
 def context_manager(response):
     manager = Mock()
     manager.__enter__ = Mock(return_value=response)
