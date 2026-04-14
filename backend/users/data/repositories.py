@@ -20,10 +20,13 @@ class UserRepository(BaseRepository):
 
     def increment_failed_attempts(self, user):
         user.failed_login_attempts += 1
-        user.locked_until = timezone.now() + timezone.timedelta(minutes=30)
-        user.save(update_fields=['failed_login_attempts', 'locked_until'])
+        user.save(update_fields=['failed_login_attempts'])
 
     def reset_failed_attempts(self, user):
         user.failed_login_attempts = 0
         user.locked_until = None
         user.save(update_fields=['failed_login_attempts', 'locked_until'])
+    
+    def lock_account(self, user):
+        user.locked_until = timezone.now() + timezone.timedelta(minutes=30)
+        user.save(update_fields=['locked_until'])
