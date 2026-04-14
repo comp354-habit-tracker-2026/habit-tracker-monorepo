@@ -26,7 +26,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return UserRegistrationService().register_user(validated_data)
+        return UserService().register_user(validated_data)
 
 
 # Backwards-compatible naming alias.
