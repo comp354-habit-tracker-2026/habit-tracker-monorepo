@@ -53,5 +53,5 @@ export const paths = {
       getHref: ()=>'/app/goals'
     },
   },
-} as const;
+} as const }
 
