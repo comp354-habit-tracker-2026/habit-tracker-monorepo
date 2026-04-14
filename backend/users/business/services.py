@@ -33,18 +33,16 @@ class UserService(BaseService):
             raise AccountLockedException()
 
     def record_failed_attempt(self, username):
-        """
-        Increments failed attempts and locks account if threshold reached.
-        """
         user = self.repository.get_by_username(username)
 
         if user is None:
-            return  # user doesn't exist, nothing to track
+            return
 
         self.repository.increment_failed_attempts(user)
+        user.refresh_from_db()  # get updated count from database
 
         if user.failed_login_attempts >= MAX_FAILED_ATTEMPTS:
-            self.repository.increment_failed_attempts(user)
+            self.repository.lock_account(user)  # separate method just for locking
 
     def record_successful_login(self, username):
         """
