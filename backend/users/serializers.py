@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
-from users.business import UserRegistrationService
+from users.business import UserService
 from django.contrib.auth.hashers import check_password
 
 User = get_user_model()
@@ -26,7 +26,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        return UserRegistrationService().register_user(validated_data)
+        return UserService().register_user(validated_data)
 
 
 # Backwards-compatible naming alias.
