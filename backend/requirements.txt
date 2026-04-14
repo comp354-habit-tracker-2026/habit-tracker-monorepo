@@ -24,3 +24,4 @@ numpy==1.26.4
 scikit-learn==1.5.0
 Django==6.0.2
 python-dotenv==1.0.1
+sqlalchemy==2.0.30

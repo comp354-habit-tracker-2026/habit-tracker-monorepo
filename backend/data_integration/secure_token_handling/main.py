@@ -150,10 +150,6 @@ def verify_permission(
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
 
-    # --- WAITING ON USERS TABLE OWNER ---
-    # if user.is_deleted:
-    #     return {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
-
     token_manager = ProviderTokenManager(database_session)
 
     # Both checks passed
