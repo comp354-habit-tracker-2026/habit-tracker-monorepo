@@ -8,7 +8,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 
 from users.serializers import RegisterSerializer, ProfileUpdateSerializer
-from users.business.services import UserService
+from users.business.services import UserRegistrationService
 
 User = get_user_model()
 
@@ -40,7 +40,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.service = UserService()
+        self.service = UserRegistrationService()
 
     def post(self, request, *args, **kwargs):
         username = request.data.get("username")

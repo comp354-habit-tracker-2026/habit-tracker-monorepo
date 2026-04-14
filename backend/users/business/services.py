@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 MAX_FAILED_ATTEMPTS = 5
 LOCKOUT_MINUTES = 30
 
-class UserService(BaseService):
+class UserRegistrationService(BaseService):
     def __init__(self, repository=None):
         self.repository = repository or UserRepository()
 

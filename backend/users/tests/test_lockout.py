@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
-from users.business.services import UserService, MAX_FAILED_ATTEMPTS, AccountLockedException
+from users.business.services import UserRegistrationService, MAX_FAILED_ATTEMPTS, AccountLockedException
 
 
 User = get_user_model()
