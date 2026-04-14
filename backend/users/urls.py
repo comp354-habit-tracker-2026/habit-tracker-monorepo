@@ -7,7 +7,5 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='auth_register'),
     path('login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),  # swapped
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-    # For Profile Update (Issue #105)
     path('profile/', ProfileUpdateView.as_view(), name='profile_update'),
 ]

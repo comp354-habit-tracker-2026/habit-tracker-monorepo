@@ -43,7 +43,18 @@ class ActivitySerializer(serializers.ModelSerializer):
         except DomainValidationError as exc:
             raise serializers.ValidationError(str(exc)) from exc
         return data
+    
+    def validate_duration(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Duration must be greater than 0")
+        return value
+
+    def validate_distance(self, value):
+        if value is not None and float(value) < 0:
+            raise serializers.ValidationError("Distance cannot be negative")
+        return value
 
 
 # Backwards-compatible naming alias.
 ActivitySerialiser = ActivitySerializer
+

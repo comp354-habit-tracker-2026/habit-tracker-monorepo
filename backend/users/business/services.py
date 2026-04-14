@@ -2,9 +2,12 @@ from django.utils import timezone
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import status
 from rest_framework.exceptions import APIException
+import logging
 
 from core.business import BaseService
 from users.data import UserRepository
+
+logger = logging.getLogger(__name__)
 
 
 MAX_FAILED_ATTEMPTS = 5
@@ -61,3 +64,21 @@ class AccountLockedException(APIException):
     default_detail = "Account temporarily locked due to too many failed attempts. Try again in 30 minutes."
     default_code = "account_locked"
       
+class AccountDeletionService(BaseService):
+    def __init__(self, repository=None):
+        self.repository = repository or UserRepository()
+
+    def delete_account(self, user, password):
+        if not user.check_password(password):
+            raise ValueError("Invalid password")
+        logger.info(
+            "Account deletion initiated: user_id=%s, username=%s",
+            user.id,
+            user.username,
+        )
+        self.repository.delete_user(user)
+        logger.info(
+            "Account deleted successfully: user_id=%s, username=%s",
+            user.id,
+            user.username,
+        )
