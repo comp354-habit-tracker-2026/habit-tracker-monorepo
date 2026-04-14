@@ -433,6 +433,23 @@ class ProviderTokenManager:
                               caller_service: str = "") -> dict:
         from sqlalchemy import text
 
+        # --- CHECK USER IS ACTIVE (Users table) ---
+        user_row = self.database_session.execute(
+            text("SELECT is_active FROM users WHERE id = :user_id"),
+            {"user_id": user_id}
+        ).fetchone()
+
+        if not user_row:
+            result = {"allowed": False, "reason": "ACCOUNT_NOT_FOUND", "user_id": user_id,
+                      "provider_name": provider_name}
+            _log_permission_check(user_id, provider_name, scope, caller_service, False, "ACCOUNT_NOT_FOUND")
+            return result
+
+        if not user_row[0]:  # is_active is False
+            result = {"allowed": False, "reason": "ACCOUNT_DELETED", "user_id": user_id, "provider_name": provider_name}
+            _log_permission_check(user_id, provider_name, scope, caller_service, False, "ACCOUNT_DELETED")
+            return result
+
         # --- CHECK CONSENT TABLE (#11) ---
         consent_row = self.database_session.execute(
             text(
@@ -450,12 +467,6 @@ class ProviderTokenManager:
             result = {"allowed": False, "reason": "CONSENT_REVOKED", "user_id": user_id, "provider_name": provider_name}
             _log_permission_check(user_id, provider_name, scope, caller_service, False, "CONSENT_REVOKED")
             return result
-
-        # --- WAITING ON USERS TABLE OWNER ---
-        # if user.is_deleted:
-        #     result = {"allowed": False, "reason": "ACCOUNT_DELETED", ...}
-        #     _log_permission_check(...)
-        #     return result
 
         # --- CHECK TOKEN TABLE (#12) ---
         token = self.database_session.query(ProviderToken).filter_by(
