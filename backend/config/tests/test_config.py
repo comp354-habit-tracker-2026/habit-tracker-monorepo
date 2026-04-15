@@ -6,12 +6,15 @@ environment variables and corresponding .env file entries.
 """
 
 import os
+
+from _pytest import unittest
 from django.test import SimpleTestCase
 from django.conf import settings
 
 
 class EnvironmentVariableTests(SimpleTestCase):
     """Test that all environment variables are properly loaded."""
+    IS_POSTGRES = settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql'
 
     def test_django_secret_key_from_env(self):
         """Test DJANGO_SECRET_KEY is loaded from environment."""
@@ -31,6 +34,7 @@ class EnvironmentVariableTests(SimpleTestCase):
         self.assertIn('127.0.0.1', settings.ALLOWED_HOSTS)
         self.assertIn('0.0.0.0', settings.ALLOWED_HOSTS)
 
+    @unittest.skipUnless(IS_POSTGRES, "Postgres-specific config not active in this environment")
     def test_database_name_from_env(self):
         """Test POSTGRES_DB is loaded from environment."""
         db_name = settings.DATABASES['default']['NAME']
@@ -39,6 +43,7 @@ class EnvironmentVariableTests(SimpleTestCase):
             f"Unexpected database name: {db_name}",
         )
 
+    @unittest.skipUnless(IS_POSTGRES, "Postgres-specific config not active in this environment")
     def test_database_user_from_env(self):
         """Test POSTGRES_USER is loaded from environment."""
         self.assertEqual(settings.DATABASES['default']['USER'], 'myuser')
@@ -57,6 +62,7 @@ class EnvironmentVariableTests(SimpleTestCase):
         # In test env with .env, it should be set
         self.assertIsNotNone(host)
 
+    @unittest.skipUnless(IS_POSTGRES, "Postgres-specific config not active in this environment")
     def test_database_port_from_env(self):
         """Test POSTGRES_PORT is loaded from environment."""
         self.assertEqual(settings.DATABASES['default']['PORT'], '5432')
