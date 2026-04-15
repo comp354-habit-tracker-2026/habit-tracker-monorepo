@@ -26,14 +26,14 @@ class UserRepository(BaseRepository):
             {"deleted_count": 42, "provider": "strava"}
         """
         if provider not in VALID_PROVIDERS:
-            raise ValueError(
-                f"Unknown or non-deletable provider '{provider}'. "
-                f"Valid providers: {sorted(VALID_PROVIDERS)}"
-            )
- 
-        deleted_count, _ = (
-            Activity.objects.filter(user=user, provider=provider).delete()
-        )
- 
-        return {"deleted_count": deleted_count, "provider": provider}
- 
+            raise ValueError("Invalid provider")
+
+        deleted_count, _ = Activity.objects.filter(
+            account__user=user,
+            account__provider=provider
+        ).delete()
+
+        return {
+            "provider": provider,
+            "deleted_count": deleted_count
+        }

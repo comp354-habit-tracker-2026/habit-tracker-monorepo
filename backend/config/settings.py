@@ -37,19 +37,28 @@ default_allowed_hosts = [
     # backend.<env-hash>.<region>.azurecontainerapps.io
     '.canadacentral.azurecontainerapps.io',
 ]
-
-# Some platforms expose the public hostname through env vars.
-for env_host_var in ('WEBSITE_HOSTNAME', 'CONTAINER_APP_HOSTNAME', 'HOSTNAME'):
-    env_host = os.getenv(env_host_var)
-    if env_host:
-        default_allowed_hosts.append(env_host)
-
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(default_allowed_hosts)).split(',')
-    if host.strip()
+# Collect platform-provided hosts
+platform_hosts = [
+    os.getenv('WEBSITE_HOSTNAME'),
+    os.getenv('CONTAINER_APP_HOSTNAME'),
+    os.getenv('HOSTNAME'),
 ]
 
+# Remove None values
+platform_hosts = [h for h in platform_hosts if h]
+
+env_hosts = os.getenv('DJANGO_ALLOWED_HOSTS')
+
+if env_hosts:
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in env_hosts.split(',')
+        if host.strip()
+    ]
+else:
+    ALLOWED_HOSTS = default_allowed_hosts + [
+        h for h in platform_hosts if h not in default_allowed_hosts
+    ]
 
 # Application definition
 
@@ -112,8 +121,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-if os.getenv('POSTGRES_DB'):
-    # PostgreSQL (CI / staging / production)
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'local')  # local, test, prod
+
+if ENVIRONMENT == 'prod':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -124,8 +134,9 @@ if os.getenv('POSTGRES_DB'):
             'PORT': os.getenv('POSTGRES_PORT', '5432'),
         }
     }
+
 else:
-    # Fallback to SQLite (local dev only)
+    # local + test → SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
