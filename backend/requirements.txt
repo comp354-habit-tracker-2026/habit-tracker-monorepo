@@ -4,6 +4,9 @@ django-allauth==65.14.3
 django-cors-headers==4.3.1
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
+Faker==24.8.0
+fastapi==0.115.12
+pydantic==2.11.3
 iniconfig==2.3.0
 packaging==26.0
 pluggy==1.6.0
@@ -13,7 +16,9 @@ PyJWT==2.11.0
 pytest==9.0.2
 pytest-django==4.12.0
 sqlparse==0.5.5
+jsonschema==4.26.0
+jsonschema[format]==4.26.0
 pytest-cov==7.0.0
 joblib==1.4.2
 numpy==1.26.4
-scikit-learn==1.5.0
+scikit-learn==1.4.2

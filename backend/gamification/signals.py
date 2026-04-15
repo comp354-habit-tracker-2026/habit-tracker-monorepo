@@ -12,10 +12,14 @@ def evaluate_achievements_on_activity(sender, instance, created, **kwargs):
     if not created:
         return
 
+    # If the activity has no connected account (e.g. seeded/legacy data), skip gamification
+    if not instance.account_id:
+        return
+
     from gamification.business.services import GamificationService
 
     service = GamificationService()
-    user = instance.user
+    user = instance.account.user  # user is reached through the connected account
 
     # Update streak
     streak = service.update_streak(user, instance.date)

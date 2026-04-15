@@ -13,8 +13,7 @@ export const paths = {
   auth: {
     login: {
       path: '/auth/login',
-      getHref: (redirectTo?: string | null) =>
-        `/auth/login${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
+      getHref: () => '/auth/login'
     },
     register: {
       path: '/auth/register',
@@ -44,14 +43,6 @@ export const paths = {
       path: 'profile',
       getHref: () => '/app/profile',
     },
-<<<<<<< HEAD
-    consentTest: {
-      path: 'consent-test',
-      getHref: () => '/app/consent-test',
-=======
-
-    activities: { //added this code developed from chatGPT (by lauren)
-      path: 'activities',
     consentTest: {
       path: 'consent-test',
       getHref: () => '/app/consent-test',
@@ -60,3 +51,9 @@ export const paths = {
       path: 'activities',
       getHref: () => '/app/activities',
     },
+    goals: {
+      path: 'goals',
+      getHref: () => '/app/goals',
+    },
+  },
+} as const;

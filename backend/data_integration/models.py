@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from django.conf import settings
 from django.db import models
 
@@ -27,3 +28,16 @@ class DataConsent(models.Model):
     def __str__(self):
         status = 'granted' if self.consent_granted else 'revoked'
         return f"{self.user.username} - {self.provider} consent={status}"
+
+
+class FileRecord(models.Model):
+    url_link = models.URLField(max_length=500)
+    file_name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.file_name} ({self.created_at.strftime('%Y-%m-%d %H:%M:%S')})"
+>>>>>>> origin/main

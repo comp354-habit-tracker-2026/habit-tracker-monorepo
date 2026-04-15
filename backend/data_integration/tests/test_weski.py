@@ -508,7 +508,7 @@ class TestWeskiUploadView:
             {"file": self._make_gpx_file()},
             format="multipart",
         )
-        activity = Activity.objects.get(provider="weski", user=user)
+        activity = Activity.objects.get(account__provider="weski", account__user=user)
         assert activity.activity_type == "skiing"
         assert activity.distance > 0
         assert activity.raw_data is not None
