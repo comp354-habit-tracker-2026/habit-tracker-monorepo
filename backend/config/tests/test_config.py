@@ -98,6 +98,8 @@ class ConfigurationConsistencyTests(SimpleTestCase):
 
     def test_database_port_is_valid_port_number(self):
         """Test database PORT is a valid port number."""
+        if not EnvironmentVariableTests.IS_POSTGRES:
+            self.skipTest("Postgres-specific config not active in this environment")
         port = int(settings.DATABASES['default'].get('PORT'))
         self.assertGreaterEqual(port, 1)
         self.assertLessEqual(port, 65535)
