@@ -1,3 +1,5 @@
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 """
 Django settings for config project.
 
@@ -13,6 +15,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -21,7 +24,7 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+load_dotenv()
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -39,19 +42,28 @@ default_allowed_hosts = [
     # backend.<env-hash>.<region>.azurecontainerapps.io
     '.canadacentral.azurecontainerapps.io',
 ]
-
-# Some platforms expose the public hostname through env vars.
-for env_host_var in ('WEBSITE_HOSTNAME', 'CONTAINER_APP_HOSTNAME', 'HOSTNAME'):
-    env_host = os.getenv(env_host_var)
-    if env_host:
-        default_allowed_hosts.append(env_host)
-
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(default_allowed_hosts)).split(',')
-    if host.strip()
+# Collect platform-provided hosts
+platform_hosts = [
+    os.getenv('WEBSITE_HOSTNAME'),
+    os.getenv('CONTAINER_APP_HOSTNAME'),
+    os.getenv('HOSTNAME'),
 ]
 
+# Remove None values
+platform_hosts = [h for h in platform_hosts if h]
+
+env_hosts = os.getenv('DJANGO_ALLOWED_HOSTS')
+
+if env_hosts:
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in env_hosts.split(',')
+        if host.strip()
+    ]
+else:
+    ALLOWED_HOSTS = default_allowed_hosts + [
+        h for h in platform_hosts if h not in default_allowed_hosts
+    ]
 
 # Application definition
 
@@ -116,17 +128,28 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'local')  # local, test, prod
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+if ENVIRONMENT == 'prod':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB'),
+            'USER': os.getenv('POSTGRES_USER'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+            'HOST': os.getenv('POSTGRES_HOST') or 'localhost',
+            'PORT': os.getenv('POSTGRES_PORT') or '5432',
+        }
     }
-}
+
+else:
+    # local + test → SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -186,7 +209,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-<<<<<<< HEAD
 STRAVA_CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
 STRAVA_CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
 
@@ -198,7 +220,3 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
 ]
 CORS_ALLOW_CREDENTIALS = True
-=======
-STRAVA_CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
-STRAVA_CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
->>>>>>> origin/main

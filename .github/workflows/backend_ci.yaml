@@ -19,7 +19,7 @@ jobs:
       DJANGO_DEBUG: ${{ vars.DJANGO_DEBUG }}
       DJANGO_ALLOWED_HOSTS: ${{ vars.DJANGO_ALLOWED_HOSTS }}
       POSTGRES_HOST: ${{ vars.POSTGRES_HOST }}
-      POSTGRES_PORT: ${{ vars.POSTGRES_PORT }}
+      POSTGRES_PORT: ${{ vars.POSTGRES_PORT || '5432' }}
       POSTGRES_DB: ${{ vars.POSTGRES_DB }}
       POSTGRES_USER: ${{ vars.POSTGRES_USER }}
       POSTGRES_IMAGE: ${{ vars.POSTGRES_IMAGE }}
@@ -37,7 +37,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - "${{ vars.POSTGRES_PORT }}:5432"
+          - "${{ vars.POSTGRES_PORT || '5432' }}:5432"
     steps:
       - name: Checkout
         uses: actions/checkout@v5

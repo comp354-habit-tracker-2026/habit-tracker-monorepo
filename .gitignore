@@ -1,11 +1,15 @@
-.venv
+venv/
+.venv/
 .env
 .env.local
 .env.*.local
+.DS_Store
 CLAUDE.md
 
 # Python / Group 14
 __pycache__/
 *.pyc
 dataset-generation/artifacts/
+.DS_Store
+
 .idea

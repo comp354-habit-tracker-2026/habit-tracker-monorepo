@@ -1,25 +1,31 @@
 import importlib
 
+def reload_settings():
+    project_settings = importlib.import_module('config.settings')
+    return importlib.reload(project_settings)
+
 def test_allowed_hosts_include_platform_host_env_vars(monkeypatch):
     """Ensure platform-provided host env vars are appended to default hosts."""
-    host_values = {
-        'WEBSITE_HOSTNAME': 'web.example.com',
-        'CONTAINER_APP_HOSTNAME': 'container.example.com',
-        'HOSTNAME': 'runtime-host',
-    }
-
-    project_settings = importlib.import_module('config.settings')
-
     with monkeypatch.context() as m:
-        m.delenv('DJANGO_ALLOWED_HOSTS', raising=False)
-        for env_name, env_value in host_values.items():
-            m.setenv(env_name, env_value)
+        m.setenv('DJANGO_ALLOWED_HOSTS', 'example.com,api.example.com')
 
-        reloaded_settings = importlib.reload(project_settings)
+        settings = reload_settings()
 
-        for env_value in host_values.values():
-            assert env_value in reloaded_settings.default_allowed_hosts
-            assert env_value in reloaded_settings.ALLOWED_HOSTS
+        assert settings.ALLOWED_HOSTS == ['example.com', 'api.example.com']
 
     # Reload once more after env vars are restored to avoid leaking module state.
-    importlib.reload(project_settings)
+    importlib.reload(settings)
+
+def test_allowed_hosts_env_override(monkeypatch):
+    monkeypatch.setenv('DJANGO_ALLOWED_HOSTS', 'example.com,api.example.com')
+
+    reloaded = importlib.reload(reload_settings())
+
+    assert reloaded.ALLOWED_HOSTS == ['example.com', 'api.example.com']
+
+def test_allowed_hosts_strips_empty_values(monkeypatch):
+    monkeypatch.setenv('DJANGO_ALLOWED_HOSTS', 'example.com,, ,api.example.com')
+
+    reloaded = importlib.reload(reload_settings())
+
+    assert reloaded.ALLOWED_HOSTS == ['example.com', 'api.example.com']
