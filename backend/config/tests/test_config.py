@@ -7,14 +7,16 @@ environment variables and corresponding .env file entries.
 
 import os
 
-from _pytest import unittest
+import unittest
 from django.test import SimpleTestCase
 from django.conf import settings
 
 
 class EnvironmentVariableTests(SimpleTestCase):
     """Test that all environment variables are properly loaded."""
-    IS_POSTGRES = settings.DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql'
+    IS_POSTGRES = (
+            settings.DATABASES.get('default', {}).get('ENGINE') == 'django.db.backends.postgresql'
+    )
 
     def test_django_secret_key_from_env(self):
         """Test DJANGO_SECRET_KEY is loaded from environment."""
