@@ -9,7 +9,7 @@
         "date": {"type": "string", "format": "date-time"},
         "calories": {"type": "integer"}
     },
-    "required": ["external_id", "name", "distance", "raw_data"]
+    "required": ["external_id", "distance", "raw_data"]
 
     
 }
