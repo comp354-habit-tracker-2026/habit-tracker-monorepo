@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-
+from activities.models import Activity
 from core.data import BaseRepository
 
 User = get_user_model()
