@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { env } from '@/config/env';
+import { getAccessToken } from '@/lib/auth';
 
 /**
  * Pre-configured Axios instance.
@@ -15,6 +16,14 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true,
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // ---------------------------------------------------------------------------

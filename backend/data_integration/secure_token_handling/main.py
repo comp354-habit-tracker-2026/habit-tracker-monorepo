@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 # python3 main.py OR python main.py
 # -----------
 # FOR SWAGGER UI:
-# go to this http://127.0.0.1:8000/docs
+# go to this 
 # also the x-api-key in swagger is "group6-test-key"
 
 # Only these providers are allowed

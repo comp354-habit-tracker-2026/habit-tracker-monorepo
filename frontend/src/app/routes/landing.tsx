@@ -19,8 +19,11 @@ function LandingRoute() {
     >
       <h1>Habit Tracker</h1>
       <p>Build better habits, one day at a time.</p>
-      <Link to={paths.app.root.getHref()}>Get started</Link>
-      <Link to={paths.auth.login.getHref()}>Log In</Link>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <Link to={paths.app.root.getHref()}>Get started</Link>
+        <Link to={paths.auth.login.getHref()}>Login</Link>
+        <Link to={paths.auth.register.getHref()}>Register</Link>
+      </div>
     </div>
   );
 }
