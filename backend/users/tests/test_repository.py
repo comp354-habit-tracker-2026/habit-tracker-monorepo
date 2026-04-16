@@ -3,6 +3,7 @@ from django.test import TestCase
 from datetime import date
 from users.data.repositories import UserRepository, VALID_PROVIDERS
 from activities.models import Activity, ConnectedAccount
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -77,3 +78,19 @@ class RepositoryTests(TestCase):
         result = repo.delete_provider_data(user, provider)
 
         self.assertEqual(result['deleted_count'], 0)
+
+    def test_delete_provider_data_filters_by_provider_robust(self):
+        repo = UserRepository()
+        user = self.create_user('test_robust')
+
+        # Mocking VALID_PROVIDERS to ensure we have exactly what we need
+        mock_providers = {'strava', 'garmin'}
+        with patch('users.data.repositories.VALID_PROVIDERS', mock_providers):
+            self.create_activity(user, 'strava')
+            self.create_activity(user, 'garmin')
+
+            repo.delete_provider_data(user, 'strava')
+
+            # This ensures the 'if len(providers) < 2' line is never hit/skipped
+            self.assertEqual(Activity.objects.filter(account__provider='strava').count(), 0)
+            self.assertEqual(Activity.objects.filter(account__provider='garmin').count(), 1)
