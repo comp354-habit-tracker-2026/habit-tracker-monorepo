@@ -54,6 +54,8 @@ class StravaActivityFetcher:
     default_page_size = 30
     max_page_size = 200
     skiing_sport_types = frozenset({"AlpineSki", "BackcountrySki", "NordicSki", "RollerSki"})
+    running_sport_types = frozenset({"Run", "TrailRun", "VirtualRun"})
+    cycling_sport_types = frozenset({"Ride", "MountainBikeRide", "GravelRide"})
 
     def get_all_activities(
         self,
@@ -155,6 +157,42 @@ class StravaActivityFetcher:
             params["before"] = before
 
         return params
+
+    def get_running_activities(
+            self,
+            activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Filters an extracted activity list down to running activities only."""
+        return [
+            activity
+            for activity in activities
+            if activity.sport_type in self.running_sport_types
+        ]
+
+    def getRunningActivities(
+            self,
+            activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Compatibility wrapper for the camelCase method name."""
+        return self.get_running_activities(activities)
+
+    def get_cycling_activities(
+            self,
+            activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Filters an extracted activity list down to outdoor cycling activities only."""
+        return [
+            activity
+            for activity in activities
+            if activity.sport_type in self.cycling_sport_types
+        ]
+
+    def getCyclingActivities(
+            self,
+            activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Compatibility wrapper for the camelCase method name."""
+        return self.get_cycling_activities(activities)
 
     def _request_activities(
         self,

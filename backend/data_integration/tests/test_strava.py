@@ -186,6 +186,26 @@ def test_get_indoor_cycling_activities_filters_virtual_rides():
 
     assert [activity.external_id for activity in activities] == ["10"]
 
+def test_get_running_activities_filters_all_supported_run_types():
+    fetcher = StravaActivityFetcher()
+    run_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 1, "sport_type": "Run"})
+    trail_run_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 2, "sport_type": "TrailRun"})
+    virtual_run_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 3, "sport_type": "VirtualRun"})
+    ski_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 4, "sport_type": "AlpineSki"})
+    activities = [run_activity, trail_run_activity, virtual_run_activity, ski_activity]
+    filtered_activities = fetcher.get_running_activities(activities)
+    assert [activity.external_id for activity in filtered_activities] == ["1", "2", "3"]
+
+
+def test_get_cycling_activities_filters_outdoor_rides():
+    fetcher = StravaActivityFetcher()
+    ride_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 10, "sport_type": "Ride"})
+    mtb_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 11, "sport_type": "MountainBikeRide"})
+    gravel_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 12, "sport_type": "GravelRide"})
+    virtual_ride = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 13, "sport_type": "VirtualRide"})
+    activities = fetcher.getCyclingActivities([ride_activity, mtb_activity, gravel_activity, virtual_ride])
+    assert [activity.external_id for activity in activities] == ["10", "11", "12"]
+
 
 def context_manager(response):
     manager = Mock()
