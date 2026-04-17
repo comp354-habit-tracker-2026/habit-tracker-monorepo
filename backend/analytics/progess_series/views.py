@@ -15,7 +15,7 @@ from analytics.progess_series.service import (
     InvalidGranularityError,
     ProgressSeriesError,
     UnsupportedGoalTypeError,
-    generate_progress_series,
+    get_cached_progress_series,
 )
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class GoalProgressSeriesView(View):
 
     def get(self, request, goal_id: int, *args, **kwargs):
         granularity = request.GET.get("granularity", "daily")
+        provider = request.GET.get("provider") or None
         use_demo = request.GET.get("demo", "false").lower() == "true"
 
         try:
@@ -49,15 +50,18 @@ class GoalProgressSeriesView(View):
                 # goal progress data.
                 goal = Goal.objects.get(id=goal_id)
                 activities = Activity.objects.filter(
-                    user=goal.user,
+                    account__user=goal.user,
                     date__gte=goal.start_date,
                     date__lte=goal.end_date,
                 ).order_by("date")
+                if provider:
+                    activities = activities.filter(account__provider=provider)
 
-            result = generate_progress_series(
+            result = get_cached_progress_series(
                 goal=goal,
                 activities=activities,
                 granularity=granularity,
+                provider=provider,
             )
             return JsonResponse(result.to_dict(), status=200)
 

@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any, Iterable
+
+from .cache import goal_progress_cache
 from .models import ProgressPoint, ProgressSeries
 
 
@@ -174,4 +176,25 @@ def generate_progress_series(
         percent_complete=percent_complete,
         no_data=actual_value == 0,
         points=points,
+    )
+
+
+def get_cached_progress_series(
+    goal: Any,
+    activities: Iterable[Any],
+    granularity: str = "daily",
+    provider: str | None = None,
+) -> ProgressSeries:
+    """Wrap the existing progress calculation in a lightweight in-memory cache."""
+
+    return goal_progress_cache.get_or_compute(
+        goal_id=goal.id,
+        user_id=goal.user_id,
+        granularity=granularity.strip().lower(),
+        provider=provider,
+        producer=lambda: generate_progress_series(
+            goal=goal,
+            activities=activities,
+            granularity=granularity,
+        ),
     )

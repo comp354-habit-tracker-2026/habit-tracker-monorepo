@@ -20,8 +20,10 @@ from analytics.progess_series.service import (
     InvalidGranularityError,
     ProgressSeriesError,
     UnsupportedGoalTypeError,
+    get_cached_progress_series,
     generate_progress_series,
 )
+from analytics.progess_series.cache import GoalProgressCache
 from analytics.progess_series.views import GoalProgressSeriesView
 
 
@@ -256,6 +258,93 @@ class GoalProgressSeriesTests(TestCase):
         self.assertEqual(result.actual_value, 0.0)
         self.assertTrue(result.no_data)
 
+    def test_provider_filter_limits_progress_series(self):
+        Activity.objects.create(
+            activity_type="running",
+            duration=30,
+            date=date(2026, 3, 1),
+            account=self.strava_account,
+            distance=2.5,
+            calories=200,
+        )
+        Activity.objects.create(
+            activity_type="running",
+            duration=40,
+            date=date(2026, 3, 2),
+            account=self.mapmyrun_account,
+            distance=3.5,
+            calories=250,
+        )
+
+        activities = Activity.objects.filter(
+            account__user=self.user,
+            account__provider="strava",
+        ).order_by("date")
+        result = get_cached_progress_series(
+            self.goal,
+            activities,
+            "daily",
+            provider="strava",
+        )
+
+        self.assertEqual(result.actual_value, 2.5)
+        self.assertEqual(result.points[0].value, 2.5)
+        self.assertEqual(result.points[1].value, 0.0)
+
+
+class GoalProgressCacheTests(TestCase):
+    def test_repeated_requests_with_same_key_use_cached_result(self):
+        cache = GoalProgressCache()
+        calls = {"count": 0}
+
+        def producer():
+            calls["count"] += 1
+            return MagicMock()
+
+        first = cache.get_or_compute(
+            goal_id=1,
+            user_id=10,
+            granularity="daily",
+            provider="strava",
+            producer=producer,
+        )
+        second = cache.get_or_compute(
+            goal_id=1,
+            user_id=10,
+            granularity="daily",
+            provider="strava",
+            producer=producer,
+        )
+
+        self.assertEqual(calls["count"], 1)
+        self.assertIsNot(first, second)
+
+    def test_invalidate_for_user_refreshes_cached_entry(self):
+        cache = GoalProgressCache()
+        calls = {"count": 0}
+
+        def producer():
+            calls["count"] += 1
+            return MagicMock()
+
+        cache.get_or_compute(
+            goal_id=1,
+            user_id=10,
+            granularity="daily",
+            provider=None,
+            producer=producer,
+        )
+        cache.invalidate_for_user(10)
+        cache.get_or_compute(
+            goal_id=1,
+            user_id=10,
+            granularity="daily",
+            provider=None,
+            producer=producer,
+        )
+
+        self.assertEqual(calls["count"], 2)
+
 
 class GoalProgressSeriesViewTests(TestCase):
     """Unit tests for GoalProgressSeriesView using RequestFactory."""
@@ -279,7 +368,7 @@ class GoalProgressSeriesViewTests(TestCase):
 
     @patch("analytics.progess_series.views.Goal.objects.get")
     @patch("analytics.progess_series.views.Activity.objects.filter")
-    @patch("analytics.progess_series.views.generate_progress_series")
+    @patch("analytics.progess_series.views.get_cached_progress_series")
     def test_non_demo_success_returns_200(self, mock_gen, mock_filter, mock_get):
         mock_result = MagicMock()
         mock_result.to_dict.return_value = {"points": []}
@@ -295,7 +384,7 @@ class GoalProgressSeriesViewTests(TestCase):
 
     @patch("analytics.progess_series.views.Goal.objects.get")
     @patch("analytics.progess_series.views.Activity.objects.filter")
-    @patch("analytics.progess_series.views.generate_progress_series", side_effect=InvalidGranularityError("bad"))
+    @patch("analytics.progess_series.views.get_cached_progress_series", side_effect=InvalidGranularityError("bad"))
     def test_invalid_granularity_returns_400(self, mock_gen, mock_filter, mock_get):
         mock_filter.return_value.order_by.return_value = []
         response = self._get(goal_id=1)
@@ -303,7 +392,7 @@ class GoalProgressSeriesViewTests(TestCase):
 
     @patch("analytics.progess_series.views.Goal.objects.get")
     @patch("analytics.progess_series.views.Activity.objects.filter")
-    @patch("analytics.progess_series.views.generate_progress_series", side_effect=UnsupportedGoalTypeError("bad"))
+    @patch("analytics.progess_series.views.get_cached_progress_series", side_effect=UnsupportedGoalTypeError("bad"))
     def test_unsupported_goal_type_returns_400(self, mock_gen, mock_filter, mock_get):
         mock_filter.return_value.order_by.return_value = []
         response = self._get(goal_id=1)
@@ -311,7 +400,7 @@ class GoalProgressSeriesViewTests(TestCase):
 
     @patch("analytics.progess_series.views.Goal.objects.get")
     @patch("analytics.progess_series.views.Activity.objects.filter")
-    @patch("analytics.progess_series.views.generate_progress_series", side_effect=ProgressSeriesError("bad"))
+    @patch("analytics.progess_series.views.get_cached_progress_series", side_effect=ProgressSeriesError("bad"))
     def test_progress_series_error_returns_400(self, mock_gen, mock_filter, mock_get):
         mock_filter.return_value.order_by.return_value = []
         response = self._get(goal_id=1)
@@ -319,8 +408,40 @@ class GoalProgressSeriesViewTests(TestCase):
 
     @patch("analytics.progess_series.views.Goal.objects.get")
     @patch("analytics.progess_series.views.Activity.objects.filter")
-    @patch("analytics.progess_series.views.generate_progress_series", side_effect=RuntimeError("unexpected"))
+    @patch("analytics.progess_series.views.get_cached_progress_series", side_effect=RuntimeError("unexpected"))
     def test_unexpected_error_returns_500(self, mock_gen, mock_filter, mock_get):
         mock_filter.return_value.order_by.return_value = []
         response = self._get(goal_id=1)
         self.assertEqual(response.status_code, 500)
+
+    @patch("analytics.progess_series.views.Goal.objects.get")
+    def test_provider_filter_is_applied(self, mock_get):
+        mock_goal = MagicMock()
+        mock_goal.user = MagicMock()
+        mock_goal.start_date = date(2026, 3, 1)
+        mock_goal.end_date = date(2026, 3, 7)
+        mock_get.return_value = mock_goal
+
+        with patch("analytics.progess_series.views.Activity.objects.filter") as mock_filter:
+            queryset = MagicMock()
+            ordered_queryset = MagicMock()
+            filtered_queryset = MagicMock()
+            mock_filter.return_value = queryset
+            queryset.order_by.return_value = ordered_queryset
+            ordered_queryset.filter.return_value = filtered_queryset
+
+            with patch("analytics.progess_series.views.get_cached_progress_series") as mock_cached:
+                mock_result = MagicMock()
+                mock_result.to_dict.return_value = {"points": []}
+                mock_cached.return_value = mock_result
+
+                response = self._get(goal_id=1, provider="strava")
+
+        self.assertEqual(response.status_code, 200)
+        ordered_queryset.filter.assert_called_once_with(account__provider="strava")
+        mock_cached.assert_called_once_with(
+            goal=mock_goal,
+            activities=filtered_queryset,
+            granularity="daily",
+            provider="strava",
+        )
