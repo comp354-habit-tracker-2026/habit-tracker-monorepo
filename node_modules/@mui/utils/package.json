@@ -1,0 +1,868 @@
+{
+  "name": "@mui/utils",
+  "version": "9.0.0",
+  "author": "MUI Team",
+  "description": "Utility functions for React components.",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "react-component",
+    "mui",
+    "utils"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mui/material-ui.git",
+    "directory": "packages/mui-utils"
+  },
+  "bugs": {
+    "url": "https://github.com/mui/material-ui/issues"
+  },
+  "homepage": "https://github.com/mui/material-ui/tree/master/packages/mui-utils",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/mui-org"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.29.2",
+    "@types/prop-types": "^15.7.15",
+    "clsx": "^2.1.1",
+    "prop-types": "^15.8.1",
+    "react-is": "^19.2.4",
+    "@mui/types": "^9.0.0"
+  },
+  "peerDependencies": {
+    "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "type": "commonjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./index.d.mts",
+        "default": "./index.mjs"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "default": {
+        "types": "./index.d.mts",
+        "default": "./index.mjs"
+      }
+    },
+    "./ClassNameGenerator": {
+      "import": {
+        "types": "./ClassNameGenerator/index.d.mts",
+        "default": "./ClassNameGenerator/index.mjs"
+      },
+      "require": {
+        "types": "./ClassNameGenerator/index.d.ts",
+        "default": "./ClassNameGenerator/index.js"
+      },
+      "default": {
+        "types": "./ClassNameGenerator/index.d.mts",
+        "default": "./ClassNameGenerator/index.mjs"
+      }
+    },
+    "./HTMLElementType": {
+      "import": {
+        "types": "./HTMLElementType/index.d.mts",
+        "default": "./HTMLElementType/index.mjs"
+      },
+      "require": {
+        "types": "./HTMLElementType/index.d.ts",
+        "default": "./HTMLElementType/index.js"
+      },
+      "default": {
+        "types": "./HTMLElementType/index.d.mts",
+        "default": "./HTMLElementType/index.mjs"
+      }
+    },
+    "./appendOwnerState": {
+      "import": {
+        "types": "./appendOwnerState/index.d.mts",
+        "default": "./appendOwnerState/index.mjs"
+      },
+      "require": {
+        "types": "./appendOwnerState/index.d.ts",
+        "default": "./appendOwnerState/index.js"
+      },
+      "default": {
+        "types": "./appendOwnerState/index.d.mts",
+        "default": "./appendOwnerState/index.mjs"
+      }
+    },
+    "./capitalize": {
+      "import": {
+        "types": "./capitalize/index.d.mts",
+        "default": "./capitalize/index.mjs"
+      },
+      "require": {
+        "types": "./capitalize/index.d.ts",
+        "default": "./capitalize/index.js"
+      },
+      "default": {
+        "types": "./capitalize/index.d.mts",
+        "default": "./capitalize/index.mjs"
+      }
+    },
+    "./chainPropTypes": {
+      "import": {
+        "types": "./chainPropTypes/index.d.mts",
+        "default": "./chainPropTypes/index.mjs"
+      },
+      "require": {
+        "types": "./chainPropTypes/index.d.ts",
+        "default": "./chainPropTypes/index.js"
+      },
+      "default": {
+        "types": "./chainPropTypes/index.d.mts",
+        "default": "./chainPropTypes/index.mjs"
+      }
+    },
+    "./clamp": {
+      "import": {
+        "types": "./clamp/index.d.mts",
+        "default": "./clamp/index.mjs"
+      },
+      "require": {
+        "types": "./clamp/index.d.ts",
+        "default": "./clamp/index.js"
+      },
+      "default": {
+        "types": "./clamp/index.d.mts",
+        "default": "./clamp/index.mjs"
+      }
+    },
+    "./composeClasses": {
+      "import": {
+        "types": "./composeClasses/index.d.mts",
+        "default": "./composeClasses/index.mjs"
+      },
+      "require": {
+        "types": "./composeClasses/index.d.ts",
+        "default": "./composeClasses/index.js"
+      },
+      "default": {
+        "types": "./composeClasses/index.d.mts",
+        "default": "./composeClasses/index.mjs"
+      }
+    },
+    "./createChainedFunction": {
+      "import": {
+        "types": "./createChainedFunction/index.d.mts",
+        "default": "./createChainedFunction/index.mjs"
+      },
+      "require": {
+        "types": "./createChainedFunction/index.d.ts",
+        "default": "./createChainedFunction/index.js"
+      },
+      "default": {
+        "types": "./createChainedFunction/index.d.mts",
+        "default": "./createChainedFunction/index.mjs"
+      }
+    },
+    "./debounce": {
+      "import": {
+        "types": "./debounce/index.d.mts",
+        "default": "./debounce/index.mjs"
+      },
+      "require": {
+        "types": "./debounce/index.d.ts",
+        "default": "./debounce/index.js"
+      },
+      "default": {
+        "types": "./debounce/index.d.mts",
+        "default": "./debounce/index.mjs"
+      }
+    },
+    "./deepmerge": {
+      "import": {
+        "types": "./deepmerge/index.d.mts",
+        "default": "./deepmerge/index.mjs"
+      },
+      "require": {
+        "types": "./deepmerge/index.d.ts",
+        "default": "./deepmerge/index.js"
+      },
+      "default": {
+        "types": "./deepmerge/index.d.mts",
+        "default": "./deepmerge/index.mjs"
+      }
+    },
+    "./deprecatedPropType": {
+      "import": {
+        "types": "./deprecatedPropType/index.d.mts",
+        "default": "./deprecatedPropType/index.mjs"
+      },
+      "require": {
+        "types": "./deprecatedPropType/index.d.ts",
+        "default": "./deprecatedPropType/index.js"
+      },
+      "default": {
+        "types": "./deprecatedPropType/index.d.mts",
+        "default": "./deprecatedPropType/index.mjs"
+      }
+    },
+    "./elementAcceptingRef": {
+      "import": {
+        "types": "./elementAcceptingRef/index.d.mts",
+        "default": "./elementAcceptingRef/index.mjs"
+      },
+      "require": {
+        "types": "./elementAcceptingRef/index.d.ts",
+        "default": "./elementAcceptingRef/index.js"
+      },
+      "default": {
+        "types": "./elementAcceptingRef/index.d.mts",
+        "default": "./elementAcceptingRef/index.mjs"
+      }
+    },
+    "./elementTypeAcceptingRef": {
+      "import": {
+        "types": "./elementTypeAcceptingRef/index.d.mts",
+        "default": "./elementTypeAcceptingRef/index.mjs"
+      },
+      "require": {
+        "types": "./elementTypeAcceptingRef/index.d.ts",
+        "default": "./elementTypeAcceptingRef/index.js"
+      },
+      "default": {
+        "types": "./elementTypeAcceptingRef/index.d.mts",
+        "default": "./elementTypeAcceptingRef/index.mjs"
+      }
+    },
+    "./exactProp": {
+      "import": {
+        "types": "./exactProp/index.d.mts",
+        "default": "./exactProp/index.mjs"
+      },
+      "require": {
+        "types": "./exactProp/index.d.ts",
+        "default": "./exactProp/index.js"
+      },
+      "default": {
+        "types": "./exactProp/index.d.mts",
+        "default": "./exactProp/index.mjs"
+      }
+    },
+    "./extractEventHandlers": {
+      "import": {
+        "types": "./extractEventHandlers/index.d.mts",
+        "default": "./extractEventHandlers/index.mjs"
+      },
+      "require": {
+        "types": "./extractEventHandlers/index.d.ts",
+        "default": "./extractEventHandlers/index.js"
+      },
+      "default": {
+        "types": "./extractEventHandlers/index.d.mts",
+        "default": "./extractEventHandlers/index.mjs"
+      }
+    },
+    "./fastDeepAssign": {
+      "import": {
+        "types": "./fastDeepAssign/index.d.mts",
+        "default": "./fastDeepAssign/index.mjs"
+      },
+      "require": {
+        "types": "./fastDeepAssign/index.d.ts",
+        "default": "./fastDeepAssign/index.js"
+      },
+      "default": {
+        "types": "./fastDeepAssign/index.d.mts",
+        "default": "./fastDeepAssign/index.mjs"
+      }
+    },
+    "./fastObjectShallowCompare": {
+      "import": {
+        "types": "./fastObjectShallowCompare/index.d.mts",
+        "default": "./fastObjectShallowCompare/index.mjs"
+      },
+      "require": {
+        "types": "./fastObjectShallowCompare/index.d.ts",
+        "default": "./fastObjectShallowCompare/index.js"
+      },
+      "default": {
+        "types": "./fastObjectShallowCompare/index.d.mts",
+        "default": "./fastObjectShallowCompare/index.mjs"
+      }
+    },
+    "./formatMuiErrorMessage": {
+      "import": {
+        "types": "./formatMuiErrorMessage/index.d.mts",
+        "default": "./formatMuiErrorMessage/index.mjs"
+      },
+      "require": {
+        "types": "./formatMuiErrorMessage/index.d.ts",
+        "default": "./formatMuiErrorMessage/index.js"
+      },
+      "default": {
+        "types": "./formatMuiErrorMessage/index.d.mts",
+        "default": "./formatMuiErrorMessage/index.mjs"
+      }
+    },
+    "./generateUtilityClass": {
+      "import": {
+        "types": "./generateUtilityClass/index.d.mts",
+        "default": "./generateUtilityClass/index.mjs"
+      },
+      "require": {
+        "types": "./generateUtilityClass/index.d.ts",
+        "default": "./generateUtilityClass/index.js"
+      },
+      "default": {
+        "types": "./generateUtilityClass/index.d.mts",
+        "default": "./generateUtilityClass/index.mjs"
+      }
+    },
+    "./generateUtilityClasses": {
+      "import": {
+        "types": "./generateUtilityClasses/index.d.mts",
+        "default": "./generateUtilityClasses/index.mjs"
+      },
+      "require": {
+        "types": "./generateUtilityClasses/index.d.ts",
+        "default": "./generateUtilityClasses/index.js"
+      },
+      "default": {
+        "types": "./generateUtilityClasses/index.d.mts",
+        "default": "./generateUtilityClasses/index.mjs"
+      }
+    },
+    "./getActiveElement": {
+      "import": {
+        "types": "./getActiveElement/index.d.mts",
+        "default": "./getActiveElement/index.mjs"
+      },
+      "require": {
+        "types": "./getActiveElement/index.d.ts",
+        "default": "./getActiveElement/index.js"
+      },
+      "default": {
+        "types": "./getActiveElement/index.d.mts",
+        "default": "./getActiveElement/index.mjs"
+      }
+    },
+    "./getDisplayName": {
+      "import": {
+        "types": "./getDisplayName/index.d.mts",
+        "default": "./getDisplayName/index.mjs"
+      },
+      "require": {
+        "types": "./getDisplayName/index.d.ts",
+        "default": "./getDisplayName/index.js"
+      },
+      "default": {
+        "types": "./getDisplayName/index.d.mts",
+        "default": "./getDisplayName/index.mjs"
+      }
+    },
+    "./getReactElementRef": {
+      "import": {
+        "types": "./getReactElementRef/index.d.mts",
+        "default": "./getReactElementRef/index.mjs"
+      },
+      "require": {
+        "types": "./getReactElementRef/index.d.ts",
+        "default": "./getReactElementRef/index.js"
+      },
+      "default": {
+        "types": "./getReactElementRef/index.d.mts",
+        "default": "./getReactElementRef/index.mjs"
+      }
+    },
+    "./getReactNodeRef": {
+      "import": {
+        "types": "./getReactNodeRef/index.d.mts",
+        "default": "./getReactNodeRef/index.mjs"
+      },
+      "require": {
+        "types": "./getReactNodeRef/index.d.ts",
+        "default": "./getReactNodeRef/index.js"
+      },
+      "default": {
+        "types": "./getReactNodeRef/index.d.mts",
+        "default": "./getReactNodeRef/index.mjs"
+      }
+    },
+    "./getScrollbarSize": {
+      "import": {
+        "types": "./getScrollbarSize/index.d.mts",
+        "default": "./getScrollbarSize/index.mjs"
+      },
+      "require": {
+        "types": "./getScrollbarSize/index.d.ts",
+        "default": "./getScrollbarSize/index.js"
+      },
+      "default": {
+        "types": "./getScrollbarSize/index.d.mts",
+        "default": "./getScrollbarSize/index.mjs"
+      }
+    },
+    "./getValidReactChildren": {
+      "import": {
+        "types": "./getValidReactChildren/index.d.mts",
+        "default": "./getValidReactChildren/index.mjs"
+      },
+      "require": {
+        "types": "./getValidReactChildren/index.d.ts",
+        "default": "./getValidReactChildren/index.js"
+      },
+      "default": {
+        "types": "./getValidReactChildren/index.d.mts",
+        "default": "./getValidReactChildren/index.mjs"
+      }
+    },
+    "./integerPropType": {
+      "import": {
+        "types": "./integerPropType/index.d.mts",
+        "default": "./integerPropType/index.mjs"
+      },
+      "require": {
+        "types": "./integerPropType/index.d.ts",
+        "default": "./integerPropType/index.js"
+      },
+      "default": {
+        "types": "./integerPropType/index.d.mts",
+        "default": "./integerPropType/index.mjs"
+      }
+    },
+    "./isFocusVisible": {
+      "import": {
+        "types": "./isFocusVisible/index.d.mts",
+        "default": "./isFocusVisible/index.mjs"
+      },
+      "require": {
+        "types": "./isFocusVisible/index.d.ts",
+        "default": "./isFocusVisible/index.js"
+      },
+      "default": {
+        "types": "./isFocusVisible/index.d.mts",
+        "default": "./isFocusVisible/index.mjs"
+      }
+    },
+    "./isHostComponent": {
+      "import": {
+        "types": "./isHostComponent/index.d.mts",
+        "default": "./isHostComponent/index.mjs"
+      },
+      "require": {
+        "types": "./isHostComponent/index.d.ts",
+        "default": "./isHostComponent/index.js"
+      },
+      "default": {
+        "types": "./isHostComponent/index.d.mts",
+        "default": "./isHostComponent/index.mjs"
+      }
+    },
+    "./isMuiElement": {
+      "import": {
+        "types": "./isMuiElement/index.d.mts",
+        "default": "./isMuiElement/index.mjs"
+      },
+      "require": {
+        "types": "./isMuiElement/index.d.ts",
+        "default": "./isMuiElement/index.js"
+      },
+      "default": {
+        "types": "./isMuiElement/index.d.mts",
+        "default": "./isMuiElement/index.mjs"
+      }
+    },
+    "./isObjectEmpty": {
+      "import": {
+        "types": "./isObjectEmpty/index.d.mts",
+        "default": "./isObjectEmpty/index.mjs"
+      },
+      "require": {
+        "types": "./isObjectEmpty/index.d.ts",
+        "default": "./isObjectEmpty/index.js"
+      },
+      "default": {
+        "types": "./isObjectEmpty/index.d.mts",
+        "default": "./isObjectEmpty/index.mjs"
+      }
+    },
+    "./mergeSlotProps": {
+      "import": {
+        "types": "./mergeSlotProps/index.d.mts",
+        "default": "./mergeSlotProps/index.mjs"
+      },
+      "require": {
+        "types": "./mergeSlotProps/index.d.ts",
+        "default": "./mergeSlotProps/index.js"
+      },
+      "default": {
+        "types": "./mergeSlotProps/index.d.mts",
+        "default": "./mergeSlotProps/index.mjs"
+      }
+    },
+    "./omitEventHandlers": {
+      "import": {
+        "types": "./omitEventHandlers/index.d.mts",
+        "default": "./omitEventHandlers/index.mjs"
+      },
+      "require": {
+        "types": "./omitEventHandlers/index.d.ts",
+        "default": "./omitEventHandlers/index.js"
+      },
+      "default": {
+        "types": "./omitEventHandlers/index.d.mts",
+        "default": "./omitEventHandlers/index.mjs"
+      }
+    },
+    "./ownerDocument": {
+      "import": {
+        "types": "./ownerDocument/index.d.mts",
+        "default": "./ownerDocument/index.mjs"
+      },
+      "require": {
+        "types": "./ownerDocument/index.d.ts",
+        "default": "./ownerDocument/index.js"
+      },
+      "default": {
+        "types": "./ownerDocument/index.d.mts",
+        "default": "./ownerDocument/index.mjs"
+      }
+    },
+    "./ownerWindow": {
+      "import": {
+        "types": "./ownerWindow/index.d.mts",
+        "default": "./ownerWindow/index.mjs"
+      },
+      "require": {
+        "types": "./ownerWindow/index.d.ts",
+        "default": "./ownerWindow/index.js"
+      },
+      "default": {
+        "types": "./ownerWindow/index.d.mts",
+        "default": "./ownerWindow/index.mjs"
+      }
+    },
+    "./ponyfillGlobal": {
+      "import": {
+        "types": "./ponyfillGlobal/index.d.mts",
+        "default": "./ponyfillGlobal/index.mjs"
+      },
+      "require": {
+        "types": "./ponyfillGlobal/index.d.ts",
+        "default": "./ponyfillGlobal/index.js"
+      },
+      "default": {
+        "types": "./ponyfillGlobal/index.d.mts",
+        "default": "./ponyfillGlobal/index.mjs"
+      }
+    },
+    "./refType": {
+      "import": {
+        "types": "./refType/index.d.mts",
+        "default": "./refType/index.mjs"
+      },
+      "require": {
+        "types": "./refType/index.d.ts",
+        "default": "./refType/index.js"
+      },
+      "default": {
+        "types": "./refType/index.d.mts",
+        "default": "./refType/index.mjs"
+      }
+    },
+    "./requirePropFactory": {
+      "import": {
+        "types": "./requirePropFactory/index.d.mts",
+        "default": "./requirePropFactory/index.mjs"
+      },
+      "require": {
+        "types": "./requirePropFactory/index.d.ts",
+        "default": "./requirePropFactory/index.js"
+      },
+      "default": {
+        "types": "./requirePropFactory/index.d.mts",
+        "default": "./requirePropFactory/index.mjs"
+      }
+    },
+    "./resolveComponentProps": {
+      "import": {
+        "types": "./resolveComponentProps/index.d.mts",
+        "default": "./resolveComponentProps/index.mjs"
+      },
+      "require": {
+        "types": "./resolveComponentProps/index.d.ts",
+        "default": "./resolveComponentProps/index.js"
+      },
+      "default": {
+        "types": "./resolveComponentProps/index.d.mts",
+        "default": "./resolveComponentProps/index.mjs"
+      }
+    },
+    "./resolveProps": {
+      "import": {
+        "types": "./resolveProps/index.d.mts",
+        "default": "./resolveProps/index.mjs"
+      },
+      "require": {
+        "types": "./resolveProps/index.d.ts",
+        "default": "./resolveProps/index.js"
+      },
+      "default": {
+        "types": "./resolveProps/index.d.mts",
+        "default": "./resolveProps/index.mjs"
+      }
+    },
+    "./setRef": {
+      "import": {
+        "types": "./setRef/index.d.mts",
+        "default": "./setRef/index.mjs"
+      },
+      "require": {
+        "types": "./setRef/index.d.ts",
+        "default": "./setRef/index.js"
+      },
+      "default": {
+        "types": "./setRef/index.d.mts",
+        "default": "./setRef/index.mjs"
+      }
+    },
+    "./types": {
+      "import": {
+        "types": "./types/index.d.mts",
+        "default": "./types/index.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./types/index.js"
+      },
+      "default": {
+        "types": "./types/index.d.mts",
+        "default": "./types/index.mjs"
+      }
+    },
+    "./unsupportedProp": {
+      "import": {
+        "types": "./unsupportedProp/index.d.mts",
+        "default": "./unsupportedProp/index.mjs"
+      },
+      "require": {
+        "types": "./unsupportedProp/index.d.ts",
+        "default": "./unsupportedProp/index.js"
+      },
+      "default": {
+        "types": "./unsupportedProp/index.d.mts",
+        "default": "./unsupportedProp/index.mjs"
+      }
+    },
+    "./useControlled": {
+      "import": {
+        "types": "./useControlled/index.d.mts",
+        "default": "./useControlled/index.mjs"
+      },
+      "require": {
+        "types": "./useControlled/index.d.ts",
+        "default": "./useControlled/index.js"
+      },
+      "default": {
+        "types": "./useControlled/index.d.mts",
+        "default": "./useControlled/index.mjs"
+      }
+    },
+    "./useEnhancedEffect": {
+      "import": {
+        "types": "./useEnhancedEffect/index.d.mts",
+        "default": "./useEnhancedEffect/index.mjs"
+      },
+      "require": {
+        "types": "./useEnhancedEffect/index.d.ts",
+        "default": "./useEnhancedEffect/index.js"
+      },
+      "default": {
+        "types": "./useEnhancedEffect/index.d.mts",
+        "default": "./useEnhancedEffect/index.mjs"
+      }
+    },
+    "./useEventCallback": {
+      "import": {
+        "types": "./useEventCallback/index.d.mts",
+        "default": "./useEventCallback/index.mjs"
+      },
+      "require": {
+        "types": "./useEventCallback/index.d.ts",
+        "default": "./useEventCallback/index.js"
+      },
+      "default": {
+        "types": "./useEventCallback/index.d.mts",
+        "default": "./useEventCallback/index.mjs"
+      }
+    },
+    "./useForkRef": {
+      "import": {
+        "types": "./useForkRef/index.d.mts",
+        "default": "./useForkRef/index.mjs"
+      },
+      "require": {
+        "types": "./useForkRef/index.d.ts",
+        "default": "./useForkRef/index.js"
+      },
+      "default": {
+        "types": "./useForkRef/index.d.mts",
+        "default": "./useForkRef/index.mjs"
+      }
+    },
+    "./useId": {
+      "import": {
+        "types": "./useId/index.d.mts",
+        "default": "./useId/index.mjs"
+      },
+      "require": {
+        "types": "./useId/index.d.ts",
+        "default": "./useId/index.js"
+      },
+      "default": {
+        "types": "./useId/index.d.mts",
+        "default": "./useId/index.mjs"
+      }
+    },
+    "./useIsFocusVisible": {
+      "import": {
+        "types": "./useIsFocusVisible/index.d.mts",
+        "default": "./useIsFocusVisible/index.mjs"
+      },
+      "require": {
+        "types": "./useIsFocusVisible/index.d.ts",
+        "default": "./useIsFocusVisible/index.js"
+      },
+      "default": {
+        "types": "./useIsFocusVisible/index.d.mts",
+        "default": "./useIsFocusVisible/index.mjs"
+      }
+    },
+    "./useLazyRef": {
+      "import": {
+        "types": "./useLazyRef/index.d.mts",
+        "default": "./useLazyRef/index.mjs"
+      },
+      "require": {
+        "types": "./useLazyRef/index.d.ts",
+        "default": "./useLazyRef/index.js"
+      },
+      "default": {
+        "types": "./useLazyRef/index.d.mts",
+        "default": "./useLazyRef/index.mjs"
+      }
+    },
+    "./useLocalStorageState": {
+      "import": {
+        "types": "./useLocalStorageState/index.d.mts",
+        "default": "./useLocalStorageState/index.mjs"
+      },
+      "require": {
+        "types": "./useLocalStorageState/index.d.ts",
+        "default": "./useLocalStorageState/index.js"
+      },
+      "default": {
+        "types": "./useLocalStorageState/index.d.mts",
+        "default": "./useLocalStorageState/index.mjs"
+      }
+    },
+    "./useOnMount": {
+      "import": {
+        "types": "./useOnMount/index.d.mts",
+        "default": "./useOnMount/index.mjs"
+      },
+      "require": {
+        "types": "./useOnMount/index.d.ts",
+        "default": "./useOnMount/index.js"
+      },
+      "default": {
+        "types": "./useOnMount/index.d.mts",
+        "default": "./useOnMount/index.mjs"
+      }
+    },
+    "./usePreviousProps": {
+      "import": {
+        "types": "./usePreviousProps/index.d.mts",
+        "default": "./usePreviousProps/index.mjs"
+      },
+      "require": {
+        "types": "./usePreviousProps/index.d.ts",
+        "default": "./usePreviousProps/index.js"
+      },
+      "default": {
+        "types": "./usePreviousProps/index.d.mts",
+        "default": "./usePreviousProps/index.mjs"
+      }
+    },
+    "./useRovingTabIndex": {
+      "import": {
+        "types": "./useRovingTabIndex/index.d.mts",
+        "default": "./useRovingTabIndex/index.mjs"
+      },
+      "require": {
+        "types": "./useRovingTabIndex/index.d.ts",
+        "default": "./useRovingTabIndex/index.js"
+      },
+      "default": {
+        "types": "./useRovingTabIndex/index.d.mts",
+        "default": "./useRovingTabIndex/index.mjs"
+      }
+    },
+    "./useSlotProps": {
+      "import": {
+        "types": "./useSlotProps/index.d.mts",
+        "default": "./useSlotProps/index.mjs"
+      },
+      "require": {
+        "types": "./useSlotProps/index.d.ts",
+        "default": "./useSlotProps/index.js"
+      },
+      "default": {
+        "types": "./useSlotProps/index.d.mts",
+        "default": "./useSlotProps/index.mjs"
+      }
+    },
+    "./useTimeout": {
+      "import": {
+        "types": "./useTimeout/index.d.mts",
+        "default": "./useTimeout/index.mjs"
+      },
+      "require": {
+        "types": "./useTimeout/index.d.ts",
+        "default": "./useTimeout/index.js"
+      },
+      "default": {
+        "types": "./useTimeout/index.d.mts",
+        "default": "./useTimeout/index.mjs"
+      }
+    },
+    "./visuallyHidden": {
+      "import": {
+        "types": "./visuallyHidden/index.d.mts",
+        "default": "./visuallyHidden/index.mjs"
+      },
+      "require": {
+        "types": "./visuallyHidden/index.d.ts",
+        "default": "./visuallyHidden/index.js"
+      },
+      "default": {
+        "types": "./visuallyHidden/index.d.mts",
+        "default": "./visuallyHidden/index.mjs"
+      }
+    }
+  },
+  "main": "./index.js",
+  "types": "./index.d.ts"
+}

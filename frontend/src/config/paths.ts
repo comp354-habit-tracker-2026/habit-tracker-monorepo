@@ -52,6 +52,10 @@ export const paths = {
       path:'goals',
       getHref: ()=>'/app/goals'
     },
+    consentTest: {
+      path: 'consent-test',
+      getHref: () => '/app/consent-test',
+    },
   },
 } as const;
 

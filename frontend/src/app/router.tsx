@@ -54,8 +54,12 @@ function createAppRouter() {
         lazy: () => lazyRoute(() => import('./routes/app/activities')),
         },
         {
-        path: paths.app.goals.path,//added for goals
-        lazy: () => lazyRoute(()=> import('./routes/app/goals')),
+          path: paths.app.goals.path,//added for goals
+          lazy: () => lazyRoute(()=> import('./routes/app/goals')),
+        },
+        {
+          path: paths.app.consentTest.path,
+          lazy: () => lazyRoute(() => import('./routes/app/consent-test')),
         },
         {
           path: paths.app.profile.path,

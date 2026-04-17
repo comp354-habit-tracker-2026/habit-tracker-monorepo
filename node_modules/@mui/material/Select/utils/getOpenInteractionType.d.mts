@@ -1,0 +1,1 @@
+export default function getOpenInteractionType(event: MouseEvent | KeyboardEvent | TouchEvent | PointerEvent | null): 'keyboard' | 'pointer' | null;
