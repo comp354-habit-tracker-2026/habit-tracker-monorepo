@@ -1,8 +1,14 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.exceptions import AuthenticationFailed
+
 
 from users.serializers import RegisterSerializer, ProfileUpdateSerializer
+from users.business.services import UserRegistrationService
 
 User = get_user_model()
 
@@ -25,3 +31,27 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         # Requirement: Users can only update their own profile.
         # This returns the user associated with the JWT token.
         return self.request.user
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Overrides SimpleJWT login to add account lockout tracking.
+    """
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.service = UserRegistrationService()
+
+    def post(self, request, *args, **kwargs):
+        username = request.data.get("username")
+
+        self.service.check_lockout(username)
+
+        try:
+            response = super().post(request, *args, **kwargs)
+            self.service.record_successful_login(username)
+            return response
+
+        except (InvalidToken, TokenError, AuthenticationFailed):  # added AuthenticationFailed
+            self.service.record_failed_attempt(username)
+            raise
