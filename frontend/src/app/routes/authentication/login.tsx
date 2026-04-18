@@ -1,15 +1,26 @@
 //code from https://www.youtube.com/watch?v=X3qyxo_UTR4&t=763s
+//https://github.com/gitdagray/react_login_form
 //error help from ChatGPT
-//npm install react-hook-form
-//npm list react-hook-form
+//err help from https://stackoverflow.com/questions/60151181/object-is-of-type-unknown-typescript-generics
 import { Link } from 'react-router';
 import { paths } from '@/config/paths';
+
+//comp Concordiacomp354
+// "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3Njk4NjQzNiwiaWF0IjoxNzc2MzgxNjM2LCJqdGkiOiI2MDkxYTA5NTVhZDY0NDcyODgwNmQ4MzJlY2UxMDllMyIsInVzZXJfaWQiOiIzIn0.GPSIr6KeEwHt9UhVBpfxoJH29arRNnfjMz1ud0qIrjo",
+//   "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2Mzg1MjM2LCJpYXQiOjE3NzYzODE2MzYsImp0aSI6ImU1MmFmNGZjODdkODQwYzFiNGE2NjVmOTVhZWIzNzk2IiwidXNlcl9pZCI6IjMifQ.JGki7Gj56OgQg0DClqCXk9wh9JjXxrZAzxdG_czjQt0"
+
+//testuser TestPass123
+// {
+//   "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc3Njk4NjgzMCwiaWF0IjoxNzc2MzgyMDMwLCJqdGkiOiIxYmQ1YTRiOTU1YzA0ZGVlODJkNzFkNjliNWU1YWFiYyIsInVzZXJfaWQiOiIxIn0.jV7Ux4f7ns1uOUbq36uVPqE6UM_dqj-EF3xFTZ2cN2s",
+//   "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzc2Mzg1NjMwLCJpYXQiOjE3NzYzODIwMzAsImp0aSI6ImVhNDRiNzU5YzJjNDQ2MDdhNjJjNzY3ZGEzZjAyYjI4IiwidXNlcl9pZCI6IjEifQ.Grai8GgIydvSdpR0ZgYzR4oQ7B0RD_WZ_7auHdf9fkg"
+// }
 
 //import React from "react";
 import { useRef, useState, useEffect} from 'react';
 //import { useRef, useState, useEffect, useContext } from 'react';
 //import AuthContext from '../context/auth-provider';
 // import axiosCreate from '.api/axiosCreate';
+// import { apiClient } from '@/lib/api-client';
 // const LOGIN_URL = '/auth';
 
 const Login = () => {
@@ -26,6 +37,7 @@ const Login = () => {
   }, [])
   
   //(e)
+  //chat
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setUser('');
@@ -35,22 +47,24 @@ const Login = () => {
     // try {
     //   const response = await axiosCreate.post(LOGIN_URL, 
     //     {user, pwd},
+    //   const response = await apiClient.post(LOGIN_URL, 
+    //     {user, pwd},
     //     //JSON.stringify({userName: user, passWord: pwd})) 
     //   {
     //     headers: { 'Content-Type': 'application/json'},
     //     withCredentials: true
     //   }
     //   );
-    //   console.log(JSON.stringify(response?.data));
+    //   console.log(JSON.stringify(response?.data)); //chat
     //   //console.log(JSON.stringify(response));
     //   const accessToken = response?.data?.accessToken;
-    //   const roles = response?.data?.roles;
+    //   const roles = response?.data?.roles; //chat
     //   setAuth({ user, pwd, roles, accessToken });      
     //   setUser('');
     //   setPwd('');
     //   setSuccess(true);
     // } catch (err) {
-    //   if (axiosCreate.isAxiosError(err)) {
+    //   if (err instanceof Error) {
     //     if (!err.response) {
     //       setErrMsg("No Server Response");
     //     } else if (err.response.status === 400) {

@@ -27,6 +27,7 @@ export type PaginatedResponse<T> = {
 
 export type User = {
   id: string;
+  password: string; //add password var
   email: string;
   firstName: string;
   lastName: string;

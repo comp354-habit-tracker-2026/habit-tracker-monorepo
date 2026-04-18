@@ -1,5 +1,13 @@
+//copy
+//https://www.youtube.com/watch?v=brcHK3P6ChQ&t=2056s
+//https://github.com/gitdagray/react_register_form/blob/main/src/Register.js
+
 import { Link } from 'react-router';
 import { paths } from '@/config/paths';
+// import {useRef, useState, useEffect } from 'react';
+// import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { apiClient } from '@/lib/api-client';
 
 /**
  * Account Registration Page

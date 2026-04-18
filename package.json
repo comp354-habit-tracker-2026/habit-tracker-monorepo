@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@types/node": "^25.6.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0"
+  }
+}
