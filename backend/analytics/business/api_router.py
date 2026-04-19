@@ -228,7 +228,7 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
         has_pending = await sync_to_async(_check_pending_outbox)(request.user_id)
         if has_pending:
             explanations.append(
-                "I see your new movements in the shadows... Refresh."
+                "New activity data has been detected. Please refresh your dashboard."
             )
 
         response_data = {

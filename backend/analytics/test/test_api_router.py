@@ -297,7 +297,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
         result = asyncio.run(health_indicators_endpoint(request))
         self.assertEqual(result["status"], "success")
         self.assertIn(
-            "I see your new movements in the shadows... Refresh.",
+            "New activity data has been detected. Please refresh your dashboard.",
             result["data"]["messages"],
         )
 
@@ -322,7 +322,7 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
         result = asyncio.run(health_indicators_endpoint(request))
         self.assertEqual(result["status"], "success")
         self.assertNotIn(
-            "I see your new movements in the shadows... Refresh.",
+            "New activity data has been detected. Please refresh your dashboard.",
             result["data"]["messages"],
         )
 
