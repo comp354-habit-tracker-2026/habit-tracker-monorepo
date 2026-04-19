@@ -15,16 +15,27 @@ def map_mywhoosh_session(raw: dict) -> NormalizedSession:
     else:
         session_date = date.today()
 
+    distance = raw.get("distance")
+    calories = raw.get("calories")
+    duration = raw.get("duration")
+
+    if distance is not None and distance < 0:
+        distance = None
+    if calories is not None and calories < 0:
+        calories = None
+    if duration is not None and duration < 0:
+        duration = None
+
     metrics = Metrics(
-        distance=raw.get("distance"),
-        calorties=raw.get("calories"),
-        duration=raw.get("duration"),
+        distance=distance,
+        calorties=calories,
+        duration=duration,
     )
 
     has_missing_value = (
-        raw.get("distance") is None
-        or raw.get("calories") is None
-        or raw.get("duration") is None
+    distance is None
+    or calories is None
+    or duration is None
     )
 
     data_quality = DataQuality(
