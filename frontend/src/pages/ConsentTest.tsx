@@ -79,10 +79,11 @@ export default function ConsentTest() {
       </p>
       {PROVIDERS.map((provider) => (
         <div key={provider} style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
-          <span style={{ fontSize: '1.5rem', minWidth: 120 }}>{provider}</span>
+          <span id={`provider-label-${provider.replace(/\s+/g, '-').toLowerCase()}`} style={{ fontSize: '1.5rem', minWidth: 120 }}>{provider}</span>
           <label className="switch">
             <input
               type="checkbox"
+              aria-labelledby={`provider-label-${provider.replace(/\s+/g, '-').toLowerCase()}`}
               checked={!!consents[provider]}
               onChange={() => handleToggle(provider)}
             />
