@@ -35,8 +35,7 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}/backend
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
+          containerName: backend
           registryUrl: habitregistry.azurecr.io
           registryUsername: ${{ secrets.BACKEND_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.BACKEND_REGISTRY_PASSWORD }}
