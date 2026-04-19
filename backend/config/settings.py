@@ -46,7 +46,7 @@ ALLOWED_HOSTS = [
     host.strip()
     for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(default_allowed_hosts)).split(',')
     if host.strip()
-]
+] + ['.canadacentral.azurecontainerapps.io'] # Allow Azure Container Apps generated FQDNs like backend.<env-hash>.<region>.azurecontainerapps.io
 
 
 # Application definition
