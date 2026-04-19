@@ -5,6 +5,7 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
+from asgiref.sync import sync_to_async
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
@@ -77,7 +78,30 @@ def fetch_activity_data(
     from_date: datetime,
     to_date: datetime,
 ) -> List[Dict[str, Any]]:
-    return []
+    from activities.models import Activity as ActivityModel
+    queryset = ActivityModel.objects.filter(
+        account__user_id=user_id,
+        date__range=(from_date.date(), to_date.date()),
+    ).select_related("account")
+    return [
+        {
+            "date": datetime(a.date.year, a.date.month, a.date.day),
+            "duration_minutes": a.duration,
+            "intensity": 1.0,
+            "workout_type": a.activity_type,
+            "user_id": str(user_id),
+            "notes": None,
+        }
+        for a in queryset
+    ]
+
+
+def _check_pending_outbox(user_id: str) -> bool:
+    from core.models import OutboxEvent
+    return OutboxEvent.objects.filter(
+        status=OutboxEvent.Status.PENDING,
+        payload__user_id=user_id,
+    ).exists()
 
 
 def compute_inactivity(
@@ -135,7 +159,7 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
         )
 
     try:
-        activity_data = fetch_activity_data(
+        activity_data = await sync_to_async(fetch_activity_data)(
             user_id=request.user_id,
             from_date=request.from_date,
             to_date=request.to_date,
@@ -200,6 +224,12 @@ async def health_indicators_endpoint(request: HealthIndicatorsRequest):
         inactivity_message = inactivity_result.get("message")
         if inactivity_message:
             explanations.append(inactivity_message)
+
+        has_pending = await sync_to_async(_check_pending_outbox)(request.user_id)
+        if has_pending:
+            explanations.append(
+                "I see your new movements in the shadows... Refresh."
+            )
 
         response_data = {
             "user_id": request.user_id,

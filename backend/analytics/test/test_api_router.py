@@ -13,6 +13,7 @@ from analytics.business.api_router import (
     fetch_activity_data,
     compute_inactivity,
     build_score_input,
+    _check_pending_outbox,
 )
 from analytics.business.indicators import WorkoutSession, WorkoutType
 
@@ -26,8 +27,9 @@ class DummyConsistencyResult:
 
 
 class TestHealthIndicatorsAPIRouter(unittest.TestCase):
+    @patch("analytics.business.api_router._check_pending_outbox", return_value=False)
     @patch("analytics.business.api_router.fetch_activity_data")
-    def test_tc1_normal_request_success(self, mock_fetch_activity_data):
+    def test_tc1_normal_request_success(self, mock_fetch_activity_data, _mock_outbox):
         mock_fetch_activity_data.return_value = [
             {
                 "date": "2026-04-01T10:00:00",
@@ -93,8 +95,9 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
         self.assertEqual(context.exception.status_code, 400)
         mock_fetch_activity_data.assert_not_called()
 
+    @patch("analytics.business.api_router._check_pending_outbox", return_value=False)
     @patch("analytics.business.api_router.fetch_activity_data")
-    def test_tc4_no_activity_data(self, mock_fetch_activity_data):
+    def test_tc4_no_activity_data(self, mock_fetch_activity_data, _mock_outbox):
         mock_fetch_activity_data.return_value = []
 
         request = HealthIndicatorsRequest(
@@ -132,13 +135,32 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
 
         self.assertEqual(context.exception.status_code, 503)
 
-    def test_fetch_activity_data_default_empty(self):
+    @patch("activities.models.Activity.objects")
+    def test_fetch_activity_data_returns_empty_when_no_results(self, mock_objects):
+        mock_objects.filter.return_value.select_related.return_value = []
         result = fetch_activity_data(
             user_id="u1",
             from_date=datetime(2026, 4, 1),
             to_date=datetime(2026, 4, 7),
         )
         self.assertEqual(result, [])
+
+    @patch("activities.models.Activity.objects")
+    def test_fetch_activity_data_maps_activity_fields(self, mock_objects):
+        mock_activity = MagicMock()
+        mock_activity.date = datetime(2026, 4, 3).date()
+        mock_activity.duration = 45
+        mock_activity.activity_type = "cardio"
+        mock_objects.filter.return_value.select_related.return_value = [mock_activity]
+        result = fetch_activity_data(
+            user_id="u1",
+            from_date=datetime(2026, 4, 1),
+            to_date=datetime(2026, 4, 7),
+        )
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["duration_minutes"], 45)
+        self.assertEqual(result[0]["workout_type"], "cardio")
+        self.assertEqual(result[0]["intensity"], 1.0)
 
     def test_compute_inactivity_no_workouts(self):
         result = compute_inactivity([], to_date=datetime(2026, 4, 7))
@@ -249,6 +271,76 @@ class TestHealthIndicatorsAPIRouter(unittest.TestCase):
             asyncio.run(health_indicators_endpoint(request))
 
         self.assertEqual(context.exception.status_code, 500)
+
+    # ============================================================
+    # G15 - Ominous Observer Tests
+    # ============================================================
+
+    @patch("analytics.business.api_router._check_pending_outbox", return_value=True)
+    @patch("analytics.business.api_router.fetch_activity_data")
+    def test_ominous_message_injected_when_pending_outbox(self, mock_fetch, _mock_outbox):
+        mock_fetch.return_value = [
+            {
+                "date": "2026-04-06T10:00:00",
+                "duration_minutes": 30,
+                "intensity": 1.0,
+                "workout_type": "cardio",
+                "user_id": "user123",
+            }
+        ]
+        request = HealthIndicatorsRequest(
+            user_id="user123",
+            from_date="2026-04-01T00:00:00",
+            to_date="2026-04-07T23:59:59",
+            target_workouts=3,
+        )
+        result = asyncio.run(health_indicators_endpoint(request))
+        self.assertEqual(result["status"], "success")
+        self.assertIn(
+            "I see your new movements in the shadows... Refresh.",
+            result["data"]["messages"],
+        )
+
+    @patch("analytics.business.api_router._check_pending_outbox", return_value=False)
+    @patch("analytics.business.api_router.fetch_activity_data")
+    def test_no_ominous_message_when_no_pending_outbox(self, mock_fetch, _mock_outbox):
+        mock_fetch.return_value = [
+            {
+                "date": "2026-04-06T10:00:00",
+                "duration_minutes": 30,
+                "intensity": 1.0,
+                "workout_type": "cardio",
+                "user_id": "user123",
+            }
+        ]
+        request = HealthIndicatorsRequest(
+            user_id="user123",
+            from_date="2026-04-01T00:00:00",
+            to_date="2026-04-07T23:59:59",
+            target_workouts=3,
+        )
+        result = asyncio.run(health_indicators_endpoint(request))
+        self.assertEqual(result["status"], "success")
+        self.assertNotIn(
+            "I see your new movements in the shadows... Refresh.",
+            result["data"]["messages"],
+        )
+
+    @patch("core.models.OutboxEvent.objects")
+    def test_check_pending_outbox_returns_true_when_pending(self, mock_objects):
+        mock_objects.filter.return_value.exists.return_value = True
+        result = _check_pending_outbox("user123")
+        self.assertTrue(result)
+        mock_objects.filter.assert_called_once_with(
+            status="PENDING",
+            payload__user_id="user123",
+        )
+
+    @patch("core.models.OutboxEvent.objects")
+    def test_check_pending_outbox_returns_false_when_none(self, mock_objects):
+        mock_objects.filter.return_value.exists.return_value = False
+        result = _check_pending_outbox("user123")
+        self.assertFalse(result)
 
 
 if __name__ == "__main__":
