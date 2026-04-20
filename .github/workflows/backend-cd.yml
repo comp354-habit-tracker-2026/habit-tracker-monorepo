@@ -41,6 +41,7 @@ jobs:
           registryUsername: ${{ secrets.BACKEND_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.BACKEND_REGISTRY_PASSWORD }}
           containerAppName: backend
+          containerName: backend
           resourceGroup: habit-tracker-rg
           imageToBuild: habitregistry.azurecr.io/backend:${{ github.sha }}
           _buildArgumentsKey_: |
