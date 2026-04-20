@@ -1,9 +1,5 @@
 from django.db.models import Avg, Sum, Max
 from datetime import date
-<<<<<<< feature/group-16-reporting-insights
-
-=======
->>>>>>> main
 from activities.models import Activity
 
 
@@ -30,12 +26,6 @@ class AnalyticsRepository:
             "notes": "Forecast endpoint contract in place; team can plug scikit-learn model.",
         }
 
-<<<<<<< feature/group-16-reporting-insights
-=======
-# ============================================================
-# G13 - cathytham - InactivityDetector - PR #241
-# ============================================================ 
->>>>>>> main
     def inactivity_evaluation(self, user):
         queryset = Activity.objects.filter(user=user)
         max_date = queryset.aggregate(max_date=Max('date'))['max_date']
@@ -56,8 +46,5 @@ class AnalyticsRepository:
             'days_since_last_activity': days_since,
             'inactive': inactive,
             'severity': severity
-<<<<<<< feature/group-16-reporting-insights
         }
-=======
-        }
->>>>>>> main
+
