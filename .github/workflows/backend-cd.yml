@@ -48,12 +48,12 @@ jobs:
       - name: Update Azure Container App
         uses: azure/cli@v2
         with:
-          azcliversion: latest
+          azcliversion: 2.67.0
           inlineScript: |
             az containerapp update \
               --name backend \
               --resource-group habit-tracker-rg \
               --container-name backend \
-              --image habitregistry.azurecr.io/backend:b69de5c57f04bb78bc2a3471259fc71029f92b7b
+              --image habitregistry.azurecr.io/backend:${{ github.sha }}
 
 
