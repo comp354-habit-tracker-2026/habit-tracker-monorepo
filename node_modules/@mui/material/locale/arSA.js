@@ -1,0 +1,82 @@
+"use strict";
+
+var _interopRequireDefault = require("@babel/runtime/helpers/interopRequireDefault").default;
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.arSA = void 0;
+var _buildFormatNumber = _interopRequireDefault(require("./utils/buildFormatNumber"));
+const formatNumber = (0, _buildFormatNumber.default)('ar-SA');
+const arSA = exports.arSA = {
+  components: {
+    MuiBreadcrumbs: {
+      defaultProps: {
+        expandText: 'إظهار المسار'
+      }
+    },
+    MuiTablePagination: {
+      defaultProps: {
+        getItemAriaLabel: type => {
+          if (type === 'first') {
+            return 'الانتقال إلى الصفحة الأولى';
+          }
+          if (type === 'last') {
+            return 'الانتقال إلى الصفحة الأخيرة';
+          }
+          if (type === 'next') {
+            return 'الانتقال إلى الصفحة التالية';
+          }
+          // if (type === 'previous') {
+          return 'الانتقال إلى الصفحة السابقة';
+        },
+        labelRowsPerPage: 'عدد الصفوف في الصفحة:',
+        labelDisplayedRows: ({
+          from,
+          to,
+          count
+        }) => `${formatNumber(from)}–${formatNumber(to)} من ${count !== -1 ? formatNumber(count) : ` أكثر من${formatNumber(to)}`}`
+      }
+    },
+    MuiRating: {
+      defaultProps: {
+        getLabelText: value => `${value} ${value !== 1 ? 'نجوم' : 'نجمة'}`,
+        emptyLabelText: 'فارغ'
+      }
+    },
+    MuiAutocomplete: {
+      defaultProps: {
+        clearText: 'مسح',
+        closeText: 'إغلاق',
+        loadingText: 'جار التحميل…',
+        noOptionsText: 'لا توجد خيارات',
+        openText: 'فتح'
+      }
+    },
+    MuiAlert: {
+      defaultProps: {
+        closeText: 'إغلاق'
+      }
+    },
+    MuiPagination: {
+      defaultProps: {
+        'aria-label': 'التنقل عبر الصفحات',
+        getItemAriaLabel: (type, page, selected) => {
+          if (type === 'page') {
+            return `${selected ? '' : 'الانتقال إلى '} صفحة ${page}`;
+          }
+          if (type === 'first') {
+            return 'الانتقال إلى الصفحة الأولى';
+          }
+          if (type === 'last') {
+            return 'الانتقال الي الصفحة الأخيرة';
+          }
+          if (type === 'next') {
+            return 'الانتقال إلى الصفحة التالية';
+          }
+          // if (type === 'previous') {
+          return 'الانتقال إلى الصفحة السابقة';
+        }
+      }
+    }
+  }
+};

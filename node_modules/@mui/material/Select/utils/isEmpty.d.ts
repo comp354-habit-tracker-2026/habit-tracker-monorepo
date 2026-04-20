@@ -1,0 +1,1 @@
+export default function isEmpty(display: unknown): boolean;

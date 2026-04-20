@@ -1,0 +1,206 @@
+'use client';
+
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import { Transition } from 'react-transition-group';
+import elementAcceptingRef from '@mui/utils/elementAcceptingRef';
+import getReactElementRef from '@mui/utils/getReactElementRef';
+import { useTheme } from "../zero-styled/index.mjs";
+import { normalizedTransitionCallback, reflow, getTransitionProps, getTransitionChildStyle } from "../transitions/utils.mjs";
+import useForkRef from "../utils/useForkRef.mjs";
+import { jsx as _jsx } from "react/jsx-runtime";
+const styles = {
+  entering: {
+    opacity: 1
+  },
+  entered: {
+    opacity: 1
+  },
+  exiting: {
+    opacity: 0
+  },
+  exited: {
+    opacity: 0
+  }
+};
+const hiddenStyles = {
+  opacity: 0,
+  visibility: 'hidden'
+};
+
+/**
+ * The Fade transition is used by the [Modal](/material-ui/react-modal/) component.
+ * It uses [react-transition-group](https://github.com/reactjs/react-transition-group) internally.
+ */
+const Fade = /*#__PURE__*/React.forwardRef(function Fade(props, ref) {
+  const theme = useTheme();
+  const defaultTimeout = {
+    enter: theme.transitions.duration.enteringScreen,
+    exit: theme.transitions.duration.leavingScreen
+  };
+  const {
+    addEndListener,
+    appear = true,
+    children,
+    easing,
+    in: inProp,
+    onEnter,
+    onEntered,
+    onEntering,
+    onExit,
+    onExited,
+    onExiting,
+    style,
+    timeout = defaultTimeout,
+    ...other
+  } = props;
+  const nodeRef = React.useRef(null);
+  const handleRef = useForkRef(nodeRef, getReactElementRef(children), ref);
+  const handleEntering = normalizedTransitionCallback(nodeRef, onEntering);
+  const handleEnter = normalizedTransitionCallback(nodeRef, (node, isAppearing) => {
+    reflow(node); // So the animation always start from the start.
+
+    const transitionProps = getTransitionProps({
+      style,
+      timeout,
+      easing
+    }, {
+      mode: 'enter'
+    });
+    node.style.transition = theme.transitions.create('opacity', transitionProps);
+    if (onEnter) {
+      onEnter(node, isAppearing);
+    }
+  });
+  const handleEntered = normalizedTransitionCallback(nodeRef, onEntered);
+  const handleExiting = normalizedTransitionCallback(nodeRef, onExiting);
+  const handleExit = normalizedTransitionCallback(nodeRef, node => {
+    const transitionProps = getTransitionProps({
+      style,
+      timeout,
+      easing
+    }, {
+      mode: 'exit'
+    });
+    node.style.transition = theme.transitions.create('opacity', transitionProps);
+    if (onExit) {
+      onExit(node);
+    }
+  });
+  const handleExited = normalizedTransitionCallback(nodeRef, node => {
+    // Clear the transition CSS to release the compositor layer when the
+    // element is fully exited (prevents idle CPU usage on fixed elements
+    // like Backdrop). handleEnter re-sets it on the next open.
+    node.style.transition = '';
+    if (onExited) {
+      onExited(node);
+    }
+  });
+  const handleAddEndListener = next => {
+    if (addEndListener) {
+      // Old call signature before `react-transition-group` implemented `nodeRef`
+      addEndListener(nodeRef.current, next);
+    }
+  };
+  return /*#__PURE__*/_jsx(Transition, {
+    appear: appear,
+    in: inProp,
+    nodeRef: nodeRef,
+    onEnter: handleEnter,
+    onEntered: handleEntered,
+    onEntering: handleEntering,
+    onExit: handleExit,
+    onExited: handleExited,
+    onExiting: handleExiting,
+    addEndListener: handleAddEndListener,
+    timeout: timeout,
+    ...other,
+    children: (state, {
+      ownerState,
+      ...restChildProps
+    }) => {
+      const childStyle = getTransitionChildStyle(state, inProp, styles, hiddenStyles, style, children.props.style);
+      return /*#__PURE__*/React.cloneElement(children, {
+        style: childStyle,
+        ref: handleRef,
+        ...restChildProps
+      });
+    }
+  });
+});
+process.env.NODE_ENV !== "production" ? Fade.propTypes /* remove-proptypes */ = {
+  // ┌────────────────────────────── Warning ──────────────────────────────┐
+  // │ These PropTypes are generated from the TypeScript type definitions. │
+  // │    To update them, edit the d.ts file and run `pnpm proptypes`.     │
+  // └─────────────────────────────────────────────────────────────────────┘
+  /**
+   * Add a custom transition end trigger. Called with the transitioning DOM
+   * node and a done callback. Allows for more fine grained transition end
+   * logic. Note: Timeouts are still used as a fallback if provided.
+   */
+  addEndListener: PropTypes.func,
+  /**
+   * Perform the enter transition when it first mounts if `in` is also `true`.
+   * Set this to `false` to disable this behavior.
+   * @default true
+   */
+  appear: PropTypes.bool,
+  /**
+   * A single child content element.
+   */
+  children: elementAcceptingRef.isRequired,
+  /**
+   * The transition timing function.
+   * You may specify a single easing or a object containing enter and exit values.
+   */
+  easing: PropTypes.oneOfType([PropTypes.shape({
+    enter: PropTypes.string,
+    exit: PropTypes.string
+  }), PropTypes.string]),
+  /**
+   * If `true`, the component will transition in.
+   */
+  in: PropTypes.bool,
+  /**
+   * @ignore
+   */
+  onEnter: PropTypes.func,
+  /**
+   * @ignore
+   */
+  onEntered: PropTypes.func,
+  /**
+   * @ignore
+   */
+  onEntering: PropTypes.func,
+  /**
+   * @ignore
+   */
+  onExit: PropTypes.func,
+  /**
+   * @ignore
+   */
+  onExited: PropTypes.func,
+  /**
+   * @ignore
+   */
+  onExiting: PropTypes.func,
+  /**
+   * @ignore
+   */
+  style: PropTypes.object,
+  /**
+   * The duration for the transition, in milliseconds.
+   * You may specify a single timeout for all transitions, or individually with an object.
+   * @default {
+   *   enter: theme.transitions.duration.enteringScreen,
+   *   exit: theme.transitions.duration.leavingScreen,
+   * }
+   */
+  timeout: PropTypes.oneOfType([PropTypes.number, PropTypes.shape({
+    appear: PropTypes.number,
+    enter: PropTypes.number,
+    exit: PropTypes.number
+  })])
+} : void 0;
+export default Fade;
