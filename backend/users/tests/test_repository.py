@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from users.data.repositories import UserRepository, VALID_PROVIDERS
-from activities.models import Activity
+from activities.models import Activity, ConnectedAccount
 
 import random
 import string
@@ -15,13 +15,21 @@ def test_delete_provider_data_valid_provider():
     user = User.objects.create_user(username='testuser', password='testpass')
     repo = UserRepository()
     provider = list(VALID_PROVIDERS)[0]
-    # Create some activities for this user/provider
+    # Create a connected account for this user/provider
+    account = ConnectedAccount.objects.create(user=user, provider=provider, external_user_id="dummyid")
+    # Create some activities for this account
     for _ in range(3):
-        Activity.objects.create(user=user, provider=provider)
+        Activity.objects.create(
+            account=account,
+            activity_type="run",
+            duration=30,
+            date="2024-01-01"
+        )
     result = repo.delete_provider_data(user, provider)
     assert result['deleted_count'] == 3
     assert result['provider'] == provider
-    assert Activity.objects.filter(user=user, provider=provider).count() == 0
+    # All activities for this account should be deleted
+    assert Activity.objects.filter(account=account).count() == 0
 
 @pytest.mark.django_db
 def test_delete_provider_data_invalid_provider():
