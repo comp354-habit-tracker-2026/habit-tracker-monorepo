@@ -50,6 +50,7 @@ jobs:
         with:
           azcliversion: 2.67.0
           inlineScript: |
+            az account set --subscription ${{ secrets.FRONTEND_AZURE_SUBSCRIPTION_ID }}
             az containerapp update \
               --name backend \
               --resource-group habit-tracker-rg \
