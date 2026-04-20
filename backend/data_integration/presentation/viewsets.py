@@ -1,29 +1,15 @@
-from rest_framework import status, viewsets, serializers
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from rest_framework import viewsets
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.permissions import IsAdminUser
 
-from data_integration.business import DataIntegrationService
+from data_integration.models import FileRecord
+from data_integration.serializers import FileRecordSerializer
 
-
-class DataIntegrationSerializer(serializers.Serializer):
-    """
-    Minimal serializer for data integration objects.
-
-    This implementation assumes that `DataIntegrationService` returns
-    simple dict-like objects and passes them through unchanged.
-    """
-
-    def to_representation(self, instance):
-        return instance
-class DataIntegrationViewSet(viewsets.ViewSet):
-    serializer_class = DataIntegrationSerializer
-    permission_classes = [IsAuthenticated]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.service = DataIntegrationService()
-
-    def list(self, request):
-        integrations = self.service.get_user_integrations(request.user, request.query_params)
-        serializer = self.serializer_class(integrations, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+class FileRecordViewSet(viewsets.ModelViewSet):
+    queryset = FileRecord.objects.all()
+    serializer_class = FileRecordSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ["file_name", "url_link"]
+    ordering_fields = ["created_at", "file_name"]
+    ordering = ["-created_at"]

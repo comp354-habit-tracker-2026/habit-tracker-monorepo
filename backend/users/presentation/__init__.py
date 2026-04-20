@@ -1,3 +1,3 @@
-from .views import RegisterView
+from .views import RegisterView, LoginView
 
-__all__ = ["RegisterView"]
+__all__ = ["RegisterView", "LoginView"]
