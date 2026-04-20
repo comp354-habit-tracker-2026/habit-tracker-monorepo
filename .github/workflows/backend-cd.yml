@@ -25,25 +25,36 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Azure Login
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.BACKEND_AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.BACKEND_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
-        uses: azure/container-apps-deploy-action@v2
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/backend
-          _dockerfilePathKey_: _dockerfilePath_
-          _targetLabelKey_: _targetLabel_
-          registryUrl: habitregistry.azurecr.io
-          registryUsername: ${{ secrets.BACKEND_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.BACKEND_REGISTRY_PASSWORD }}
-          containerAppName: backend
-          resourceGroup: habit-tracker-rg
-          imageToBuild: habitregistry.azurecr.io/backend:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
+          registry: habitregistry.azurecr.io
+          username: ${{ secrets.BACKEND_REGISTRY_USERNAME }}
+          password: ${{ secrets.BACKEND_REGISTRY_PASSWORD }}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ github.workspace }}/backend
+          push: true
+          tags: habitregistry.azurecr.io/backend:${{ github.sha }}
+
+      - name: Update Azure Container App
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.67.0
+          inlineScript: |
+            az containerapp update \
+              --name backend \
+              --resource-group habit-tracker-rg \
+              --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} \
+              --container-name backend \
+              --image habitregistry.azurecr.io/backend:${{ github.sha }}
 
 
