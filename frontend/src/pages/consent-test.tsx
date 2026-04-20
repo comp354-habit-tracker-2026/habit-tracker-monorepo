@@ -1,6 +1,4 @@
-
 import { useState } from 'react';
-
 
 const PROVIDERS = [
   'Strava',
@@ -40,7 +38,7 @@ const PROVIDER_APIS = {
   MyWhoosh: MyWhooshAPI,
 };
 
-
+export default function ConsentTest() {
   const [consents, setConsents] = useState<Record<Provider, boolean>>({} as Record<Provider, boolean>);
   const [userData, setUserData] = useState<Record<Provider, UserData>>({} as Record<Provider, UserData>);
   const [message, setMessage] = useState<string | null>(null);
