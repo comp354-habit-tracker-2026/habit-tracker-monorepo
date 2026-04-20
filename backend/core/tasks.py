@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from celery import shared_task
 
-from core.consumer import process_outbox_event
+from core.backend.core.consumer import process_outbox_event
 from core.models import OutboxEvent
 
 logger = logging.getLogger(__name__)
