@@ -3,7 +3,16 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
  export function InsightsDisplay() { 
     const [show, setShow] = useState(false); 
 
-    if (mockActivities.length === 0) {
+    const currMonth = new Date();
+    const startOfMonth = new Date(currMonth.getFullYear(), currMonth.getMonth(), 1);
+    const endOfMonth = new Date(currMonth.getFullYear(), currMonth.getMonth() + 1, 0, 23, 59, 59);
+
+    const currMonthActivities = mockActivities.filter(activity => {
+      const date = new Date(activity.startedAt);
+      return date >= startOfMonth && date <= endOfMonth;
+    });
+
+    if (currMonthActivities.length === 0) {
       return (
         <div>
           <h2>Insights</h2>
@@ -19,7 +28,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     let totalHeartRate = 0;
     let heartrateCount = 0;
 
-    for (const activity of mockActivities) {
+    for (const activity of currMonthActivities) {
         const date = activity.startedAt.slice(0, 10);
         activitiesperDay[date] = (activitiesperDay[date] ||0) +1;
         caloriesperDay[date] = (caloriesperDay[date] ||0) + (activity.summary.calories || 0);
@@ -66,35 +75,35 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         }
     }
 
-    let weeklyCalories = 0;
-    let weeklySteps = 0;
+    let monthlyCalories = 0;
+    let monthlySteps = 0;
 
-    for (const activity of mockActivities) {
-      weeklyCalories += activity.summary.calories || 0;
-      weeklySteps += activity.summary.steps || 0;
+    for (const activity of currMonthActivities) {
+      monthlyCalories += activity.summary.calories || 0;
+      monthlySteps += activity.summary.steps || 0;
     }
 
-    // Weekly comparison logic
+    // Monthly comparison logic
     const now = new Date();
-    let thisWeekCalories = 0;
-    let lastWeekCalories = 0;
+    let thisMonthCalories = 0;
+    let lastMonthCalories = 0;
 
-    for (const activity of mockActivities) {
+    for (const activity of currMonthActivities) {
       const date = new Date(activity.startedAt);
       const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
       if (diffDays <= 7) {
-        thisWeekCalories += activity.summary.calories || 0;
+        thisMonthCalories += activity.summary.calories || 0;
       } else if (diffDays <= 14) {
-        lastWeekCalories += activity.summary.calories || 0;
+        lastMonthCalories += activity.summary.calories || 0;
       }
     }
 
     let calorieChange = 0;
 
-    if (lastWeekCalories > 0) {
+    if (lastMonthCalories > 0) {
       calorieChange = Math.round(
-        ((thisWeekCalories - lastWeekCalories) / lastWeekCalories) * 100
+        ((thisMonthCalories - lastMonthCalories) / lastMonthCalories) * 100
       );
     }
 
@@ -120,13 +129,13 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                     <p><strong>Most intense activity:</strong> {mostIntenseActivity.title} ({mostIntenseActivity.activityType}) -{' '}
                      {mostIntenseActivity.summary.calories || 0} calories</p>
                     <p><strong>Average heart rate:</strong> {averageHeartRate} bpm</p>
-                    <p><strong>Total calories:</strong> {weeklyCalories} kcal</p>
-                    <p><strong>Total steps:</strong> {weeklySteps}</p>
+                    <p><strong>Total calories:</strong> {monthlyCalories} kcal</p>
+                    <p><strong>Total steps:</strong> {monthlySteps}</p>
                     <p>
-                      <strong>Weekly trend:</strong>{' '}
+                      <strong>Monthly trend:</strong>{' '}
                       {calorieChange >= 0
-                        ? `+${calorieChange}% more calories than last week 📈`
-                        : `${calorieChange}% fewer calories than last week 📉`}
+                        ? `+${calorieChange}% more calories than last month 📈`
+                        : `${calorieChange}% fewer calories than last month 📉`}
                     </p>
                     </div>
                  </div> 
