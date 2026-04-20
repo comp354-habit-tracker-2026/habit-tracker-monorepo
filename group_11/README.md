@@ -92,3 +92,23 @@ The CP2 schema refinement makes the persistence design more explicit by document
 - repository method support
 - pagination and deduplication behavior
 
+
+## Milestone 3 Database Setup
+
+For Milestone 3, Group 11 now includes a working local SQLite database setup for the persistence layer.
+
+Files:
+- `group_11/db/schema.sql`
+- `group_11/db/connection.py`
+- `group_11/db/init_db.py`
+
+This implementation supports the repository contract for:
+- users
+- activities
+- goals
+
+To initialize the database, run:
+
+```bash
+python -m group_11.db.init_db
+
