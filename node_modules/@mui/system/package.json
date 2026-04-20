@@ -1,0 +1,654 @@
+{
+  "name": "@mui/system",
+  "version": "9.0.0",
+  "author": "MUI Team",
+  "description": "MUI System is a set of CSS utilities to help you build custom designs more efficiently. It makes it possible to rapidly lay out custom designs.",
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "react-component",
+    "mui",
+    "system"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mui/material-ui.git",
+    "directory": "packages/mui-system"
+  },
+  "bugs": {
+    "url": "https://github.com/mui/material-ui/issues"
+  },
+  "homepage": "https://mui.com/system/getting-started/",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/mui-org"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.29.2",
+    "clsx": "^2.1.1",
+    "csstype": "^3.2.3",
+    "prop-types": "^15.8.1",
+    "@mui/private-theming": "^9.0.0",
+    "@mui/styled-engine": "^9.0.0",
+    "@mui/utils": "^9.0.0",
+    "@mui/types": "^9.0.0"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.5.0",
+    "@emotion/styled": "^11.3.0",
+    "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@emotion/react": {
+      "optional": true
+    },
+    "@emotion/styled": {
+      "optional": true
+    }
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "type": "commonjs",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./index.d.mts",
+        "default": "./index.mjs"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "default": {
+        "types": "./index.d.mts",
+        "default": "./index.mjs"
+      }
+    },
+    "./Box": {
+      "import": {
+        "types": "./Box/index.d.mts",
+        "default": "./Box/index.mjs"
+      },
+      "require": {
+        "types": "./Box/index.d.ts",
+        "default": "./Box/index.js"
+      },
+      "default": {
+        "types": "./Box/index.d.mts",
+        "default": "./Box/index.mjs"
+      }
+    },
+    "./Container": {
+      "import": {
+        "types": "./Container/index.d.mts",
+        "default": "./Container/index.mjs"
+      },
+      "require": {
+        "types": "./Container/index.d.ts",
+        "default": "./Container/index.js"
+      },
+      "default": {
+        "types": "./Container/index.d.mts",
+        "default": "./Container/index.mjs"
+      }
+    },
+    "./createBreakpoints": {
+      "import": {
+        "types": "./createBreakpoints/index.d.mts",
+        "default": "./createBreakpoints/index.mjs"
+      },
+      "require": {
+        "types": "./createBreakpoints/index.d.ts",
+        "default": "./createBreakpoints/index.js"
+      },
+      "default": {
+        "types": "./createBreakpoints/index.d.mts",
+        "default": "./createBreakpoints/index.mjs"
+      }
+    },
+    "./createTheme": {
+      "import": {
+        "types": "./createTheme/index.d.mts",
+        "default": "./createTheme/index.mjs"
+      },
+      "require": {
+        "types": "./createTheme/index.d.ts",
+        "default": "./createTheme/index.js"
+      },
+      "default": {
+        "types": "./createTheme/index.d.mts",
+        "default": "./createTheme/index.mjs"
+      }
+    },
+    "./RtlProvider": {
+      "import": {
+        "types": "./RtlProvider/index.d.mts",
+        "default": "./RtlProvider/index.mjs"
+      },
+      "require": {
+        "types": "./RtlProvider/index.d.ts",
+        "default": "./RtlProvider/index.js"
+      },
+      "default": {
+        "types": "./RtlProvider/index.d.mts",
+        "default": "./RtlProvider/index.mjs"
+      }
+    },
+    "./styleFunctionSx": {
+      "import": {
+        "types": "./styleFunctionSx/index.d.mts",
+        "default": "./styleFunctionSx/index.mjs"
+      },
+      "require": {
+        "types": "./styleFunctionSx/index.d.ts",
+        "default": "./styleFunctionSx/index.js"
+      },
+      "default": {
+        "types": "./styleFunctionSx/index.d.mts",
+        "default": "./styleFunctionSx/index.mjs"
+      }
+    },
+    "./ThemeProvider": {
+      "import": {
+        "types": "./ThemeProvider/index.d.mts",
+        "default": "./ThemeProvider/index.mjs"
+      },
+      "require": {
+        "types": "./ThemeProvider/index.d.ts",
+        "default": "./ThemeProvider/index.js"
+      },
+      "default": {
+        "types": "./ThemeProvider/index.d.mts",
+        "default": "./ThemeProvider/index.mjs"
+      }
+    },
+    "./useThemeProps": {
+      "import": {
+        "types": "./useThemeProps/index.d.mts",
+        "default": "./useThemeProps/index.mjs"
+      },
+      "require": {
+        "types": "./useThemeProps/index.d.ts",
+        "default": "./useThemeProps/index.js"
+      },
+      "default": {
+        "types": "./useThemeProps/index.d.mts",
+        "default": "./useThemeProps/index.mjs"
+      }
+    },
+    "./DefaultPropsProvider": {
+      "import": {
+        "types": "./DefaultPropsProvider/index.d.mts",
+        "default": "./DefaultPropsProvider/index.mjs"
+      },
+      "require": {
+        "types": "./DefaultPropsProvider/index.d.ts",
+        "default": "./DefaultPropsProvider/index.js"
+      },
+      "default": {
+        "types": "./DefaultPropsProvider/index.d.mts",
+        "default": "./DefaultPropsProvider/index.mjs"
+      }
+    },
+    "./GlobalStyles": {
+      "import": {
+        "types": "./GlobalStyles/index.d.mts",
+        "default": "./GlobalStyles/index.mjs"
+      },
+      "require": {
+        "types": "./GlobalStyles/index.d.ts",
+        "default": "./GlobalStyles/index.js"
+      },
+      "default": {
+        "types": "./GlobalStyles/index.d.mts",
+        "default": "./GlobalStyles/index.mjs"
+      }
+    },
+    "./Grid": {
+      "import": {
+        "types": "./Grid/index.d.mts",
+        "default": "./Grid/index.mjs"
+      },
+      "require": {
+        "types": "./Grid/index.d.ts",
+        "default": "./Grid/index.js"
+      },
+      "default": {
+        "types": "./Grid/index.d.mts",
+        "default": "./Grid/index.mjs"
+      }
+    },
+    "./InitColorSchemeScript": {
+      "import": {
+        "types": "./InitColorSchemeScript/index.d.mts",
+        "default": "./InitColorSchemeScript/index.mjs"
+      },
+      "require": {
+        "types": "./InitColorSchemeScript/index.d.ts",
+        "default": "./InitColorSchemeScript/index.js"
+      },
+      "default": {
+        "types": "./InitColorSchemeScript/index.d.mts",
+        "default": "./InitColorSchemeScript/index.mjs"
+      }
+    },
+    "./Stack": {
+      "import": {
+        "types": "./Stack/index.d.mts",
+        "default": "./Stack/index.mjs"
+      },
+      "require": {
+        "types": "./Stack/index.d.ts",
+        "default": "./Stack/index.js"
+      },
+      "default": {
+        "types": "./Stack/index.d.mts",
+        "default": "./Stack/index.mjs"
+      }
+    },
+    "./borders": {
+      "import": {
+        "types": "./borders/index.d.mts",
+        "default": "./borders/index.mjs"
+      },
+      "require": {
+        "types": "./borders/index.d.ts",
+        "default": "./borders/index.js"
+      },
+      "default": {
+        "types": "./borders/index.d.mts",
+        "default": "./borders/index.mjs"
+      }
+    },
+    "./breakpoints": {
+      "import": {
+        "types": "./breakpoints/index.d.mts",
+        "default": "./breakpoints/index.mjs"
+      },
+      "require": {
+        "types": "./breakpoints/index.d.ts",
+        "default": "./breakpoints/index.js"
+      },
+      "default": {
+        "types": "./breakpoints/index.d.mts",
+        "default": "./breakpoints/index.mjs"
+      }
+    },
+    "./colorManipulator": {
+      "import": {
+        "types": "./colorManipulator/index.d.mts",
+        "default": "./colorManipulator/index.mjs"
+      },
+      "require": {
+        "types": "./colorManipulator/index.d.ts",
+        "default": "./colorManipulator/index.js"
+      },
+      "default": {
+        "types": "./colorManipulator/index.d.mts",
+        "default": "./colorManipulator/index.mjs"
+      }
+    },
+    "./compose": {
+      "import": {
+        "types": "./compose/index.d.mts",
+        "default": "./compose/index.mjs"
+      },
+      "require": {
+        "types": "./compose/index.d.ts",
+        "default": "./compose/index.js"
+      },
+      "default": {
+        "types": "./compose/index.d.mts",
+        "default": "./compose/index.mjs"
+      }
+    },
+    "./createBox": {
+      "import": {
+        "types": "./createBox/index.d.mts",
+        "default": "./createBox/index.mjs"
+      },
+      "require": {
+        "types": "./createBox/index.d.ts",
+        "default": "./createBox/index.js"
+      },
+      "default": {
+        "types": "./createBox/index.d.mts",
+        "default": "./createBox/index.mjs"
+      }
+    },
+    "./createStyled": {
+      "import": {
+        "types": "./createStyled/index.d.mts",
+        "default": "./createStyled/index.mjs"
+      },
+      "require": {
+        "types": "./createStyled/index.d.ts",
+        "default": "./createStyled/index.js"
+      },
+      "default": {
+        "types": "./createStyled/index.d.mts",
+        "default": "./createStyled/index.mjs"
+      }
+    },
+    "./cssContainerQueries": {
+      "import": {
+        "types": "./cssContainerQueries/index.d.mts",
+        "default": "./cssContainerQueries/index.mjs"
+      },
+      "require": {
+        "types": "./cssContainerQueries/index.d.ts",
+        "default": "./cssContainerQueries/index.js"
+      },
+      "default": {
+        "types": "./cssContainerQueries/index.d.mts",
+        "default": "./cssContainerQueries/index.mjs"
+      }
+    },
+    "./cssGrid": {
+      "import": {
+        "types": "./cssGrid/index.d.mts",
+        "default": "./cssGrid/index.mjs"
+      },
+      "require": {
+        "types": "./cssGrid/index.d.ts",
+        "default": "./cssGrid/index.js"
+      },
+      "default": {
+        "types": "./cssGrid/index.d.mts",
+        "default": "./cssGrid/index.mjs"
+      }
+    },
+    "./cssVars": {
+      "import": {
+        "types": "./cssVars/index.d.mts",
+        "default": "./cssVars/index.mjs"
+      },
+      "require": {
+        "types": "./cssVars/index.d.ts",
+        "default": "./cssVars/index.js"
+      },
+      "default": {
+        "types": "./cssVars/index.d.mts",
+        "default": "./cssVars/index.mjs"
+      }
+    },
+    "./display": {
+      "import": {
+        "types": "./display/index.d.mts",
+        "default": "./display/index.mjs"
+      },
+      "require": {
+        "types": "./display/index.d.ts",
+        "default": "./display/index.js"
+      },
+      "default": {
+        "types": "./display/index.d.mts",
+        "default": "./display/index.mjs"
+      }
+    },
+    "./flexbox": {
+      "import": {
+        "types": "./flexbox/index.d.mts",
+        "default": "./flexbox/index.mjs"
+      },
+      "require": {
+        "types": "./flexbox/index.d.ts",
+        "default": "./flexbox/index.js"
+      },
+      "default": {
+        "types": "./flexbox/index.d.mts",
+        "default": "./flexbox/index.mjs"
+      }
+    },
+    "./getThemeValue": {
+      "import": {
+        "types": "./getThemeValue/index.d.mts",
+        "default": "./getThemeValue/index.mjs"
+      },
+      "require": {
+        "types": "./getThemeValue/index.d.ts",
+        "default": "./getThemeValue/index.js"
+      },
+      "default": {
+        "types": "./getThemeValue/index.d.mts",
+        "default": "./getThemeValue/index.mjs"
+      }
+    },
+    "./memoize": {
+      "import": {
+        "types": "./memoize/index.d.mts",
+        "default": "./memoize/index.mjs"
+      },
+      "require": {
+        "types": "./memoize/index.d.ts",
+        "default": "./memoize/index.js"
+      },
+      "default": {
+        "types": "./memoize/index.d.mts",
+        "default": "./memoize/index.mjs"
+      }
+    },
+    "./merge": {
+      "import": {
+        "types": "./merge/index.d.mts",
+        "default": "./merge/index.mjs"
+      },
+      "require": {
+        "types": "./merge/index.d.ts",
+        "default": "./merge/index.js"
+      },
+      "default": {
+        "types": "./merge/index.d.mts",
+        "default": "./merge/index.mjs"
+      }
+    },
+    "./palette": {
+      "import": {
+        "types": "./palette/index.d.mts",
+        "default": "./palette/index.mjs"
+      },
+      "require": {
+        "types": "./palette/index.d.ts",
+        "default": "./palette/index.js"
+      },
+      "default": {
+        "types": "./palette/index.d.mts",
+        "default": "./palette/index.mjs"
+      }
+    },
+    "./positions": {
+      "import": {
+        "types": "./positions/index.d.mts",
+        "default": "./positions/index.mjs"
+      },
+      "require": {
+        "types": "./positions/index.d.ts",
+        "default": "./positions/index.js"
+      },
+      "default": {
+        "types": "./positions/index.d.mts",
+        "default": "./positions/index.mjs"
+      }
+    },
+    "./propsToClassKey": {
+      "import": {
+        "types": "./propsToClassKey/index.d.mts",
+        "default": "./propsToClassKey/index.mjs"
+      },
+      "require": {
+        "types": "./propsToClassKey/index.d.ts",
+        "default": "./propsToClassKey/index.js"
+      },
+      "default": {
+        "types": "./propsToClassKey/index.d.mts",
+        "default": "./propsToClassKey/index.mjs"
+      }
+    },
+    "./responsivePropType": {
+      "import": {
+        "types": "./responsivePropType/index.d.mts",
+        "default": "./responsivePropType/index.mjs"
+      },
+      "require": {
+        "types": "./responsivePropType/index.d.ts",
+        "default": "./responsivePropType/index.js"
+      },
+      "default": {
+        "types": "./responsivePropType/index.d.mts",
+        "default": "./responsivePropType/index.mjs"
+      }
+    },
+    "./shadows": {
+      "import": {
+        "types": "./shadows/index.d.mts",
+        "default": "./shadows/index.mjs"
+      },
+      "require": {
+        "types": "./shadows/index.d.ts",
+        "default": "./shadows/index.js"
+      },
+      "default": {
+        "types": "./shadows/index.d.mts",
+        "default": "./shadows/index.mjs"
+      }
+    },
+    "./sizing": {
+      "import": {
+        "types": "./sizing/index.d.mts",
+        "default": "./sizing/index.mjs"
+      },
+      "require": {
+        "types": "./sizing/index.d.ts",
+        "default": "./sizing/index.js"
+      },
+      "default": {
+        "types": "./sizing/index.d.mts",
+        "default": "./sizing/index.mjs"
+      }
+    },
+    "./spacing": {
+      "import": {
+        "types": "./spacing/index.d.mts",
+        "default": "./spacing/index.mjs"
+      },
+      "require": {
+        "types": "./spacing/index.d.ts",
+        "default": "./spacing/index.js"
+      },
+      "default": {
+        "types": "./spacing/index.d.mts",
+        "default": "./spacing/index.mjs"
+      }
+    },
+    "./style": {
+      "import": {
+        "types": "./style/index.d.mts",
+        "default": "./style/index.mjs"
+      },
+      "require": {
+        "types": "./style/index.d.ts",
+        "default": "./style/index.js"
+      },
+      "default": {
+        "types": "./style/index.d.mts",
+        "default": "./style/index.mjs"
+      }
+    },
+    "./styled": {
+      "import": {
+        "types": "./styled/index.d.mts",
+        "default": "./styled/index.mjs"
+      },
+      "require": {
+        "types": "./styled/index.d.ts",
+        "default": "./styled/index.js"
+      },
+      "default": {
+        "types": "./styled/index.d.mts",
+        "default": "./styled/index.mjs"
+      }
+    },
+    "./typography": {
+      "import": {
+        "types": "./typography/index.d.mts",
+        "default": "./typography/index.mjs"
+      },
+      "require": {
+        "types": "./typography/index.d.ts",
+        "default": "./typography/index.js"
+      },
+      "default": {
+        "types": "./typography/index.d.mts",
+        "default": "./typography/index.mjs"
+      }
+    },
+    "./useMediaQuery": {
+      "import": {
+        "types": "./useMediaQuery/index.d.mts",
+        "default": "./useMediaQuery/index.mjs"
+      },
+      "require": {
+        "types": "./useMediaQuery/index.d.ts",
+        "default": "./useMediaQuery/index.js"
+      },
+      "default": {
+        "types": "./useMediaQuery/index.d.mts",
+        "default": "./useMediaQuery/index.mjs"
+      }
+    },
+    "./useTheme": {
+      "import": {
+        "types": "./useTheme/index.d.mts",
+        "default": "./useTheme/index.mjs"
+      },
+      "require": {
+        "types": "./useTheme/index.d.ts",
+        "default": "./useTheme/index.js"
+      },
+      "default": {
+        "types": "./useTheme/index.d.mts",
+        "default": "./useTheme/index.mjs"
+      }
+    },
+    "./useThemeWithoutDefault": {
+      "import": {
+        "types": "./useThemeWithoutDefault/index.d.mts",
+        "default": "./useThemeWithoutDefault/index.mjs"
+      },
+      "require": {
+        "types": "./useThemeWithoutDefault/index.d.ts",
+        "default": "./useThemeWithoutDefault/index.js"
+      },
+      "default": {
+        "types": "./useThemeWithoutDefault/index.d.mts",
+        "default": "./useThemeWithoutDefault/index.mjs"
+      }
+    },
+    "./version": {
+      "import": {
+        "types": "./version/index.d.mts",
+        "default": "./version/index.mjs"
+      },
+      "require": {
+        "types": "./version/index.d.ts",
+        "default": "./version/index.js"
+      },
+      "default": {
+        "types": "./version/index.d.mts",
+        "default": "./version/index.mjs"
+      }
+    }
+  },
+  "main": "./index.js",
+  "types": "./index.d.ts"
+}

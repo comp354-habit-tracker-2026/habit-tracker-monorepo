@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from activities.models import Activity
+from activities.models import ConnectedAccount, Activity
 from core.data import BaseRepository
 
 User = get_user_model()
@@ -17,7 +17,7 @@ from core.data import BaseRepository
 
 User = get_user_model()
 
-VALID_PROVIDERS = {choice[0] for choice in Activity.PROVIDER_CHOICES if choice[0] != "manual"}
+VALID_PROVIDERS = {choice[0] for choice in ConnectedAccount.PROVIDER_CHOICES if choice[0] != "manual"}
 
 class UserRepository(BaseRepository):
     def __init__(self):

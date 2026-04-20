@@ -1,0 +1,236 @@
+'use client';
+
+import * as React from 'react';
+import PropTypes from 'prop-types';
+import clsx from 'clsx';
+import integerPropType from '@mui/utils/integerPropType';
+import composeClasses from '@mui/utils/composeClasses';
+import { useRtl } from '@mui/system/RtlProvider';
+import { styled } from "../zero-styled/index.mjs";
+import { useDefaultProps } from "../DefaultPropsProvider/index.mjs";
+import { RovingTabIndexContext, useRovingTabIndexRoot } from "../utils/useRovingTabIndex.mjs";
+import { getStepperUtilityClass } from "./stepperClasses.mjs";
+import StepConnector from "../StepConnector/index.mjs";
+import StepperContext from "./StepperContext.mjs";
+import StepButton from "../StepButton/index.mjs";
+import { jsx as _jsx } from "react/jsx-runtime";
+const useUtilityClasses = ownerState => {
+  const {
+    orientation,
+    nonLinear,
+    alternativeLabel,
+    classes
+  } = ownerState;
+  const slots = {
+    root: ['root', orientation, nonLinear && 'nonLinear', alternativeLabel && 'alternativeLabel']
+  };
+  return composeClasses(slots, getStepperUtilityClass, classes);
+};
+const StepperRoot = styled('ol', {
+  name: 'MuiStepper',
+  slot: 'Root',
+  overridesResolver: (props, styles) => {
+    const {
+      ownerState
+    } = props;
+    return [styles.root, styles[ownerState.orientation], ownerState.alternativeLabel && styles.alternativeLabel, ownerState.nonLinear && styles.nonLinear];
+  }
+})({
+  display: 'flex',
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+  variants: [{
+    props: {
+      orientation: 'horizontal'
+    },
+    style: {
+      flexDirection: 'row',
+      alignItems: 'center'
+    }
+  }, {
+    props: {
+      orientation: 'vertical'
+    },
+    style: {
+      flexDirection: 'column'
+    }
+  }, {
+    props: {
+      alternativeLabel: true
+    },
+    style: {
+      alignItems: 'flex-start'
+    }
+  }]
+});
+const defaultConnector = /*#__PURE__*/_jsx(StepConnector, {});
+function RovingStepper(props) {
+  // eslint-disable-next-line react/prop-types
+  const {
+    children,
+    className,
+    component,
+    forwardedRef,
+    isRtl,
+    orientation,
+    ownerState,
+    ...other
+  } = props;
+  const rovingContainer = useRovingTabIndexRoot({
+    orientation,
+    isRtl
+  });
+  const rovingContainerProps = rovingContainer.getContainerProps(forwardedRef);
+  return /*#__PURE__*/_jsx(RovingTabIndexContext.Provider, {
+    value: rovingContainer,
+    children: /*#__PURE__*/_jsx(StepperRoot, {
+      as: component,
+      ownerState: ownerState,
+      className: className,
+      role: "tablist",
+      "aria-orientation": orientation,
+      ...rovingContainerProps,
+      ...other,
+      children: children
+    })
+  });
+}
+const Stepper = /*#__PURE__*/React.forwardRef(function Stepper(inProps, ref) {
+  const isRtl = useRtl();
+  const props = useDefaultProps({
+    props: inProps,
+    name: 'MuiStepper'
+  });
+  const {
+    activeStep = 0,
+    alternativeLabel = false,
+    children,
+    className,
+    component = 'ol',
+    connector = defaultConnector,
+    nonLinear = false,
+    orientation = 'horizontal',
+    ...other
+  } = props;
+  const ownerState = {
+    ...props,
+    nonLinear,
+    alternativeLabel,
+    orientation,
+    component
+  };
+  const classes = useUtilityClasses(ownerState);
+  const childrenArray = React.Children.toArray(children).filter(Boolean);
+  const totalSteps = childrenArray.length;
+  const isTabList = childrenArray.some(child => {
+    if (! /*#__PURE__*/React.isValidElement(child)) {
+      return false;
+    }
+    if (child.type === StepButton) {
+      return true;
+    }
+    const grandChildren = child.props.children;
+    if (grandChildren) {
+      return React.Children.toArray(grandChildren).some(grandChild => /*#__PURE__*/React.isValidElement(grandChild) && grandChild.type === StepButton);
+    }
+    return false;
+  });
+  const steps = childrenArray.map((step, index) => {
+    return /*#__PURE__*/React.cloneElement(step, {
+      index,
+      last: index + 1 === totalSteps,
+      ...step.props
+    });
+  });
+  const contextValue = React.useMemo(() => ({
+    activeStep,
+    alternativeLabel,
+    connector,
+    nonLinear,
+    orientation,
+    totalSteps,
+    isTabList
+  }), [activeStep, alternativeLabel, connector, nonLinear, orientation, totalSteps, isTabList]);
+  if (!isTabList) {
+    return /*#__PURE__*/_jsx(StepperContext.Provider, {
+      value: contextValue,
+      children: /*#__PURE__*/_jsx(StepperRoot, {
+        as: component,
+        ownerState: ownerState,
+        className: clsx(classes.root, className),
+        ref: ref,
+        ...other,
+        children: steps
+      })
+    });
+  }
+  return /*#__PURE__*/_jsx(StepperContext.Provider, {
+    value: contextValue,
+    children: /*#__PURE__*/_jsx(RovingStepper, {
+      forwardedRef: ref,
+      isRtl: isRtl,
+      className: clsx(classes.root, className),
+      component: component,
+      orientation: orientation,
+      ownerState: ownerState,
+      ...other,
+      children: steps
+    })
+  });
+});
+process.env.NODE_ENV !== "production" ? Stepper.propTypes /* remove-proptypes */ = {
+  // ┌────────────────────────────── Warning ──────────────────────────────┐
+  // │ These PropTypes are generated from the TypeScript type definitions. │
+  // │    To update them, edit the d.ts file and run `pnpm proptypes`.     │
+  // └─────────────────────────────────────────────────────────────────────┘
+  /**
+   * Set the active step (zero based index).
+   * Set to -1 to disable all the steps.
+   * @default 0
+   */
+  activeStep: integerPropType,
+  /**
+   * If set to 'true' and orientation is horizontal,
+   * then the step label will be positioned under the icon.
+   * @default false
+   */
+  alternativeLabel: PropTypes.bool,
+  /**
+   * Two or more `<Step />` components.
+   */
+  children: PropTypes.node,
+  /**
+   * Override or extend the styles applied to the component.
+   */
+  classes: PropTypes.object,
+  /**
+   * @ignore
+   */
+  className: PropTypes.string,
+  /**
+   * The component used for the root node.
+   * Either a string to use a HTML element or a component.
+   */
+  component: PropTypes.elementType,
+  /**
+   * An element to be placed between each step.
+   * @default <StepConnector />
+   */
+  connector: PropTypes.element,
+  /**
+   * If set the `Stepper` will not assist in controlling steps for linear flow.
+   * @default false
+   */
+  nonLinear: PropTypes.bool,
+  /**
+   * The component orientation (layout flow direction).
+   * @default 'horizontal'
+   */
+  orientation: PropTypes.oneOf(['horizontal', 'vertical']),
+  /**
+   * The system prop that allows defining system overrides as well as additional CSS styles.
+   */
+  sx: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.func, PropTypes.object, PropTypes.bool])), PropTypes.func, PropTypes.object])
+} : void 0;
+export default Stepper;

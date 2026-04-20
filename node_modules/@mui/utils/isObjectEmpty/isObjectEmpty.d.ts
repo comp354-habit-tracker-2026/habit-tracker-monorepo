@@ -1,0 +1,1 @@
+export default function isObjectEmpty(object: any): boolean;

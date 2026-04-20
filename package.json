@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
+    "@mui/private-theming": "^9.0.0",
+    "@mui/styled-engine": "^9.0.0",
+    "@mui/system": "^9.0.0",
+    "@mui/utils": "^9.0.0",
+    "axios": "^1.15.0"
+  }
+}
