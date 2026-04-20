@@ -1,4 +1,4 @@
-from analytics.presentation import (
+from analytics.presentation.views import (
     AnalyticsOverviewView,
     ActivityStatisticsView,
     PersonalRecordsView,
@@ -27,3 +27,4 @@ __all__ = [
     "ActivityForecastView",
     "PaginatedActivityHistoryView", 
 ]
+

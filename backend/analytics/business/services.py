@@ -1,5 +1,6 @@
 from core.business import BaseService
 from analytics.data import AnalyticsRepository
+from analytics.business.goal_progress import GoalProgressService
 from core.business.predict_model import predict
 
 
@@ -25,3 +26,9 @@ class AnalyticsService(BaseService):
     def inactivity_evaluation(self, user):
         return self.repository.inactivity_evaluation(user)
 
+
+# ============================================================
+# G13 - cathytham - InactivityDetector - PR #241
+# ============================================================        
+    def inactivity_evaluation(self, user):
+        return self.repository.inactivity_evaluation(user)

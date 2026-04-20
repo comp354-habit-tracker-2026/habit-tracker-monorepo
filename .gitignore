@@ -2,9 +2,18 @@
 .env
 .env.local
 .env.*.local
+<<<<<<< feature/group-16-reporting-insights
 .idea
+=======
+CLAUDE.md
+>>>>>>> main
 
 # Python / Group 14
 __pycache__/
 *.pyc
+<<<<<<< feature/group-16-reporting-insights
 dataset-generation/artifacts/
+=======
+dataset-generation/artifacts/
+.idea
+>>>>>>> main

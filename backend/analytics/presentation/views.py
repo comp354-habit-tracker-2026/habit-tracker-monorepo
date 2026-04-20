@@ -35,6 +35,7 @@ class AnalyticsOverviewView(APIView):
             "forecast": service.forecast_preview(request.user),
         }
         return Response(data)
+<<<<<<< feature/group-16-reporting-insights
 
 #team 12
 class ActivityStatisticsView(APIView):
@@ -290,3 +291,18 @@ class PaginatedActivityHistoryView(APIView):
             {"date": "2026-03-11", "activity_type": "Running", "distance_km": 6.0, "duration_min": 38},
             {"date": "2026-03-12", "activity_type": "Swimming", "distance_km": 1.5, "duration_min": 35},
         ]
+=======
+    
+# ============================================================
+# G13 - cathytham - InactivityDetector - PR #241
+# ============================================================
+class HealthIndicatorsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsService()
+        return Response({
+            "activity_statistics": service.activity_statistics(request.user),
+            "inactivity_evaluation": service.inactivity_evaluation(request.user),
+        })
+>>>>>>> main
