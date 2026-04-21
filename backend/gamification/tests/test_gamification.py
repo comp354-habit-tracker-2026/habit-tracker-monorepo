@@ -4,13 +4,8 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
-import django
-import os
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-django.setup()
-
-from backend.activities.models import ConnectedAccount
+from activities.models import ConnectedAccount
 from gamification.business.services import GamificationService
 from gamification.models import Badge, Streak
 
