@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 User = get_user_model()
 
@@ -82,7 +82,21 @@ class TestAuthentication:
         """Test accessing protected route without token fails"""
         response = api_client.get('/api/v1/goals/')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        
+
+    def test_me_endpoint_requires_auth(self, api_client):
+        response = api_client.get('/api/v1/auth/me/')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_me_endpoint_returns_user(self, api_client, create_user):
+        user = create_user(email='me@test.com')
+        refresh = RefreshToken.for_user(user)
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        response = api_client.get('/api/v1/auth/me/')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['username'] == 'testuser'
+        assert response.data['email'] == 'me@test.com'
+
     def test_oauth_fields_moved_to_connected_account(self):
         """oauth_provider and oauth_provider_id no longer live on User.
         External provider links are stored in ConnectedAccount (activities app)
