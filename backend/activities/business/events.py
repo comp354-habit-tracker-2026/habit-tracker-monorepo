@@ -19,9 +19,14 @@ class EventHub:
             event_subscribers.append(subscriber)
         self.subscribers[event_type] = event_subscribers
 
-    def publish(self, event_type: str, message: object) -> None:
-        for subscriber in self.subscribers.get(event_type, []):
-            subscriber.notify(event_type, message)
+    def publish(self, event_type: str, message: object) -> tuple[bool, Exception]:
+        try:
+            for subscriber in self.subscribers.get(event_type, []):
+                subscriber.notify(event_type, message)
+        except BaseException as e:
+            return False, e
+        
+        return True, None
 
 '''
 Name: Shiyuan Zhang (40228185)

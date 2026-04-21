@@ -30,7 +30,10 @@ class ActivityPipeline:
 
         # Publishing:
         if results['status'] in ['NEW', 'UPDATE']:
-            self.publisher.publish_event(results['activity'], results['status'])
+            RETRIES = 5
+            for _ in range(RETRIES):
+                if self.publisher.publish_event(results['activity'], results['status'])[0]:
+                    break
 
         return results
 
