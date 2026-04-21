@@ -246,24 +246,35 @@ class GoalInsightsView(APIView):
             "missedGoals": missed,
         })
 
-
 # Class for paginated data (shortened data) for better organization
 class PaginatedActivityHistoryView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        """Returns paginated list of user activities"""
+        """Returns paginated list of user activities with filtering"""
+        
+        # Get filters from query params
+        activity_type = request.query_params.get('activity_type')
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
         from analytics.repository import AnalyticsRepository
         
         service = AnalyticsRepository()
         
-        # Get all activities (you may need to adjust this based on what's available)
-        # If you don't have an actual activities table yet, use dummy data
         try:
             activities = service.get_user_activities(request.user)
         except:
             # Dummy data for demonstration
             activities = self._get_demo_activities()
+        
+        # Apply filters
+        if activity_type:
+            activities = [a for a in activities if a.get('activity_type') == activity_type]
+        if start_date:
+            activities = [a for a in activities if a.get('date') >= start_date]
+        if end_date:
+            activities = [a for a in activities if a.get('date') <= end_date]
         
         # Apply pagination
         paginator = SmallResultsPagination()
@@ -272,7 +283,11 @@ class PaginatedActivityHistoryView(APIView):
         if page is not None:
             return paginator.get_paginated_response({
                 "activities": page,
-                "message": "Data exported in JSON format with pagination"
+                "filters_applied": {
+                    "activity_type": activity_type,
+                    "start_date": start_date,
+                    "end_date": end_date
+                }
             })
         
         return Response({"activities": activities})
