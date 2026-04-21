@@ -528,6 +528,46 @@
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
+
+.goals-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.goals-pagination-info {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.goals-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.goals-page-btn {
+  border: none;
+  background: transparent;
+  color: #374151;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.goals-page-btn.is-active {
+  background: #111827;
+  color: #ffffff;
+}
+
+.goals-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 @media (max-width: 640px) {
   .goals-section {
     padding: 16px;

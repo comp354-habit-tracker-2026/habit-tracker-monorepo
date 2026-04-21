@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGoals } from '../api/get-goals';
 import { GoalCard } from './goal-card';
 import { GoalFilterTabs, type GoalFilters } from './goal-filter-tabs';
@@ -418,6 +418,8 @@ export const GoalsContainer = () => {
   const [dataMode, setDataMode] = useState<'api' | 'mock'>('mock');
   const [filters, setFilters] = useState<GoalFilters>(defaultFilters);
   const [mockGoalsState, setMockGoalsState] = useState<Goal[]>(mockGoals);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
 
   const sourceGoals = dataMode === 'mock' ? mockGoalsState : (fetchedGoals ?? []);
 
@@ -446,6 +448,29 @@ export const GoalsContainer = () => {
       return matchesType && matchesStatus && matchesDatePreset && matchesRange;
     });
   }, [sourceGoals, filters]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, dataMode]);
+
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil(filteredGoals.length / pageSize));
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [filteredGoals.length, currentPage]);
+
+  const totalPages = Math.ceil(filteredGoals.length / pageSize);
+
+  const paginatedGoals = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredGoals.slice(start, start + pageSize);
+  }, [filteredGoals, currentPage]);
+
+  const startItem =
+    filteredGoals.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+
+  const endItem = Math.min(currentPage * pageSize, filteredGoals.length);
 
   const showLoading = dataMode === 'api' && isLoading;
   const showError = dataMode === 'api' && isError;
@@ -493,7 +518,7 @@ export const GoalsContainer = () => {
         </div>
       ) : (
         <div className="goals-list">
-          {filteredGoals.map((goal) => (
+          {paginatedGoals.map((goal) => (
             <GoalCard
               key={goal.id}
               goal={goal}
@@ -524,6 +549,45 @@ export const GoalsContainer = () => {
 
           {!filteredGoals.length && (
             <div className="goals-empty">No goals match the current filters.</div>
+          )}
+
+          {filteredGoals.length > pageSize && (
+            <div className="goals-pagination">
+              <span className="goals-pagination-info">
+                Showing {startItem}-{endItem} of {filteredGoals.length} goals
+              </span>
+
+              <div className="goals-pagination-controls">
+                <button
+                  type="button"
+                  className="goals-page-btn"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  ‹
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`goals-page-btn ${currentPage === page ? 'is-active' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  className="goals-page-btn"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  ›
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
