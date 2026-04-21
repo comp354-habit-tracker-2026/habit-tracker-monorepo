@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken 
 
 User = get_user_model()
 
@@ -89,3 +90,40 @@ class TestAuthentication:
         refresh_response = api_client.post('/api/v1/auth/refresh/', refresh_data, format='json')
         assert refresh_response.status_code == status.HTTP_200_OK
         assert 'access' in refresh_response.data
+    
+    def test_profile_route_with_valid_token_succeeds(self, api_client, create_user):
+        """Test protected profile route succeeds with valid token"""
+        user = create_user()
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        response = api_client.get('/api/v1/auth/profile/')
+
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_profile_route_without_token_fails(self, api_client):
+        """Test protected profile route fails without token"""
+        response = api_client.get('/api/v1/auth/profile/')
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_profile_route_with_malformed_token_fails(self, api_client):
+        """Test protected profile route fails with malformed token"""
+        api_client.credentials(HTTP_AUTHORIZATION='Bearer invalid.token.here')
+        response = api_client.get('/api/v1/auth/profile/')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_activities_route_with_malformed_token_fails(self, api_client):
+        """Test protected activities route fails with malformed token"""
+        api_client.credentials(HTTP_AUTHORIZATION='Bearer invalid.token.here')
+        response = api_client.get('/api/v1/activities/')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_goals_route_with_malformed_token_fails(self, api_client):
+        """Test protected goals route fails with malformed token"""
+        api_client.credentials(HTTP_AUTHORIZATION='Bearer invalid.token.here')
+        response = api_client.get('/api/v1/goals/')
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
