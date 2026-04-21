@@ -1,15 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
-//instead of just sending back id and string aslo added target value that actually got updated
 type UpdateGoalInput = {
   id: number;
   title?: string;
   target_value?: number;
+  status?: 'active' | 'completed' | 'paused' | 'failed';
 };
 
-const updateGoal = async ({ id, title }: UpdateGoalInput) => {
-  const res = await apiClient.patch(`/goals/${id}/`, { title });
+const updateGoal = async ({ id, ...updates }: UpdateGoalInput) => {
+  const res = await apiClient.patch(`/goals/${id}/`, updates);
   return res;
 };
 
