@@ -10,7 +10,7 @@ import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-from activities.models import ConnectedAccount
+from backend.activities.models import ConnectedAccount
 from gamification.business.services import GamificationService
 from gamification.models import Badge, Streak
 
