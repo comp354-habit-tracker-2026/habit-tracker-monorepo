@@ -22,6 +22,9 @@ class AnalyticsService(BaseService):
         X_last=np.array([1,2,3])
         return predict(X_last, horizon=3)
         #return self.repository.forecast_preview(user)
+        
+    def inactivity_evaluation(self, user):
+        return self.repository.inactivity_evaluation(user)
 
 
 # ============================================================

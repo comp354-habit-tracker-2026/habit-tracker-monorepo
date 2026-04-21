@@ -26,9 +26,6 @@ class AnalyticsRepository:
             "notes": "Forecast endpoint contract in place; team can plug scikit-learn model.",
         }
 
-# ============================================================
-# G13 - cathytham - InactivityDetector - PR #241
-# ============================================================ 
     def inactivity_evaluation(self, user):
         queryset = Activity.objects.filter(user=user)
         max_date = queryset.aggregate(max_date=Max('date'))['max_date']
@@ -50,3 +47,4 @@ class AnalyticsRepository:
             'inactive': inactive,
             'severity': severity
         }
+
