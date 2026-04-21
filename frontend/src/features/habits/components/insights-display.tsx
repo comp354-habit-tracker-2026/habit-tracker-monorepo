@@ -1,13 +1,27 @@
 import { useState} from 'react';
 import { mockActivities } from '@/app/routes/app/mock-activities';
- export function InsightsDisplay() { 
-    const [show, setShow] = useState(false); 
+ export function InsightsDisplay() {
+    const [show, setShow] = useState(false);
+    const [start, setStart] = useState('');
+    const [end, setEnd] = useState('');
 
-    if (mockActivities.length === 0) {
+    const period = mockActivities.filter(a => {
+      const date = a.startedAt.slice(0, 10);
+      if (start && date < start) return false;
+      if (end && date > end) return false;
+      return true;
+    });
+
+    if (period.length === 0) {
       return (
         <div>
           <h2>Insights</h2>
-          <p>No activity data available.</p>
+          <div>
+            <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
+            {' '}
+            <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} /></label>
+          </div>
+          <p>No activity data available for this range.</p>
         </div>
       );
     }
@@ -15,11 +29,11 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     const activitiesperDay: Record<string, number>={};
     const caloriesperDay: Record<string, number> = {};
 
-    let mostIntenseActivity = mockActivities[0];
+    let mostIntenseActivity = period[0];
     let totalHeartRate = 0;
     let heartrateCount = 0;
 
-    for (const activity of mockActivities) {
+    for (const activity of period) {
         const date = activity.startedAt.slice(0, 10);
         activitiesperDay[date] = (activitiesperDay[date] ||0) +1;
         caloriesperDay[date] = (caloriesperDay[date] ||0) + (activity.summary.calories || 0);
@@ -69,7 +83,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     let weeklyCalories = 0;
     let weeklySteps = 0;
 
-    for (const activity of mockActivities) {
+    for (const activity of period) {
       weeklyCalories += activity.summary.calories || 0;
       weeklySteps += activity.summary.steps || 0;
     }
@@ -79,7 +93,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     let thisWeekCalories = 0;
     let lastWeekCalories = 0;
 
-    for (const activity of mockActivities) {
+    for (const activity of period) {
       const date = new Date(activity.startedAt);
       const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -109,11 +123,16 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         } 
         return ( 
         <div>
-             <button onClick={() => setShow(false)}> 
+             <button onClick={() => setShow(false)}>
                 Hide Insights
-                 </button> 
-                 <div> 
-                    <h2>Insights</h2> 
+                 </button>
+                 <div>
+                   <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
+                   {' '}
+                   <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} /></label>
+                 </div>
+                 <div>
+                    <h2>Insights</h2>
                     <p><strong>Most active day:</strong> {mostActiveDay} ({mostActivities} activities)</p>
                     <p><strong>Least active day:</strong> {leastActiveDay} ({leastActivities} activities)</p>
                     <p><strong>Highest calories in one day:</strong> {highestCalorieDay} ({highestCalories} calories)</p>
@@ -135,12 +154,3 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
 
 
 
-
-        /* durationSeconds: 4320,
-      distanceKm: 34.8,
-      avgSpeedKmh: 29.0,
-      maxSpeedKmh: 52.7,
-      avgHeartRate: 151,
-      avgCadenceRpm: 86,
-      avgPowerWatts: 214,
-      calories: 740,*/
