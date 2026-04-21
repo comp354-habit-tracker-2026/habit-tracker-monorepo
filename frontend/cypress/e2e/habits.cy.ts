@@ -352,7 +352,8 @@ describe('Habits page', () => {
           req.continue();
           return;
         }
-        expect(req.headers.authorization).to.be.undefined;
+
+        expect(req.headers.authorization).to.eq(undefined);
 
         req.reply({
           statusCode: 200,
@@ -418,7 +419,8 @@ describe('Habits page', () => {
           req.continue();
           return;
         }
-        expect(req.headers.authorization).to.be.undefined;
+
+        expect(req.headers.authorization).to.eq(undefined);
 
         req.reply({
           statusCode: 200,
