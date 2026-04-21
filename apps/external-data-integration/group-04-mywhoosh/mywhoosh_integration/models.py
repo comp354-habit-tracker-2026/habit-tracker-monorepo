@@ -34,3 +34,32 @@ class SyncStatus(models.Model):
             f"sessions_imported={self.sessions_imported}, "
             f"duplicates_skipped={self.duplicates_skipped})"
         )
+class ImportedSession(models.Model):
+    user_id = models.IntegerField()
+    provider = models.CharField(max_length=50, default="mywhoosh")
+    external_id = models.CharField(max_length=255)
+
+    activity_type = models.CharField(max_length=50, default="cycling")
+    session_date = models.DateField()
+
+    distance = models.FloatField(blank=True, null=True)
+    calories = models.FloatField(blank=True, null=True)
+    duration = models.IntegerField(blank=True, null=True)
+
+    raw_data = models.JSONField(default=dict)
+    imported_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-imported_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user_id", "provider", "external_id"],
+                name="unique_imported_session_per_user_provider_external_id",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"ImportedSession(user_id={self.user_id}, provider={self.provider}, "
+            f"external_id={self.external_id})"
+        )
