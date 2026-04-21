@@ -2,6 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -89,3 +90,69 @@ class TestAuthentication:
         refresh_response = api_client.post('/api/v1/auth/refresh/', refresh_data, format='json')
         assert refresh_response.status_code == status.HTTP_200_OK
         assert 'access' in refresh_response.data
+    def test_logout_success(self, api_client, create_user):
+            """Test successful logout blacklists refresh token"""
+            user = create_user()
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+            response = api_client.post(
+                '/api/v1/auth/logout/',
+                {'refresh': str(refresh)},
+                format='json'
+            )
+
+            assert response.status_code == status.HTTP_200_OK
+            assert response.data['message'] == 'Logout successful'
+
+    def test_logout_requires_authentication(self, api_client, create_user):
+        """Test logout fails without access token"""
+        user = create_user()
+        refresh = RefreshToken.for_user(user)
+
+        response = api_client.post(
+            '/api/v1/auth/logout/',
+            {'refresh': str(refresh)},
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_logout_with_invalid_refresh_token_fails(self, api_client, create_user):
+        """Test logout fails with invalid refresh token"""
+        user = create_user()
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+        response = api_client.post(
+            '/api/v1/auth/logout/',
+            {'refresh': 'invalid-token'},
+            format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_blacklisted_refresh_token_cannot_be_reused(self, api_client, create_user):
+        """Test blacklisted refresh token cannot be used again"""
+        user = create_user()
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+        logout_response = api_client.post(
+            '/api/v1/auth/logout/',
+            {'refresh': str(refresh)},
+            format='json'
+        )
+        assert logout_response.status_code == status.HTTP_200_OK
+
+        reuse_response = api_client.post(
+            '/api/v1/auth/refresh/',
+            {'refresh': str(refresh)},
+            format='json'
+        )
+
+        assert reuse_response.status_code == status.HTTP_401_UNAUTHORIZED

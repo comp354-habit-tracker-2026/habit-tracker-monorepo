@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
-
-from users.serializers import RegisterSerializer, ProfileUpdateSerializer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from users.serializers import RegisterSerializer, ProfileUpdateSerializer, LogoutSerializer
 
 User = get_user_model()
 
@@ -25,3 +27,12 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         # Requirement: Users can only update their own profile.
         # This returns the user associated with the JWT token.
         return self.request.user
+
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        serializer = LogoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)

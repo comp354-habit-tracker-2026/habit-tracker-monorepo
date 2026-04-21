@@ -2,10 +2,22 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+
 
 from users.business import UserRegistrationService
 
 User = get_user_model()
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    def save(self, **kwargs):
+        try:
+            token = RefreshToken(self.validated_data["refresh"])
+            token.blacklist()
+        except TokenError:
+            raise serializers.ValidationError("Invalid or expired refresh token")
 
 
 class RegisterSerializer(serializers.ModelSerializer):
