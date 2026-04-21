@@ -206,3 +206,190 @@ def test_upload_extension_preserved(monkeypatch):
     result = upload_file_to_blob(file, "key-999")
 
     assert result["stored_as"] == "fixed-id.xls"
+
+
+# ------------------------
+# Testing for normalization
+# and validation (feature 75)
+# ------------------------
+
+# Test code developed with assistance from OpenAI's GPT-5.3 LLM 
+
+from data_integration.business.mapmyrun_service import validate_normalize_mapmyrun_data
+
+
+# ----------------------------
+# Test helpers
+# ----------------------------
+
+def make_valid_activity(**overrides):
+    activity = {
+        "workout_date": "2024-01-15",
+        "activity_type": " Run ",
+        "calories_burned_kcal": "450.5",
+        "distance_km": "10.2",
+        "workout_time_seconds": "3600",
+        "avg_pace_min_per_km": "5.5",
+        "max_pace_min_per_km": "4.8",
+        "avg_speed_kmh": "10.9",
+        "max_speed_kmh": "12.3",
+    }
+    activity.update(overrides)
+    return activity
+
+
+# ----------------------------
+# UNIT TESTS
+# ----------------------------
+
+def test_no_parsed_activity_data_none():
+    normalized, errors = validate_normalize_mapmyrun_data(None)
+    assert normalized is None
+    assert errors == ["No parsed activity data was provided."]
+
+
+def test_no_parsed_activity_data_empty_list():
+    normalized, errors = validate_normalize_mapmyrun_data([])
+    assert normalized is None
+    assert errors == ["No parsed activity data was provided."]
+
+
+def test_valid_row_all_fields_normalized():
+    normalized, errors = validate_normalize_mapmyrun_data([make_valid_activity()])
+
+    assert errors == []
+    assert normalized == [
+        {
+            "workout_date": "2024-01-15",
+            "activity_type": "Run",
+            "calories_burned_kcal": 450.5,
+            "distance_km": 10.2,
+            "workout_time_seconds": 3600,
+            "avg_pace_min_per_km": 5.5,
+            "max_pace_min_per_km": 4.8,
+            "avg_speed_kmh": 10.9,
+            "max_speed_kmh": 12.3,
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("activity_type", ""),
+        ("calories_burned_kcal", None),
+        ("avg_pace_min_per_km", "   "),
+        ("max_pace_min_per_km", None),
+        ("avg_speed_kmh", ""),
+        ("max_speed_kmh", None),
+    ],
+)
+def test_optional_fields_can_be_missing(field, value):
+    normalized, errors = validate_normalize_mapmyrun_data(
+        [make_valid_activity(**{field: value})]
+    )
+
+    assert errors == []
+    assert normalized[0][field] is None
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("workout_date", ""),
+        ("distance_km", None),
+        ("workout_time_seconds", "   "),
+    ],
+)
+def test_required_fields_missing(field, value):
+    normalized, errors = validate_normalize_mapmyrun_data(
+        [make_valid_activity(**{field: value})]
+    )
+
+    assert normalized is None
+    assert f"Row 2: missing required field: {field}" in errors
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("calories_burned_kcal", "abc"),
+        ("distance_km", "abc"),
+        ("workout_time_seconds", "abc"),
+        ("avg_pace_min_per_km", "abc"),
+        ("max_pace_min_per_km", "abc"),
+        ("avg_speed_kmh", "abc"),
+        ("max_speed_kmh", "abc"),
+    ],
+)
+def test_invalid_numeric_conversion(field, value):
+    normalized, errors = validate_normalize_mapmyrun_data(
+        [make_valid_activity(**{field: value})]
+    )
+
+    assert normalized is None
+    assert any(f"Row 2: invalid value for {field}" in error for error in errors)
+
+
+@pytest.mark.parametrize(
+    "field,value,error_text",
+    [
+        ("calories_burned_kcal", "-1", "calories_burned_kcal cannot be negative"),
+        ("distance_km", "-1", "distance_km cannot be negative"),
+        ("workout_time_seconds", "0", "workout_time_seconds must be greater than 0"),
+        ("avg_pace_min_per_km", "-1", "avg_pace_min_per_km cannot be negative"),
+        ("max_pace_min_per_km", "-1", "max_pace_min_per_km cannot be negative"),
+        ("avg_speed_kmh", "-1", "avg_speed_kmh cannot be negative"),
+        ("max_speed_kmh", "-1", "max_speed_kmh cannot be negative"),
+    ],
+)
+def test_validator_failures(field, value, error_text):
+    normalized, errors = validate_normalize_mapmyrun_data(
+        [make_valid_activity(**{field: value})]
+    )
+
+    assert normalized is None
+    assert f"Row 2: {error_text}" in errors
+
+
+def test_invalid_rows_are_dropped_but_valid_rows_are_kept():
+    parsed_data = [
+        make_valid_activity(),
+        make_valid_activity(distance_km="-5"),
+        make_valid_activity(
+            workout_date="2024-01-17",
+            distance_km="3.0",
+            workout_time_seconds="900",
+        ),
+    ]
+
+    normalized, errors = validate_normalize_mapmyrun_data(parsed_data)
+
+    assert len(normalized) == 2
+    assert normalized[0]["distance_km"] == 10.2
+    assert normalized[1]["distance_km"] == 3.0
+    assert "Row 3: distance_km cannot be negative" in errors
+
+
+def test_activity_type_non_string_is_stringified():
+    normalized, errors = validate_normalize_mapmyrun_data(
+        [make_valid_activity(activity_type=123)]
+    )
+
+    assert errors == []
+    assert normalized[0]["activity_type"] == "123"
+
+
+def test_type_error_conversion():
+    parsed_data = [
+        {
+            "workout_date": "2024-01-15",
+            "distance_km": object(),
+            "workout_time_seconds": "1000",
+        }
+    ]
+
+    normalized, errors = validate_normalize_mapmyrun_data(parsed_data)
+
+    assert normalized is None
+    assert any("invalid value for distance_km" in error for error in errors)
