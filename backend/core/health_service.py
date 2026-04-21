@@ -3,7 +3,10 @@ Health status service for system integration monitoring.
 Collects real-time health information about the application.
 """
 
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> ce7c562e (Created health dashboard and health endpoints)
 from django.db import connection
 from django.apps import apps
 from django.contrib.auth import get_user_model
@@ -11,7 +14,10 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 User = get_user_model()
+<<<<<<< HEAD
 logger = logging.getLogger(__name__)
+=======
+>>>>>>> ce7c562e (Created health dashboard and health endpoints)
 
 
 class HealthCheckService:
@@ -29,11 +35,18 @@ class HealthCheckService:
                 "message": "Database is responding",
                 "timestamp": datetime.utcnow().isoformat()
             }
+<<<<<<< HEAD
         except Exception:
             logger.exception("Database health check failed")
             return {
                 "status": "unhealthy",
                 "message": "Database check failed",
+=======
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "message": f"Database error: {str(e)}",
+>>>>>>> ce7c562e (Created health dashboard and health endpoints)
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -50,11 +63,18 @@ class HealthCheckService:
                 "message": "All migrations applied",
                 "timestamp": datetime.utcnow().isoformat()
             }
+<<<<<<< HEAD
         except Exception:
             logger.exception("Migration health check failed")
             return {
                 "status": "unhealthy",
                 "message": "Migration check failed",
+=======
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "message": f"Migration check failed: {str(e)}",
+>>>>>>> ce7c562e (Created health dashboard and health endpoints)
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -68,11 +88,18 @@ class HealthCheckService:
                 "message": f"User model accessible ({user_count} users)",
                 "timestamp": datetime.utcnow().isoformat()
             }
+<<<<<<< HEAD
         except Exception:
             logger.exception("User model health check failed")
             return {
                 "status": "unhealthy",
                 "message": "User model check failed",
+=======
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "message": f"User model error: {str(e)}",
+>>>>>>> ce7c562e (Created health dashboard and health endpoints)
                 "timestamp": datetime.utcnow().isoformat()
             }
 
