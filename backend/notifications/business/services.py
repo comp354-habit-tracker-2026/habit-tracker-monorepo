@@ -2,6 +2,7 @@ from notifications.models import Notification, NotificationChannel, UserNotifica
 from core.business import BaseService
 from notifications.data.repositories import NotificationRepository, UserPreferenceRepository
 from django.contrib.auth import get_user_model
+from goals.models import Goal
 import threading
 
 User = get_user_model()
@@ -9,16 +10,16 @@ User = get_user_model()
 
 class NotificationService(BaseService):
     STATE_TO_NOTIFICATION_TYPE = {
-        "ACHIEVED": Notification.NotificationType.GOAL_ACHIEVED,
-        "AT_RISK": Notification.NotificationType.GOAL_AT_RISK,
-        "MISSED": Notification.NotificationType.GOAL_MISSED,
+        "ACHIEVED": NotificationType.GOAL_ACHIEVED,
+        "AT_RISK": NotificationType.GOAL_AT_RISK,
+        "MISSED": NotificationType.GOAL_MISSED,
     }
 
     def __init__(self, repository: NotificationRepository=None, user_preferences_service: UserPreferenceRepository=None):
         self.notification_repository = repository or NotificationRepository()
         self.user_preferences_service = user_preferences_service or UserPreferencesService()
 
-    def notify(self, title: str, description: str, recipient_id: str, event_type: NotificationType):
+    def notify(self, title: str, description: str, payload: str, recipient_id: str, event_type: NotificationType, goal: Goal=None):
         recipient = User.objects.get(id=recipient_id)
         if recipient is None:
             raise Exception(f"User: {recipient_id} does not exist")
@@ -30,11 +31,11 @@ class NotificationService(BaseService):
         
         def send_notification(type: NotificationType.choices):
             if (recipient_preferences.email_enabled):
-                self.notification_repository.create_notification(recipient, type, description, NotificationChannel.EMAIL)
+                self.notification_repository.create_notification(recipient, type, description, payload, NotificationChannel.EMAIL, goal)
                 # Send email notification
                 return
             if (recipient_preferences.in_app_enabled):
-                self.notification_repository.create_notification(recipient, type, description, NotificationChannel.IN_APP)
+                self.notification_repository.create_notification(recipient, type, description, payload, NotificationChannel.IN_APP, goal)
                 # Send in app notification
                 return
 
@@ -79,7 +80,7 @@ class NotificationService(BaseService):
     def create_goal_progress_notification(
         self,
         *,
-        goal,
+        goal: Goal,
         previous_state,
         new_state,
         progress_summary,
@@ -92,13 +93,7 @@ class NotificationService(BaseService):
             return None
 
         title, message = self._build_goal_progress_content(goal.title, new_state)
-        return self.repository.create_notification(
-            user=goal.user,
-            goal=goal,
-            notification_type=notification_type,
-            title=title,
-            message=message,
-            payload={
+        payload={
                 "goalId": goal.pk,
                 "goalTitle": goal.title,
                 "previousState": previous_state,
@@ -106,7 +101,8 @@ class NotificationService(BaseService):
                 "computedAt": computed_at.isoformat(),
                 "progressSummary": progress_summary,
             },
-        )
+        return self.notify(title, message, payload, goal.user.user_id, notification_type, goal)
+    
 
     @staticmethod
     def _build_goal_progress_content(goal_title, new_state):

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from presentation.views import DeleteNotificationView, NotificationsListView, ViewNotifications, MarkNotificationAsRead 
+from .presentation.views import DeleteNotificationView, MarkNotificationAsRead, NotificationsListView, ViewNotifications
 
 
 urlpatterns = [
