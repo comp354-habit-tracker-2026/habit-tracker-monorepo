@@ -13,3 +13,4 @@ dataset-generation/artifacts/
 # Celery Beat state
 celerybeat-schedule
 celerybeat-schedule.*
+.idea.lsp/
