@@ -4,7 +4,8 @@ import importlib.util
 from pathlib import Path
 import sys
 import types
-from mapmyrun import upload_mapmyrun_data, build_activity_key, SQLiteRepository, sqlite3
+import io
+import pandas as pd
 
 
 # ----------------------------
@@ -44,6 +45,8 @@ spec.loader.exec_module(mapmyrun_service)
 MAX_FILE_SIZE_BYTES = mapmyrun_service.MAX_FILE_SIZE_BYTES
 validate_uploaded_file = mapmyrun_service.validate_uploaded_file
 upload_file_to_blob = mapmyrun_service.upload_file_to_blob
+process_mapmyrun_upload = mapmyrun_service.process_mapmyrun_upload
+validate_normalize_mapmyrun_data = mapmyrun_service.validate_normalize_mapmyrun_data
 
 
 # ----------------------------
@@ -74,8 +77,22 @@ class DummyBlobClient:
         self.upload_position = file_obj.tell()
 
 
+def make_mapmyrun_excel_file(rows, filename="mapmyrun_test.xlsx"):
+    """
+    Build an in-memory Excel file that looks like a real MapMyRun export.
+    """
+    df = pd.DataFrame(rows)
+    buffer = io.BytesIO()
+    df.to_excel(buffer, index=False, engine="openpyxl")
+    buffer.seek(0)
+    return FakeUploadFile(
+        content=buffer.read(),
+        name=filename,
+    )
+
+
 # ----------------------------
-# UNIT TESTS
+# UNIT TESTS - validate_uploaded_file
 # ----------------------------
 
 def test_no_file():
@@ -129,7 +146,7 @@ def test_file_at_max_size():
 
 
 # ----------------------------
-# INTEGRATION TESTS
+# INTEGRATION TESTS - upload_file_to_blob
 # ----------------------------
 
 def test_upload_fails_invalid_file():
@@ -209,18 +226,121 @@ def test_upload_extension_preserved(monkeypatch):
     assert result["stored_as"] == "fixed-id.xls"
 
 
-# ------------------------
-# Testing for normalization
-# and validation (feature 75)
-# ------------------------
+# ----------------------------
+# INTEGRATION TESTS - process_mapmyrun_upload
+# ----------------------------
 
-# Test code developed with assistance from OpenAI's GPT-5.3 LLM 
+def fake_upload_file_to_blob(file, file_key):
+    return {
+        "file_key": file_key,
+        "filename": file.name,
+        "stored_as": "fake-blob-name.xlsx",
+        "content_type": file.content_type,
+        "size": file.size,
+        "url": "https://fake.blob.core.windows.net/filestorage/fake-blob-name.xlsx",
+    }
 
-from data_integration.business.mapmyrun_service import validate_normalize_mapmyrun_data
+
+VALID_ROWS = [
+    {
+        "Workout Date": "2026-04-01",
+        "Activity Type": "Run",
+        "Calories Burned (kCal)": 420,
+        "Distance (km)": 5.0,
+        "Workout Time (seconds)": 1800,
+        "Avg Pace (min/km)": 6.0,
+        "Max Pace (min/km)": 4.8,
+        "Avg Speed (km/h)": 10.0,
+        "Max Speed (km/h)": 12.5,
+    },
+    {
+        "Workout Date": "2026-04-02",
+        "Activity Type": "Walk",
+        "Calories Burned (kCal)": 250,
+        "Distance (km)": 3.2,
+        "Workout Time (seconds)": 2400,
+        "Avg Pace (min/km)": 12.5,
+        "Max Pace (min/km)": 10.0,
+        "Avg Speed (km/h)": 4.8,
+        "Max Speed (km/h)": 6.0,
+    },
+]
+
+
+def test_process_mapmyrun_upload_success(monkeypatch):
+    uploaded_file = make_mapmyrun_excel_file(VALID_ROWS)
+
+    def fake_save(user_id, activities):
+        return {"saved_count": len(activities), "skipped_count": 0}
+
+    monkeypatch.setattr(mapmyrun_service, "upload_file_to_blob", fake_upload_file_to_blob)
+    monkeypatch.setattr(mapmyrun_service, "save_mapmyrun_activities", fake_save)
+
+    result = process_mapmyrun_upload(
+        uploaded_file=uploaded_file,
+        file_key="file_123",
+        user_id=1,
+    )
+
+    assert result["message"] == "File uploaded, parsed, normalized, and saved successfully."
+    assert result["parsed_count"] == 2
+    assert result["normalized_count"] == 2
+    assert result["saved_count"]["saved_count"] == 2
+    assert result["saved_count"]["skipped_count"] == 0
+    assert result["validation_errors"] == []
+    assert len(result["normalized_preview"]) == 2
+
+
+def test_process_mapmyrun_upload_deduplicates_same_batch(monkeypatch):
+    duplicate_rows = [VALID_ROWS[0], VALID_ROWS[0]]
+    uploaded_file = make_mapmyrun_excel_file(duplicate_rows)
+
+    def fake_save(user_id, activities):
+        assert len(activities) == 1
+        return {"saved_count": 1, "skipped_count": 0}
+
+    monkeypatch.setattr(mapmyrun_service, "upload_file_to_blob", fake_upload_file_to_blob)
+    monkeypatch.setattr(mapmyrun_service, "save_mapmyrun_activities", fake_save)
+
+    result = process_mapmyrun_upload(
+        uploaded_file=uploaded_file,
+        file_key="file_456",
+        user_id=1,
+    )
+
+    assert result["parsed_count"] == 2
+    assert result["normalized_count"] == 2
+    assert result["saved_count"]["saved_count"] == 1
+
+
+def test_process_mapmyrun_upload_invalid_required_data(monkeypatch):
+    bad_rows = [
+        {
+            "Workout Date": "2026-04-01",
+            "Activity Type": "Run",
+            "Calories Burned (kCal)": 420,
+            "Distance (km)": -5.0,  # invalid
+            "Workout Time (seconds)": 1800,
+            "Avg Pace (min/km)": 6.0,
+            "Max Pace (min/km)": 4.8,
+            "Avg Speed (km/h)": 10.0,
+            "Max Speed (km/h)": 12.5,
+        }
+    ]
+    uploaded_file = make_mapmyrun_excel_file(bad_rows)
+
+    monkeypatch.setattr(mapmyrun_service, "upload_file_to_blob", fake_upload_file_to_blob)
+
+    with pytest.raises(ValueError, match="No valid MapMyRun activities found."):
+        process_mapmyrun_upload(
+            uploaded_file=uploaded_file,
+            file_key="file_789",
+            user_id=1,
+        )
 
 
 # ----------------------------
-# Test helpers
+# UNIT TESTS - validate_normalize_mapmyrun_data
 # ----------------------------
 
 def make_valid_activity(**overrides):
@@ -238,10 +358,6 @@ def make_valid_activity(**overrides):
     activity.update(overrides)
     return activity
 
-
-# ----------------------------
-# UNIT TESTS
-# ----------------------------
 
 def test_no_parsed_activity_data_none():
     normalized, errors = validate_normalize_mapmyrun_data(None)
@@ -394,247 +510,3 @@ def test_type_error_conversion():
 
     assert normalized is None
     assert any("invalid value for distance_km" in error for error in errors)
-
-"""
-Tests for Feature #135 — upload_mapmyrun_data
-Covers: normal uploads, duplicate detection (in-batch and cross-batch),
-missing user_id, empty input, and partial failures.
-"""
-#Generated by Claude Sonnet 4.6
-#Test data for feature #135 (Upload Vaildated, normalized data to DB, skip duplicates and give summary) 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(autouse=True)
-def clear_db(repo):  # pass repo as argument, forces repo to run first so the table exists before we delete
-    """Wipe the activities table before every test so state doesn't bleed between runs."""
-    conn = sqlite3.connect("test_activities.db")
-    conn.execute("DELETE FROM activities")
-    conn.commit()
-    conn.close()
-
-def print_db(label="", summary=None):
-    """Print summary and all rows in the activities table."""
-    print(f"\n{'='*90}")
-    print(f"📋 DB State — {label}")
-    print(f"{'='*90}")
-
-    # Print summary if provided
-    if summary:
-        print(f"  ✅ Imported:   {summary['imported_count']}")
-        print(f"  🔁 Duplicates: {summary['duplicate_count']}")
-        print(f"  ❌ Failed:     {summary['failed_count']}")
-        if summary['errors']:
-            print(f"  ⚠️  Errors:    {summary['errors']}")
-        print()
-
-    # Print DB rows
-    conn = sqlite3.connect("test_activities.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM activities")
-    rows = cursor.fetchall()
-    conn.close()
-
-    print(f"  {'ID':<5} {'User':<10} {'Key':<35} {'Date':<15} {'Duration':<10} {'Distance'}")
-    print(f"  {'-' * 85}")
-    if rows:
-        for row in rows:
-            print(f"  {str(row[0]):<5} {str(row[1]):<10} {str(row[2]):<35} {str(row[3]):<15} {str(row[4]):<10} {row[5]}")
-    else:
-        print("  (empty)")
-    print(f"{'='*90}\n")
-
-@pytest.fixture()
-def repo():
-    return SQLiteRepository(db_name="test_activities.db")
-
-
-ACTIVITY_A = {"date": "2024-01-10", "duration": 1800, "distance": 5.0}
-ACTIVITY_B = {"date": "2024-01-11", "duration": 2400, "distance": 8.0}
-ACTIVITY_C = {"date": "2024-01-12", "duration": 3000, "distance": 10.5}
-
-
-# ---------------------------------------------------------------------------
-# build_activity_key helper tests
-# ---------------------------------------------------------------------------
-
-class TestBuildActivityKey:
-
-    def test_builds_pipe_separated_key(self):
-        # Verifies that the activity key is correctly formatted as "date|duration|distance"
-        # using pipe characters as separators between the three fields.
-        key = build_activity_key(ACTIVITY_A)
-        assert key == "2024-01-10|1800|5.0"
-
-    def test_case_insensitive_field_lookup(self):
-        # Verifies that the key builder works whether field names are lowercase ("date")
-        # or Title-case ("Date"), since MapMyRun exports may vary in casing.
-        titled = {"Date": "2024-01-10", "Duration": 1800, "Distance": 5.0}
-        assert build_activity_key(titled) == build_activity_key(ACTIVITY_A)
-
-    def test_missing_fields_produce_empty_segments(self):
-        # Verifies that if an activity has no fields at all, the key still has
-        # the correct format with empty segments ("||") instead of crashing.
-        key = build_activity_key({})
-        assert key == "||"
-
-
-# ---------------------------------------------------------------------------
-# SQLiteRepository helper tests
-# ---------------------------------------------------------------------------
-
-class TestSQLiteRepository:
-
-    def test_new_activity_does_not_exist(self, repo):
-        # Verifies that checking for an activity that was never saved returns False,
-        # confirming the DB starts clean and exists() doesn't false-positive.
-        assert repo.exists("user1", "some|key|here") is False
-
-    def test_saved_activity_exists(self, repo):
-        # Verifies that after saving an activity, exists() correctly returns True
-        # for that same user and activity key combination.
-        key = build_activity_key(ACTIVITY_A)
-        repo.save("user1", ACTIVITY_A, key)
-        assert repo.exists("user1", key) is True
-
-    def test_activity_isolated_per_user(self, repo):
-        # Verifies that an activity saved for user1 does NOT show up when checking
-        # for user2 — each user's data is fully isolated in the DB.
-        key = build_activity_key(ACTIVITY_A)
-        repo.save("user1", ACTIVITY_A, key)
-        assert repo.exists("user2", key) is False
-
-
-# ---------------------------------------------------------------------------
-# upload_mapmyrun_data — main feature tests
-# ---------------------------------------------------------------------------
-
-class TestUploadMapMyRunData:
-
-    # --- Happy path ---
-
-    def test_single_activity_imported(self, repo):
-        # Verifies the basic happy path: uploading one new activity results in
-        # imported_count=1 with no duplicates, failures, or errors.
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        assert summary["imported_count"] == 1
-        assert summary["duplicate_count"] == 0
-        assert summary["failed_count"] == 0
-        assert summary["errors"] == []
-        print_db("test_single_activity_imported", summary)
-
-    def test_multiple_unique_activities_all_imported(self, repo):
-        # Verifies that uploading a batch of 3 completely different activities
-        # results in all 3 being imported with zero duplicates.
-        activities = [ACTIVITY_A, ACTIVITY_B, ACTIVITY_C]
-        summary = upload_mapmyrun_data("user1", activities, repo)
-        assert summary["imported_count"] == 3
-        assert summary["duplicate_count"] == 0
-        print_db("test_multiple_unique_activities_all_imported", summary)
-
-    def test_data_actually_persists_in_db(self, repo):
-        # Verifies that after uploading, the activity is physically stored in the DB
-        # and can be found by exists() — not just counted in the summary.
-        upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        key = build_activity_key(ACTIVITY_A)
-        assert repo.exists("user1", key) is True
-        print_db("test_data_actually_persists_in_db", summary)
-
-    # --- Duplicate detection (same batch) ---
-
-    def test_in_batch_duplicate_counted_once(self, repo):
-        # Verifies that if the same activity appears twice in the same upload batch,
-        # only the first one is imported and the second is counted as a duplicate.
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A, ACTIVITY_A], repo)
-        assert summary["imported_count"] == 1
-        assert summary["duplicate_count"] == 1
-        print_db("test_in_batch_duplicate_counted_once", summary)
-
-    def test_three_identical_activities_only_one_imported(self, repo):
-        # Verifies that if the same activity appears 3 times in one batch,
-        # only 1 is imported and the remaining 2 are counted as duplicates.
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A] * 3, repo)
-        assert summary["imported_count"] == 1
-        assert summary["duplicate_count"] == 2
-        print_db("test_three_identical_activities_only_one_imported", summary)
-
-    # --- Duplicate detection (cross-batch / already in DB) ---
-
-    def test_second_upload_of_same_activity_is_duplicate(self, repo):
-        # Verifies that uploading the same activity a second time (in a separate call)
-        # is correctly detected as a duplicate using the DB — not just the in-memory set.
-        upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        assert summary["imported_count"] == 0
-        assert summary["duplicate_count"] == 1
-        print_db("test_second_upload_of_same_activity_is_duplicate", summary)
-
-    def test_duplicate_check_is_per_user(self, repo):
-        # Verifies that the same activity uploaded by two different users is NOT
-        # treated as a duplicate — each user has their own independent activity history.
-        upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        summary = upload_mapmyrun_data("user2", [ACTIVITY_A], repo)
-        assert summary["imported_count"] == 1
-        assert summary["duplicate_count"] == 0
-        print_db("test_duplicate_check_is_per_user", summary)
-
-    def test_mixed_new_and_duplicate_activities(self, repo):
-        # Verifies that in a batch containing one already-uploaded activity and one new one,
-        # the duplicate is skipped and only the new activity is imported.
-        upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A, ACTIVITY_B], repo)
-        assert summary["imported_count"] == 1
-        assert summary["duplicate_count"] == 1
-        print_db("test_mixed_new_and_duplicate_activities", summary)
-
-    # --- Edge cases: empty / missing input ---
-
-    def test_empty_activity_list_returns_zero_counts(self, repo):
-        # Verifies that passing an empty list doesn't crash and returns a clean
-        # summary with all counts at zero and no errors.
-        summary = upload_mapmyrun_data("user1", [], repo)
-        assert summary["imported_count"] == 0
-        assert summary["duplicate_count"] == 0
-        assert summary["failed_count"] == 0
-        assert summary["errors"] == []
-        print_db("test_empty_activity_list_returns_zero_counts", summary)
-
-    def test_missing_user_id_marks_all_as_failed(self, repo):
-        # Verifies that passing an empty string as user_id causes all activities
-        # to be marked as failed, and the error message mentions "user_id".
-        activities = [ACTIVITY_A, ACTIVITY_B]
-        summary = upload_mapmyrun_data("", activities, repo)
-        assert summary["failed_count"] == len(activities)
-        assert any("user_id" in e.lower() for e in summary["errors"])
-        print_db("test_missing_user_id_marks_all_as_failed", summary)
-
-    def test_none_user_id_marks_all_as_failed(self, repo):
-        # Verifies that passing None as user_id (instead of an empty string)
-        # also correctly marks the activity as failed without crashing.
-        summary = upload_mapmyrun_data(None, [ACTIVITY_A], repo)
-        assert summary["failed_count"] == 1
-        print_db("test_none_user_id_marks_all_as_failed", summary)
-
-    # --- Summary structure ---
-
-    def test_summary_always_contains_required_keys(self, repo):
-        # Verifies that the returned summary dictionary always contains all 4 expected keys:
-        # imported_count, duplicate_count, failed_count, and errors — regardless of input.
-        summary = upload_mapmyrun_data("user1", [ACTIVITY_A], repo)
-        for key in ("imported_count", "duplicate_count", "failed_count", "errors"):
-            assert key in summary
-        print_db("test_summary_always_contains_required_keys", summary)
-
-    def test_counts_add_up_to_total_activities(self, repo):
-        # Verifies that imported + duplicate + failed always equals the total number
-        # of activities submitted, so no activity is silently lost or double-counted.
-        upload_mapmyrun_data("user1", [ACTIVITY_A], repo)   # pre-seed one duplicate
-        activities = [ACTIVITY_A, ACTIVITY_B, ACTIVITY_C]
-        summary = upload_mapmyrun_data("user1", activities, repo)
-        total = summary["imported_count"] + summary["duplicate_count"] + summary["failed_count"]
-        assert total == len(activities)
-        print_db("test_counts_add_up_to_total_activities", summary)
-
-
