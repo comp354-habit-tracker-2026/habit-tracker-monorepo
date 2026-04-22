@@ -1,31 +1,54 @@
-from dataclasses import dataclass
-from typing import Optional, Protocol
+import sqlite3
+from typing import Optional, Dict
 
 
-@dataclass(frozen=True)
-class User:
-    id: str
-    name: str
-    email: str
+class UserRepository:
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
 
+    def create_user(self, email: str, name: str) -> Dict:
+        self._validate_email(email)
+        self._validate_name(name)
 
-class UserRepository(Protocol):
-    def create_user(self, user: User) -> User:
-        ...
+        cursor = self.conn.cursor()
 
-    def get_user_by_id(self, user_id: str) -> Optional[User]:
-        ...
+        cursor.execute(
+            "INSERT INTO users (email, name) VALUES (?, ?)",
+            (email, name),
+        )
+        self.conn.commit()
 
-    def get_user_by_email(self, email: str) -> Optional[User]:
-        ...
+        user_id = cursor.lastrowid
 
+        return {"id": user_id, "email": email, "name": name}
 
-class NotImplementedUserRepository:
-    def create_user(self, user: User) -> User:
-        raise NotImplementedError("create_user is not implemented")
+    def get_user_by_id(self, user_id: int) -> Optional[Dict]:
+        self._validate_id(user_id)
 
-    def get_user_by_id(self, user_id: str) -> Optional[User]:
-        raise NotImplementedError("get_user_by_id is not implemented")
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, email, name FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
 
-    def get_user_by_email(self, email: str) -> Optional[User]:
-        raise NotImplementedError("get_user_by_email is not implemented")
+        return dict(zip(["id", "email", "name"], row)) if row else None
+
+    def get_user_by_email(self, email: str) -> Optional[Dict]:
+        self._validate_email(email)
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT id, email, name FROM users WHERE email = ?", (email,))
+        row = cursor.fetchone()
+
+        return dict(zip(["id", "email", "name"], row)) if row else None
+
+    # ---------- Validation ----------
+    def _validate_email(self, email: str):
+        if not email or "@" not in email:
+            raise ValueError("Invalid email")
+
+    def _validate_name(self, name: str):
+        if not name:
+            raise ValueError("Name cannot be empty")
+
+    def _validate_id(self, value: int):
+        if not value or value <= 0:
+            raise ValueError("Invalid ID")
