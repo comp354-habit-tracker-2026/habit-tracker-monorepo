@@ -2,13 +2,16 @@ from django.contrib.auth import get_user_model
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.exceptions import AuthenticationFailed
 
 
 from users.serializers import RegisterSerializer, ProfileUpdateSerializer
-from users.business.services import UserRegistrationService
+from users.business.services import UserRegistrationService, OAuthService
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -55,3 +58,41 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         except (InvalidToken, TokenError, AuthenticationFailed):  # added AuthenticationFailed
             self.service.record_failed_attempt(username)
             raise
+
+class GoogleAuthURLView(APIView):
+    """
+    GET /api/v1/auth/oauth/google/
+    Returns the Google authorization URL the frontend should redirect users to.
+    """
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        service = OAuthService()
+        auth_url = service.get_google_auth_url()
+        return Response({"authorization_url": auth_url}, status=status.HTTP_200_OK)
+
+
+class GoogleCallbackView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        code = request.query_params.get("code")
+        if not code:
+            return Response(
+                {"error": "Missing authorization code"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            service = OAuthService()
+            user = service.handle_google_callback(code)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_200_OK,
+        )
