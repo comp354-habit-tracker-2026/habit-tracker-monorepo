@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,12 +7,12 @@ from mywhoosh_integration.serializers import SyncStatusSerializer
 from mywhoosh_integration.sync_status_services import SyncStatusService
 from mywhoosh_integration.mywhoosh_mapper import map_mywhoosh_session
 from mywhoosh_integration.session_persistence_service import SessionPersistenceService
-from mywhoosh_integration.sync_status_services import SyncStatusService
+
 
 def health(request):
     return JsonResponse({"status": "ok"})
 
-## For the syncronization status
+
 class MyWhooshSyncStatusView(APIView):
     """
     Returns the latest sync status for a given user.
@@ -50,6 +49,7 @@ class MyWhooshSyncStatusView(APIView):
 
         serializer = SyncStatusSerializer(latest_status)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class MyWhooshSyncView(APIView):
     """
@@ -110,7 +110,7 @@ class MyWhooshSyncView(APIView):
             sessions_imported = result["sessions_imported"]
             duplicates_skipped = result["duplicates_skipped"]
 
-            if sessions_imported > 0 and duplicates_skipped > 0:
+            if duplicates_skipped > 0:
                 sync_status = SyncStatusService.record_partial(
                     user_id=user_id,
                     sessions_imported=sessions_imported,
