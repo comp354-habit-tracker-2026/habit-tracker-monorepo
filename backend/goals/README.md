@@ -6,27 +6,27 @@ Users may only access and alter their own goals.
 
 ## Endpoints
 
-GET    /api/v1/goals/                list all goals for authenticated user
-POST   /api/v1/goals/                create new goal
-GET    /api/v1/goals/{id}/           get single goal
-PUT    /api/v1/goals/{id}/           update goal
-DELETE /api/v1/goals/{id}/           delete goal
-GET    /api/v1/goals/{id}/progress/  get progress summary for goal
+`GET    /api/v1/goals/`               list all goals for authenticated user
+`POST   /api/v1/goals/`                create new goal
+`GET    /api/v1/goals/{id}/`           get single goal
+`PUT    /api/v1/goals/{id}/`           update goal
+`DELETE /api/v1/goals/{id}/`           delete goal
+`GET    /api/v1/goals/{id}/progress/`  get progress summary for goal
 
 ## Writeable Fields
 
-title         required, string
-target_value  required, decimal
-start_date    required, YYYY-MM-DD
-end_date      required, YYYY-MM-DD
-description   optional, string
-current_value optional, decimal, defaults to 0
-goal_type     optional, choices: distance / duration / frequency / calories / custom
-status        optional, choices: active / completed / paused / failed
+`title`         required, string
+`target_value`  required, decimal
+`start_date`    required, YYYY-MM-DD
+`end_date`      required, YYYY-MM-DD
+`description`   optional, string
+`current_value` optional, decimal, defaults to 0
+`goal_type`     optional, choices: distance / duration / frequency / calories / custom
+`status`        optional, choices: active / completed / paused / failed
 
 
 **Progress endpoint response**
-percent_complete, on_track (bool), days_remaining, summary (string)
+`percent_complete`, `on_track` (bool), `days_remaining`, `summary` (string)
 
 ## Goal Object
 
