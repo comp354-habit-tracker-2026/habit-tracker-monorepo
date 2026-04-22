@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from mywhoosh_integration.serializers import SyncStatusSerializer
-from mywhoosh_integration.services.sync_status_service import SyncStatusService
+from mywhoosh_integration.sync_status_services import SyncStatusService
 from mywhoosh_integration.mywhoosh_mapper import map_mywhoosh_session
 from mywhoosh_integration.session_persistence_service import SessionPersistenceService
 from mywhoosh_integration.sync_status_services import SyncStatusService
