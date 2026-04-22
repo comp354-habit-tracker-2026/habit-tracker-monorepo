@@ -50,11 +50,57 @@ jobs:
         with:
           azcliversion: 2.67.0
           inlineScript: |
+            echo "===== DEBUG: Azure CLI version ====="
+            az version
+
+            echo "===== DEBUG: Account context ====="
+            az account show --query "{name:name,id:id,tenantId:tenantId,user:user.name}" -o table
+
+            echo "===== DEBUG: Subscription list (current tenant) ====="
+            az account list --query "[].{name:name,id:id,tenantId:tenantId,isDefault:isDefault}" -o table
+
+            echo "===== DEBUG: Resolve configured subscription ====="
+            az account set --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }}
+            az account show --query "{name:name,id:id,tenantId:tenantId,user:user.name}" -o table
+
+            echo "===== DEBUG: Identity verification ====="
+            az ad signed-in-user show --query "{id:id,userPrincipalName:userPrincipalName}" -o table || echo "No signed-in user (expected for service principal auth)"
+            az ad sp show --id ${{ secrets.BACKEND_AZURE_CLIENT_ID }} --query "{appId:appId,displayName:displayName,id:id}" -o table || echo "Service principal lookup failed"
+
+            echo "===== DEBUG: Resource group checks ====="
+            az group show --name habit-tracker-rg --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} --query "{name:name,location:location,id:id}" -o table
+
+            echo "===== DEBUG: Microsoft.App provider ====="
+            az provider show --namespace Microsoft.App --query "{namespace:namespace,registrationState:registrationState}" -o table
+
+            echo "===== DEBUG: Container Apps extension ====="
+            az extension show --name containerapp --query "{name:name,version:version}" -o table || echo "containerapp extension details unavailable"
+
+            echo "===== DEBUG: Managed environments in RG ====="
+            az containerapp env list --resource-group habit-tracker-rg --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} --query "[].{name:name,location:location,id:id}" -o table
+
+            echo "===== DEBUG: Container apps in RG ====="
+            az containerapp list --resource-group habit-tracker-rg --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} --query "[].{name:name,location:location,latestRevisionName:properties.latestRevisionName}" -o table
+
+            echo "===== DEBUG: Target container app by name ====="
+            az containerapp show \
+              --name backend \
+              --resource-group habit-tracker-rg \
+              --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} \
+              --query "{name:name,id:id,location:location,environmentId:properties.managedEnvironmentId}" \
+              -o table || echo "Target container app not found via az containerapp show"
+
+            echo "===== DEBUG: Target container app by resource ID ====="
+            az resource show \
+              --ids /subscriptions/${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }}/resourceGroups/habit-tracker-rg/providers/Microsoft.App/containerApps/backend \
+              --query "{name:name,id:id,type:type}" \
+              -o table || echo "Target container app not found via az resource show"
+
+            echo "===== DEBUG: Starting update command ====="
             az containerapp update \
               --name backend \
               --resource-group habit-tracker-rg \
               --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} \
               --container-name backend \
               --image habitregistry.azurecr.io/backend:${{ github.sha }}
-
 
