@@ -90,7 +90,7 @@ def main_menu():
         elif choice == '4':
             _run_safe(ominous_observer_demo, "VIGIL")
         elif choice == '5':
-            print("\nExiting. Good luck with the presentation!")
+            print("\nExiting...")
             break
         else:
             print("\nInvalid choice. Please select 1-5.")
