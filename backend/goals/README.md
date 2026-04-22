@@ -5,25 +5,25 @@ All endpoints require authentication and are prefixed with /api/v1/goals/.
 Users may only access and alter their own goals.
 
 ## Endpoints
-
-`GET    /api/v1/goals/`               list all goals for authenticated user
-`POST   /api/v1/goals/`                create new goal
-`GET    /api/v1/goals/{id}/`           get single goal
-`PUT    /api/v1/goals/{id}/`           update goal
-`DELETE /api/v1/goals/{id}/`           delete goal
-`GET    /api/v1/goals/{id}/progress/`  get progress summary for goal
-
+```
+GET    /api/v1/goals/                list all goals for authenticated user
+POST   /api/v1/goals/                create new goal
+GET    /api/v1/goals/{id}/           get single goal
+PUT    /api/v1/goals/{id}/           update goal
+DELETE /api/v1/goals/{id}/           delete goal
+GET    /api/v1/goals/{id}/progress/  get progress summary for goal
+```
 ## Writeable Fields
-
-`title`         required, string
-`target_value`  required, decimal
-`start_date`    required, YYYY-MM-DD
-`end_date`      required, YYYY-MM-DD
-`description`   optional, string
-`current_value` optional, decimal, defaults to 0
-`goal_type`     optional, choices: distance / duration / frequency / calories / custom
-`status`        optional, choices: active / completed / paused / failed
-
+```
+title           required, string
+target_value    required, decimal
+start_date      required, YYYY-MM-DD
+end_date        required, YYYY-MM-DD
+description     optional, string
+current_value   optional, decimal, defaults to 0
+goal_type       optional, choices: distance / duration / frequency / calories / custom
+status          optional, choices: active / completed / paused / failed
+```
 
 **Progress endpoint response**
 `percent_complete`, `on_track` (bool), `days_remaining`, `summary` (string)
@@ -52,19 +52,18 @@ All endpoints returning a goal use this format:
 ```
 
 ## Errors
-
+```
 400  invalid ID format or bad request body
 403  goal belongs to a different user
 404  goal not found
 409  integrity error on create
 500  database error on create
-
+```
 ## Notes
 
-All endpoints need authentication
-Users only see their own goals
-progress_state and progress_percentage are read-only
-start_date and end_date are required even on update
+All endpoints need authentication.
+Users only see their own goals.
+`start_date` and `end_date` are required even on update.
 
 ---
 
@@ -110,8 +109,10 @@ start_date and end_date are required even on update
 `GET /api/v1/goals/` returns all goals of the user
 
 **Parameters**
+```
 search    : filters by title, description, goal_type, or status
 ordering  : sort by field, prefix with - for descending e.g. -created_at
+```
 
 **Response** : 200 OK
 ```json
