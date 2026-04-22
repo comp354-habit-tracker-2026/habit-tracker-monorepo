@@ -1,6 +1,7 @@
 asgiref==3.11.1
 Django==6.0.2
 django-allauth==65.14.3
+django-cors-headers==4.3.1
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 Faker==24.8.0
@@ -20,6 +21,9 @@ jsonschema[format]==4.26.0
 pytest-cov==7.0.0
 joblib==1.4.2
 numpy==1.26.4
-scikit-learn==1.4.2
+scikit-learn==1.5.0
+Django==6.0.2
+python-dotenv==1.0.1
+sqlalchemy==2.0.30
 python-dotenv>=1.0.0
 pandas>=2.0.0

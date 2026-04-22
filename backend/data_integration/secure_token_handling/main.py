@@ -2,8 +2,8 @@ from datetime import datetime
 import os
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from database import Base, database_connection, open_database_session
 from fastapi import FastAPI, Depends, HTTPException, Header
+from database import Base, database_connection, open_database_session
 from token_service import ProviderTokenManager
 
 # Load values from .env into environment variables
