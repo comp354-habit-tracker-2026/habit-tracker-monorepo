@@ -10,7 +10,6 @@ import logging
 import random
 
 from django.http import JsonResponse
-from django.views import View
 
 from activities.models import Activity
 from goals.models import Goal
@@ -49,8 +48,6 @@ class HealthIndicatorsView(APIView):
             "activity_statistics": service.activity_statistics(request.user),
             "inactivity_evaluation": service.inactivity_evaluation(request.user),
         })
-
-logger = logging.getLogger(__name__)
 
 class GoalProgressSeriesView(APIView):
     """Return chart-ready goal progress data for the authenticated user."""
@@ -141,8 +138,6 @@ class GoalProgressSeriesView(APIView):
         except ProgressSeriesError as exc:
             return JsonResponse({"error": "Unable to compute progress series."}, status=400)
         except Exception as exc:
-            # Log unexpected errors server-side and avoid leaking internal details in responses.
-            logger.exception("Unexpected error while generating goal progress series")
             return JsonResponse(
                 {"error": "Unexpected server error."},
                 status=500,
