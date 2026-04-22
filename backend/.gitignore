@@ -27,6 +27,7 @@ media/
 
 # Database artifacts (local/dev)
 *.sqlite3
+backups/
 
 # OS/editor noise
 .DS_Store
