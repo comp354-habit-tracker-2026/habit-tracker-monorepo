@@ -3,6 +3,9 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework import status
 from rest_framework.exceptions import APIException
 import logging
+import requests
+from urllib.parse import urlencode
+from django.conf import settings
 
 from core.business import BaseService
 from users.data import UserRepository
@@ -82,3 +85,79 @@ class AccountDeletionService(BaseService):
             user.id,
             user.username,
         )
+
+class OAuthService(BaseService):
+    """Handles Google OAuth login flow: auth URL generation + callback handling."""
+
+    GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+    GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
+    GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
+
+    def __init__(self, repository=None):
+        self.repository = repository or UserRepository()
+
+    def get_google_auth_url(self):
+        """Build the URL that redirects users to Google's sign-in page."""
+        params = {
+            "client_id": settings.GOOGLE_CLIENT_ID,
+            "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "offline",
+            "prompt": "consent",
+        }
+        return f"{self.GOOGLE_AUTH_URL}?{urlencode(params)}"
+
+    def handle_google_callback(self, code):
+        """
+        Exchange the authorization code for user info,
+        then create or link a user account.
+        Returns the User object.
+        """
+        if not code:
+            raise ValueError("Missing authorization code")
+
+        token_data = self._exchange_code(code)
+        access_token = token_data.get("access_token")
+        if not access_token:
+            raise ValueError("Invalid or expired authorization code")
+
+        user_info = self._get_user_info(access_token)
+
+        user = self.repository.get_or_create_oauth_user(
+            provider="google",
+            provider_id=user_info["id"],
+            email=user_info["email"],
+            first_name=user_info.get("given_name", ""),
+            last_name=user_info.get("family_name", ""),
+        )
+        logger.info("OAuth login successful: user_id=%s, email=%s", user.id, user.email)
+        return user
+
+    def _exchange_code(self, code):
+        """Exchange the authorization code for an access token from Google."""
+        response = requests.post(
+            self.GOOGLE_TOKEN_URL,
+            data={
+                "code": code,
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+                "grant_type": "authorization_code",
+            },
+            timeout=10,
+        )
+        if response.status_code != 200:
+            raise ValueError("Invalid or expired authorization code")
+        return response.json()
+
+    def _get_user_info(self, access_token):
+        """Fetch the user's Google profile information using the access token."""
+        response = requests.get(
+            self.GOOGLE_USERINFO_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+        if response.status_code != 200:
+            raise ValueError("Failed to retrieve user information")
+        return response.json()
