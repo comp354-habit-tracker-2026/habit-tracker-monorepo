@@ -2,9 +2,12 @@
 ================================================================================
 G15 DEMO: THE OMINOUS OBSERVER (OUTBOX PATTERN)
 ================================================================================
+By Gorav-K
 
 This demo showcases how the Analytics API 'observes' the database for new
 activities and alerts the user to refresh their view.
+
+individual testing
 
 VISUAL FLOW:
 [ 1. Baseline ]  ---> User checks dashboard. Everything is normal.
