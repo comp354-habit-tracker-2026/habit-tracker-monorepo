@@ -5,7 +5,7 @@ from datetime import date
 @dataclass
 class Metrics: 
     distance: Optional[float] = None
-    calorties: Optional[int] = None
+    calories: Optional[int] = None
     duration: Optional[int] = None
    
 
