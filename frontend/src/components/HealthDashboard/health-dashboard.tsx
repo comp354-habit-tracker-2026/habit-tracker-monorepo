@@ -21,6 +21,7 @@ interface HealthData {
   };
 }
 
+<<<<<<< HEAD
 interface AnalyticsHealthData {
   activity_statistics: {
     total_distance: number;
@@ -35,6 +36,8 @@ interface AnalyticsHealthData {
   };
 }
 
+=======
+>>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
 interface CheckItemProps {
   name: string;
   check: HealthCheck;
@@ -58,6 +61,7 @@ const CheckItem: React.FC<CheckItemProps> = ({ name, check }) => {
 
 export const HealthDashboard: React.FC = () => {
   const [health, setHealth] = useState<HealthData | null>(null);
+<<<<<<< HEAD
   const [analytics, setAnalytics] = useState<AnalyticsHealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -71,6 +75,23 @@ export const HealthDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = (await apiClient.get('/api/v1/health/')) as unknown as HealthData;
+=======
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
+  const fetchHealth = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch('/api/v1/health/');
+      
+      if (!response.ok && response.status !== 503) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+>>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
       setHealth(data);
       setLastRefresh(new Date());
     } catch (err) {
@@ -81,6 +102,7 @@ export const HealthDashboard: React.FC = () => {
     }
   };
 
+<<<<<<< HEAD
   const fetchAnalyticsHealth = async () => {
     try {
       setAnalyticsLoading(true);
@@ -103,10 +125,16 @@ export const HealthDashboard: React.FC = () => {
       fetchSystemHealth();
       fetchAnalyticsHealth();
     }, 10000); // Refresh every 10 seconds
+=======
+  useEffect(() => {
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 10000); // Refresh every 10 seconds
+>>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
     return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
+<<<<<<< HEAD
     fetchSystemHealth();
     fetchAnalyticsHealth();
   };
@@ -169,6 +197,9 @@ export const HealthDashboard: React.FC = () => {
         </div>
       </div>
     );
+=======
+    fetchHealth();
+>>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
   };
 
   return (
@@ -230,6 +261,7 @@ export const HealthDashboard: React.FC = () => {
               ))}
             </div>
           </div>
+<<<<<<< HEAD
 
           <div className={styles.checksContainer}>
             <h3>Analytics Health Indicators</h3>
@@ -238,6 +270,8 @@ export const HealthDashboard: React.FC = () => {
             </p>
             {renderAnalyticsStatus()}
           </div>
+=======
+>>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
         </div>
       )}
 
