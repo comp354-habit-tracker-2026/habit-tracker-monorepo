@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
 import styles from './HealthDashboard.module.css';
 
@@ -11,9 +11,7 @@ interface HealthCheck {
 interface HealthData {
   status: 'healthy' | 'unhealthy';
   timestamp: string;
-  checks: {
-    [key: string]: HealthCheck;
-  };
+  checks: Record<string, HealthCheck>;
   summary: {
     total: number;
     healthy: number;
@@ -21,7 +19,6 @@ interface HealthData {
   };
 }
 
-<<<<<<< HEAD
 interface AnalyticsHealthData {
   activity_statistics: {
     total_distance: number;
@@ -36,8 +33,6 @@ interface AnalyticsHealthData {
   };
 }
 
-=======
->>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
 interface CheckItemProps {
   name: string;
   check: HealthCheck;
@@ -45,6 +40,7 @@ interface CheckItemProps {
 
 const CheckItem: React.FC<CheckItemProps> = ({ name, check }) => {
   const isHealthy = check.status === 'healthy';
+
   return (
     <div className={`${styles.checkItem} ${isHealthy ? styles.healthy : styles.unhealthy}`}>
       <div className={styles.checkHeader}>
@@ -61,7 +57,6 @@ const CheckItem: React.FC<CheckItemProps> = ({ name, check }) => {
 
 export const HealthDashboard: React.FC = () => {
   const [health, setHealth] = useState<HealthData | null>(null);
-<<<<<<< HEAD
   const [analytics, setAnalytics] = useState<AnalyticsHealthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
@@ -75,23 +70,6 @@ export const HealthDashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = (await apiClient.get('/api/v1/health/')) as unknown as HealthData;
-=======
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-
-  const fetchHealth = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch('/api/v1/health/');
-      
-      if (!response.ok && response.status !== 503) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
->>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
       setHealth(data);
       setLastRefresh(new Date());
     } catch (err) {
@@ -102,7 +80,6 @@ export const HealthDashboard: React.FC = () => {
     }
   };
 
-<<<<<<< HEAD
   const fetchAnalyticsHealth = async () => {
     try {
       setAnalyticsLoading(true);
@@ -121,29 +98,23 @@ export const HealthDashboard: React.FC = () => {
   useEffect(() => {
     fetchSystemHealth();
     fetchAnalyticsHealth();
+
     const interval = setInterval(() => {
       fetchSystemHealth();
       fetchAnalyticsHealth();
-    }, 10000); // Refresh every 10 seconds
-=======
-  useEffect(() => {
-    fetchHealth();
-    const interval = setInterval(fetchHealth, 10000); // Refresh every 10 seconds
->>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
+    }, 10000);
+
     return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
-<<<<<<< HEAD
     fetchSystemHealth();
     fetchAnalyticsHealth();
   };
 
-  const formatNumber = (value: number) =>
-    Number.isInteger(value) ? value.toString() : value.toFixed(1);
+  const formatNumber = (value: number) => (Number.isInteger(value) ? value.toString() : value.toFixed(1));
 
-  const formatMaybeNumber = (value: number | null) =>
-    value === null ? 'No activity yet' : value.toString();
+  const formatMaybeNumber = (value: number | null) => (value === null ? 'No activity yet' : value.toString());
 
   const renderAnalyticsStatus = () => {
     if (analyticsError) {
@@ -191,27 +162,24 @@ export const HealthDashboard: React.FC = () => {
         </div>
         <div className={styles.metricCard}>
           <span className={styles.metricLabel}>Inactivity Severity</span>
-          <span className={`${styles.metricValue} ${analytics.inactivity_evaluation.inactive ? styles.metricDanger : styles.metricSuccess}`}>
+          <span
+            className={`${styles.metricValue} ${
+              analytics.inactivity_evaluation.inactive ? styles.metricDanger : styles.metricSuccess
+            }`}
+          >
             {analytics.inactivity_evaluation.inactive ? 'Inactive' : 'Active'} ({analytics.inactivity_evaluation.severity})
           </span>
         </div>
       </div>
     );
-=======
-    fetchHealth();
->>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>System Health Dashboard</h1>
-        <button 
-          onClick={handleRefresh} 
-          disabled={loading}
-          className={styles.refreshButton}
-        >
-          {loading ? 'Refreshing...' : 'Refresh Now'}
+        <button onClick={handleRefresh} disabled={loading || analyticsLoading} className={styles.refreshButton}>
+          {loading || analyticsLoading ? 'Refreshing...' : 'Refresh Now'}
         </button>
       </div>
 
@@ -224,7 +192,6 @@ export const HealthDashboard: React.FC = () => {
 
       {health && (
         <div className={styles.content}>
-          {/* Status Summary */}
           <div className={`${styles.statusBox} ${health.status === 'healthy' ? styles.statusHealthy : styles.statusUnhealthy}`}>
             <div className={styles.statusSummary}>
               <h2>Overall Status: {health.status.toUpperCase()}</h2>
@@ -248,20 +215,14 @@ export const HealthDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Individual Checks */}
           <div className={styles.checksContainer}>
             <h3>Component Status</h3>
             <div className={styles.checksGrid}>
               {Object.entries(health.checks).map(([name, check]) => (
-                <CheckItem 
-                  key={name} 
-                  name={name.replace(/_/g, ' ').toUpperCase()} 
-                  check={check} 
-                />
+                <CheckItem key={name} name={name.replace(/_/g, ' ').toUpperCase()} check={check} />
               ))}
             </div>
           </div>
-<<<<<<< HEAD
 
           <div className={styles.checksContainer}>
             <h3>Analytics Health Indicators</h3>
@@ -270,8 +231,6 @@ export const HealthDashboard: React.FC = () => {
             </p>
             {renderAnalyticsStatus()}
           </div>
-=======
->>>>>>> dd5a3f7e (Renamed health dashboard file to match naming convention)
         </div>
       )}
 

@@ -278,7 +278,6 @@
 .metricDanger {
   color: #991b1b;
 }
-
 @media (max-width: 768px) {
   .container {
     padding: 16px;
