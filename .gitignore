@@ -8,3 +8,9 @@ CLAUDE.md
 __pycache__/
 *.pyc
 dataset-generation/artifacts/
+.idea
+
+# Celery Beat state
+celerybeat-schedule
+celerybeat-schedule.*
+.idea.lsp/

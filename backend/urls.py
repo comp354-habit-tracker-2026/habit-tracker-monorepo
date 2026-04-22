@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/v1/goals/', include('goals.urls')),
     path('api/v1/activities/', include('activities.urls')),
     path('api/v1/data-integrations/', include('data_integration.urls')),
+    path('api/v1/', include('core.health_urls')),
 ]
