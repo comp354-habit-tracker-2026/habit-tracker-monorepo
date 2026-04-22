@@ -88,10 +88,6 @@ class ProgressLog(models.Model):
             # The same activity should only be counted towards a goal once
             models.UniqueConstraint(fields=['goal', 'activity'], name='unique_goal_activity'),
         ]
-        indexes = [
-            models.Index(fields=['goal']),
-            models.Index(fields=['activity']),
-        ]
 
     def __str__(self):
         return f"Activity {self.activity_id} → Goal {self.goal_id}"
