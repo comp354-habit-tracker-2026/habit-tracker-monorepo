@@ -105,3 +105,34 @@ Testing produces:
 4. UX improvement recommendations
 
 All results are linked to relevant issues (#138, #152, #130, #136) to ensure traceability.
+
+## Milestone 3 Updates
+
+Additional testing was conducted on the latest available implementations from Groups 17, 18, 19, and 20.
+
+The objective was to validate previously identified issues and observe improvements based on the most recent updates.
+
+### Summary of Findings
+
+- **Group 17:** Notable improvements were observed in the dashboard and goals interface. Features such as goal tracking, progress visualization, and insights are clearly presented and functional. The interface supports user interaction effectively, with structured layouts and informative feedback. Minor refinements in consistency, spacing, and interaction flow could further enhance the overall user experience.
+
+- **Group 18:** Core pages and navigation are accessible, and the interface adapts to different screen sizes. Some features appear to rely on placeholder or partially connected data, which may impact the completeness of the user experience. Overall structure is in place and supports further refinement.
+
+- **Group 19:** A route visualization feature is implemented, displaying activity data on a map with start and finish markers. The feature is functional and provides useful spatial insights. Additional interaction options and contextual details could further improve usability.
+
+- **Group 20:** Accessibility and usability considerations are addressed through improvements in layout clarity, feedback elements, and overall interface consistency. The implementation supports better user understanding and interaction, with opportunities for further refinement in accessibility details and user guidance.
+
+### Issue Validation
+
+Previously reported issues (#297, #299, #300) were reviewed against the current implementations and remain relevant, with some improvements observed but not fully resolved.
+
+### Additional Testing
+
+Additional validation was performed on updated components, including:
+
+- Dashboard and goals interaction (Group 17)
+- Data handling and responsiveness (Group 18)
+- Route visualization usability (Group 19)
+- Accessibility and usability aspects (Group 20)
+
+These updates ensure that the testing reflects the most recent state of the system at the time of submission.
