@@ -484,7 +484,7 @@ describe('Activities page', () => {
     cy.intercept(
       { method: 'GET', pathname: '/api/v1/activities/' },
       (req) => {
-        expect(req.headers.authorization).to.be.undefined;
+        expect(req.headers.authorization).to.equal(undefined);
         
         req.reply({
           statusCode: 200,
