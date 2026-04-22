@@ -2,7 +2,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from activities.models import Activity
-from analytics.progess_series.cache import goal_progress_cache
+from analytics.progress_series.cache import goal_progress_cache
 
 
 def _activity_user_id(activity: Activity) -> int | None:

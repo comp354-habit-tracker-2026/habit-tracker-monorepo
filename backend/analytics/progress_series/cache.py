@@ -11,6 +11,7 @@ from .models import ProgressSeries
 @dataclass(frozen=True)
 class ProgressSeriesCacheKey:
     goal_id: int
+    user_id: int
     granularity: str
     provider: str | None
     activity_version: int
@@ -52,6 +53,7 @@ class GoalProgressCache:
     ) -> ProgressSeriesCacheKey:
         return ProgressSeriesCacheKey(
             goal_id=goal_id,
+            user_id=user_id,
             granularity=granularity,
             provider=provider,
             activity_version=self._version_store.get(user_id),
@@ -83,8 +85,14 @@ class GoalProgressCache:
             self._entries[key] = deepcopy(computed)
         return computed
 
-    def invalidate_for_user(self, user_id: int):
-        self._version_store.bump(user_id)
+    def invalidate_for_user(self, user_id: int) -> None:
+        next_version = self._version_store.bump(user_id)
+        with self._lock:
+            self._entries = {
+                key: value
+                for key, value in self._entries.items()
+                if key.user_id != user_id or key.activity_version >= next_version
+            }
 
 
 goal_progress_cache = GoalProgressCache()
