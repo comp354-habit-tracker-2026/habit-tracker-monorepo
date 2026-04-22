@@ -14,10 +14,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 User = get_user_model()
-<<<<<<< HEAD
 logger = logging.getLogger(__name__)
-=======
->>>>>>> ce7c562e (Created health dashboard and health endpoints)
 
 
 class HealthCheckService:

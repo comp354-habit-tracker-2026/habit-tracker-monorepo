@@ -240,7 +240,6 @@
   color: #9ca3af;
 }
 
-<<<<<<< HEAD
 .analyticsCardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -280,8 +279,6 @@
   color: #991b1b;
 }
 
-=======
->>>>>>> ce7c562e (Created health dashboard and health endpoints)
 @media (max-width: 768px) {
   .container {
     padding: 16px;

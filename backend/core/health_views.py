@@ -3,10 +3,7 @@ Health check API views.
 Provides read-only endpoints for system health monitoring.
 """
 
-<<<<<<< HEAD
 import logging
-=======
->>>>>>> ce7c562e (Created health dashboard and health endpoints)
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
