@@ -11,6 +11,8 @@ from analytics.views import (
     PaginatedActivityHistoryView,  GoalInsightsView, GoalCompletionRateView,AtRiskGoalsView, GoalsAnalyticsSummaryView
 )
 
+from .views import AnalyticsOverviewView
+from .views import personal_record_view
 
 urlpatterns = [
     path("overview/", AnalyticsOverviewView.as_view(), name="analytics_overview"),
@@ -31,4 +33,8 @@ urlpatterns = [
     path("at-risk-goals-view/", AtRiskGoalsView.as_view(), name="at_risk_goals_view"),
     path("goals-analytics-summary-view/", GoalsAnalyticsSummaryView.as_view(), name="goals_analytics_summary_view"),
 
+]
+
+urlpatterns = [
+    path("personal-record/<int:habit_id>/", personal_record_view),
 ]
