@@ -24,8 +24,8 @@ class DeleteNotificationView(APIView):
             service.delete(notification_id)
             return Response(status=status.HTTP_204_NO_CONTENT) 
             
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) 
+        except Exception:
+            return Response({"error": "An internal error has occurred."}, status=status.HTTP_400_BAD_REQUEST) 
         
 class NotificationsListView(APIView):
     permission_classes = [IsAuthenticated]
@@ -35,8 +35,8 @@ class NotificationsListView(APIView):
         try:
             notifications = service.get_all_notifications(request.user.id)
             return Response({"notifications": notifications}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "An internal error has occurred."}, status=status.HTTP_400_BAD_REQUEST)
 
 class ViewNotifications(APIView):
     permission_classes = [IsAuthenticated]
@@ -48,8 +48,8 @@ class ViewNotifications(APIView):
         try:
             notifications = service.get_all_notifications(user_id)
             return Response({"notifications": notifications}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "An internal error has occurred."}, status=status.HTTP_400_BAD_REQUEST)
 
 class MarkNotificationAsRead(APIView):
     permission_classes = [IsAuthenticated]
@@ -64,5 +64,5 @@ class MarkNotificationAsRead(APIView):
                 return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
             service.mark_as_read(notification_id)
             return Response({"message": "Notification marked as read"}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "An internal error has occurred."}, status=status.HTTP_400_BAD_REQUEST)
