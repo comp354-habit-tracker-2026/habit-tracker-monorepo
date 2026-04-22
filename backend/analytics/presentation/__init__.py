@@ -1,3 +1,3 @@
-from .views import AnalyticsOverviewView
+from .views import AnalyticsOverviewView, HealthIndicatorsView
 
-__all__ = ["AnalyticsOverviewView"]
+__all__ = ["AnalyticsOverviewView", "HealthIndicatorsView"]

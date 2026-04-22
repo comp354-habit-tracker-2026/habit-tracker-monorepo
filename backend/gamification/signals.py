@@ -3,6 +3,8 @@ import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from backend.notifications.models import NotificationType
+
 logger = logging.getLogger(__name__)
 
 
@@ -12,10 +14,14 @@ def evaluate_achievements_on_activity(sender, instance, created, **kwargs):
     if not created:
         return
 
+    # If the activity has no connected account (e.g. seeded/legacy data), skip gamification
+    if not instance.account_id:
+        return
+
     from gamification.business.services import GamificationService
 
     service = GamificationService()
-    user = instance.user
+    user = instance.account.user  # user is reached through the connected account
 
     # Update streak
     streak = service.update_streak(user, instance.date)
@@ -56,7 +62,7 @@ def _send_achievement_event(user, event_type, payload):
     try:
         from notifications.business.services import NotificationService
         service = NotificationService()
-        service.send_achievement_notification(user, event_type, payload)
+        service.notify(None, "Milestone reached!", payload, user.user_id, NotificationType.MILESTONE_ACHIEVED)
     except (ImportError, AttributeError):
         # Group 23 hasn't implemented this yet -- just log it
         logger.info(

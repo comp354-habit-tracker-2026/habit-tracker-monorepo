@@ -4,7 +4,10 @@ from django.conf import settings
 
 
 class NotificationType(models.TextChoices):
-    ACHIEVEMENT = 'ACHIEVEMENT', 'Achievement'
+    MILESTONE_ACHIEVED = "MILESTONE_ACHIEVED", "Milestone Achieved"
+    GOAL_ACHIEVED = "GOAL_ACHIEVED", "Goal Achieved"
+    GOAL_AT_RISK = "GOAL_AT_RISK", "Goal At Risk"
+    GOAL_MISSED = "GOAL_MISSED", "Goal Missed"
     INACTIVITY_REMINDER = 'INACTIVITY_REMINDER', 'Inactivity Reminder'
 
 
@@ -23,16 +26,24 @@ class NotificationChannel(models.TextChoices):
 
 class Notification(models.Model):
     notif_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     type = models.CharField(max_length=20, choices=NotificationType.choices)
     message = models.TextField()
     read = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=NotificationStatus.choices, default=NotificationStatus.PENDING)
     channel = models.CharField(max_length=20, choices=NotificationChannel.choices)
+    payload = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     scheduled_at = models.DateTimeField(null=True, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     archived = models.BooleanField(default=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    goal = models.ForeignKey(
+        "goals.Goal",
+        on_delete=models.SET_NULL,
+        related_name="notifications",
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return f"Notification {self.notif_id} for {self.user} - {self.type}"

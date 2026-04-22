@@ -1,10 +1,8 @@
+from notifications.business.services import NotificationService
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-
-from notifications.business import NotificationService
-from notifications.business.services import NotificationService
 
 # --- YOUR FEATURE STARTS HERE ---
 class DeleteNotificationView(APIView):
@@ -29,27 +27,42 @@ class DeleteNotificationView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) 
         
+class NotificationsListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = NotificationService()
+        try:
+            notifications = service.get_all_notifications(request.user.id)
+            return Response({"notifications": notifications}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class ViewNotifications(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
+        if request.user.id != user_id:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
         service = NotificationService()
-        notifications = service.get_all_notifications(user_id)
-
-        data = list(notifications.values())
-
-        return Response({"notifications": data})
-    
+        try:
+            notifications = service.get_all_notifications(user_id)
+            return Response({"notifications": notifications}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class MarkNotificationAsRead(APIView):
     permission_classes = [IsAuthenticated]
 
-    def patch(self, request, notification_id):
+    def post(self, request, notification_id):
         service = NotificationService()
         try:
-            notification = service.mark_as_read(notification_id)
-            return Response(
-                {"detail": "Notification marked as read.", "id": notification.id}
-            )
+            notification = service.get(notification_id)
+            if not notification:
+                return Response({"error": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
+            if notification.user.id != request.user.id:
+                return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+            service.mark_as_read(notification_id)
+            return Response({"message": "Notification marked as read"}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response({"error": str(e)}, status=404)
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
