@@ -28,6 +28,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
 
     const activitiesperDay: Record<string, number>={};
     const caloriesperDay: Record<string, number> = {};
+    const activityTypeCount: Record<string, number> = {};
 
     let mostIntenseActivity = period[0];
     let totalHeartRate = 0;
@@ -38,6 +39,8 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         activitiesperDay[date] = (activitiesperDay[date] ||0) +1;
         caloriesperDay[date] = (caloriesperDay[date] ||0) + (activity.summary.calories || 0);
 
+        const type = activity.activityType || 'Unknown';
+        activityTypeCount[type] = (activityTypeCount[type] || 0) + 1;
         if (
             (activity.summary.calories || 0) > (mostIntenseActivity.summary.calories || 0)
 
@@ -79,6 +82,26 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
             highestCalorieDay = day;
         }
     }
+
+    //activity type breakdown
+    let mostFrequentActivityType = '';
+    let maxCount = 0;
+    let totalActivities = period.length;
+
+    for (const type in activityTypeCount) {
+      if (activityTypeCount[type] > maxCount) {
+        maxCount = activityTypeCount[type];
+        mostFrequentActivityType = type;
+      }
+    }
+
+    const activityTypePercentages: Record<string, number> = {};
+    for (const type in activityTypeCount) {
+      activityTypePercentages[type] = Math.round(
+        (activityTypeCount[type] / totalActivities) * 100
+      );
+    }
+
 
     let weeklyCalories = 0;
     let weeklySteps = 0;
@@ -147,6 +170,15 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                         ? `+${calorieChange}% more calories than last week 📈`
                         : `${calorieChange}% fewer calories than last week 📉`}
                     </p>
+                    <p><strong>Most frequent activity:</strong> {mostFrequentActivityType} ({maxCount} times)</p>
+                    <p><strong>Activity breakdown:</strong></p>
+                      <ul>
+                      {Object.entries(activityTypePercentages).map(([type, percent]) => (
+                        <li key={type}>
+                          {type}: {percent}%
+                        </li>
+                        ))}
+                      </ul>
                     </div>
                  </div> 
                 ) 
