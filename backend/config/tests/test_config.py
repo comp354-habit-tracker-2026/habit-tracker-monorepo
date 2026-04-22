@@ -32,56 +32,34 @@ class EnvironmentVariableTests(SimpleTestCase):
         self.assertIn('0.0.0.0', settings.ALLOWED_HOSTS)
 
     def test_database_name_from_env(self):
-        """Test database name is loaded from environment."""
+        """Test POSTGRES_DB is loaded from environment."""
         db_name = settings.DATABASES['default']['NAME']
-        engine = settings.DATABASES['default']['ENGINE']
-        if engine == 'django.db.backends.sqlite3':
-            # In test settings, SQLite in-memory
-            self.assertEqual(db_name, ':memory:')
-        else:
-            # In production, PostgreSQL
-            self.assertTrue(
-                db_name == 'habit_tracker_db' or db_name == 'test_habit_tracker_db',
-                f"Unexpected database name: {db_name}",
-            )
+        self.assertTrue(
+            db_name == 'habit_tracker_db' or db_name == 'test_habit_tracker_db',
+            f"Unexpected database name: {db_name}",
+        )
 
     def test_database_user_from_env(self):
-        """Test database user is loaded from environment."""
-        engine = settings.DATABASES['default']['ENGINE']
-        if engine == 'django.db.backends.sqlite3':
-            # SQLite doesn't use USER
-            self.skipTest("SQLite does not use USER setting")
-        else:
-            self.assertEqual(settings.DATABASES['default']['USER'], 'myuser')
+        """Test POSTGRES_USER is loaded from environment."""
+        self.assertEqual(settings.DATABASES['default']['USER'], 'myuser')
 
     def test_database_password_required(self):
-        """Test database password must be provided."""
-        engine = settings.DATABASES['default']['ENGINE']
-        if engine == 'django.db.backends.sqlite3':
-            # SQLite doesn't use PASSWORD
-            self.skipTest("SQLite does not use PASSWORD setting")
-        else:
-            password = settings.DATABASES['default']['PASSWORD']
-            self.assertIsNotNone(password)
+        """Test POSTGRES_PASSWORD must be provided."""
+        # Should not have a None value in production
+        password = settings.DATABASES['default']['PASSWORD']
+        # In test env with .env, it should be set
+        self.assertIsNotNone(password)
 
     def test_database_host_required(self):
-        """Test database host must be provided."""
-        engine = settings.DATABASES['default']['ENGINE']
-        if engine == 'django.db.backends.sqlite3':
-            # SQLite doesn't use HOST
-            self.skipTest("SQLite does not use HOST setting")
-        else:
-            host = settings.DATABASES['default']['HOST']
-            self.assertIsNotNone(host)
+        """Test POSTGRES_HOST must be provided."""
+        # Should not have a None value in production
+        host = settings.DATABASES['default']['HOST']
+        # In test env with .env, it should be set
+        self.assertIsNotNone(host)
 
     def test_database_port_from_env(self):
-        """Test database port is loaded from environment."""
-        engine = settings.DATABASES['default']['ENGINE']
-        if engine == 'django.db.backends.sqlite3':
-            # SQLite doesn't use PORT
-            self.skipTest("SQLite does not use PORT setting")
-        else:
-            self.assertEqual(settings.DATABASES['default']['PORT'], '5432')
+        """Test POSTGRES_PORT is loaded from environment."""
+        self.assertEqual(settings.DATABASES['default']['PORT'], '5432')
 
 
 class ConfigurationConsistencyTests(SimpleTestCase):
@@ -114,21 +92,14 @@ class ConfigurationConsistencyTests(SimpleTestCase):
 
     def test_database_port_is_valid_port_number(self):
         """Test database PORT is a valid port number."""
-        port_str = settings.DATABASES['default']['PORT']
-        engine = settings.DATABASES['default']['ENGINE']
-        if engine == 'django.db.backends.sqlite3':
-            # SQLite doesn't use PORT
-            self.skipTest("SQLite does not use PORT setting")
-        else:
-            port = int(port_str)
-            self.assertGreaterEqual(port, 1)
-            self.assertLessEqual(port, 65535)
+        port = int(settings.DATABASES['default']['PORT'])
+        self.assertGreaterEqual(port, 1)
+        self.assertLessEqual(port, 65535)
 
     def test_database_engine_is_postgresql(self):
-        """Test database engine is correct for the environment."""
+        """Test database engine is PostgreSQL."""
         engine = settings.DATABASES['default']['ENGINE']
-        # In test settings, it's SQLite; in production, PostgreSQL
-        self.assertIn(engine, ['django.db.backends.postgresql', 'django.db.backends.sqlite3'])
+        self.assertEqual(engine, 'django.db.backends.postgresql')
 
     def test_time_zone_is_valid(self):
         """Test TIME_ZONE is a valid timezone."""
