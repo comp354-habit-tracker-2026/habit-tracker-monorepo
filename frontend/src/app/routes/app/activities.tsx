@@ -1,73 +1,91 @@
 import { ContentLayout } from '@/components/layouts/content-layout';
-import { ActivityTimeSeriesChart } from '@/components/charts/activity-time-series-chart';
-import { ActivityPieChart } from '@/components/charts/activity-pie-chart';
 import { ActivityBarChart } from '@/components/charts/activity-bar-chart';
-import { WeSkiRouteMapChart } from '@/components/charts/we-ski-route-map-chart';
-import { MyWhooshRouteOverlayChart } from '@/components/charts/my-whoosh-route-overlay-chart';
+import { ActivityPieChart } from '@/components/charts/activity-pie-chart';
+import { ActivityTimeSeriesChart } from '@/components/charts/activity-time-series-chart';
+import { ActivityCard } from '@/components/activities/activity-card';
 import {
+  mockActivities,
   mockActivitiesOverTimeBySessionCount,
+  mockActivityAggregates,
   mockPieChartByCount,
   mockPieChartByDistance,
 } from '@/mocks/mock-activities';
 import {
+  mockMyWhooshHeartRateZones,
+  mockMyWhooshPowerZones,
+  mockMyWhooshSpeedZones,
+} from '@/mocks/mock-chart-data';
+import {
   mockMyWhooshRouteMapPoints,
+  mockMyWhooshStreamSeriesDense,
   mockWeSkiRouteMapPoints,
 } from '@/mocks/mock-chart-raw-data';
 
 import './activities.css';
 
+const totalSessions = mockActivityAggregates.reduce(
+  (sum, a) => sum + a.activity_count,
+  0,
+);
+const totalDistanceKm = mockActivityAggregates.reduce(
+  (sum, a) => sum + a.total_distance,
+  0,
+);
+const totalCalories = mockActivityAggregates.reduce(
+  (sum, a) => sum + a.total_calories,
+  0,
+);
+
+const myWhooshDetail = {
+  streamData: mockMyWhooshStreamSeriesDense,
+  routeData: mockMyWhooshRouteMapPoints,
+  hrZones: mockMyWhooshHeartRateZones,
+  powerZones: mockMyWhooshPowerZones,
+  speedZones: mockMyWhooshSpeedZones,
+};
+
 export default function ActivitiesRoute() {
   return (
     <ContentLayout title="Activities">
       <div className="activities-route">
-        <section className="activities-route__section" aria-labelledby="weski-section-title">
+        <section
+          className="activities-route__section"
+          aria-labelledby="overview-title"
+        >
           <div className="activities-route__section-header">
             <h2
-              id="weski-section-title"
+              id="overview-title"
               className="activities-route__section-title"
             >
-              WeSki
+              Overview
             </h2>
             <p className="activities-route__section-copy">
-              WeSki exports real-world GPX tracks, so route visualization lives
-              on an actual basemap and can grow into ski-specific map and run
-              analysis.
+              Rollup across all connected sources for the selected period.
             </p>
           </div>
 
-          <WeSkiRouteMapChart data={mockWeSkiRouteMapPoints} />
-        </section>
-
-        <section className="activities-route__section" aria-labelledby="mywhoosh-section-title">
-          <div className="activities-route__section-header">
-            <h2
-              id="mywhoosh-section-title"
-              className="activities-route__section-title"
-            >
-              MyWhoosh
-            </h2>
-            <p className="activities-route__section-copy">
-              MyWhoosh data is fundamentally virtual-course telemetry, so its
-              route remains an overlay chart rather than a geographic map.
-            </p>
-          </div>
-
-          <MyWhooshRouteOverlayChart data={mockMyWhooshRouteMapPoints} />
-        </section>
-
-        <section className="activities-route__section" aria-labelledby="overall-section-title">
-          <div className="activities-route__section-header">
-            <h2
-              id="overall-section-title"
-              className="activities-route__section-title"
-            >
-              Overall Summary
-            </h2>
-            <p className="activities-route__section-copy">
-              These rollups stay at a high level. Detailed charting is split by
-              provider because the underlying data models are not equivalent.
-            </p>
-          </div>
+          <ul
+            className="activities-route__agg-stats"
+            aria-label="All-time totals"
+          >
+            <li className="activities-route__agg-stat">
+              <span className="activities-route__agg-value">{totalSessions}</span>
+              <span className="activities-route__agg-label">Sessions</span>
+            </li>
+            <li className="activities-route__agg-stat">
+              <span className="activities-route__agg-value">
+                {totalDistanceKm.toFixed(1)}
+                <span className="activities-route__agg-unit">km</span>
+              </span>
+              <span className="activities-route__agg-label">Distance</span>
+            </li>
+            <li className="activities-route__agg-stat">
+              <span className="activities-route__agg-value">
+                {totalCalories.toLocaleString('en-US')}
+              </span>
+              <span className="activities-route__agg-label">Calories</span>
+            </li>
+          </ul>
 
           <ActivityTimeSeriesChart
             title="Activities over time"
@@ -76,25 +94,59 @@ export default function ActivitiesRoute() {
             startDate={new Date(2026, 0, 1)}
             endDate={new Date(2026, 2, 31)}
             data={mockActivitiesOverTimeBySessionCount}
+            height={220}
           />
 
-          <ActivityPieChart
-            title="Activity breakdown"
-            description="Distribution of activity types to understand focus areas and variety."
-            totalLabel="Sessions"
-            startDate={new Date(2026, 0, 1)}
-            endDate={new Date(2026, 2, 31)}
-            data={mockPieChartByCount}
-          />
+          <div className="activities-route__charts-grid">
+            <ActivityPieChart
+              title="Activity breakdown"
+              description="Distribution of activity types to understand focus areas and variety."
+              totalLabel="Sessions"
+              startDate={new Date(2026, 0, 1)}
+              endDate={new Date(2026, 2, 31)}
+              data={mockPieChartByCount}
+              height={220}
+            />
 
-          <ActivityBarChart
-            title="Distance by activity"
-            description="Comparative distance totals by activity type for the selected period."
-            startDate={new Date(2026, 0, 1)}
-            endDate={new Date(2026, 2, 31)}
-            data={mockPieChartByDistance}
-            valueFormatter={(value: number) => `${value.toFixed(1)} km`}
-          />
+            <ActivityBarChart
+              title="Distance by activity"
+              description="Comparative distance totals by activity type for the selected period."
+              startDate={new Date(2026, 0, 1)}
+              endDate={new Date(2026, 2, 31)}
+              data={mockPieChartByDistance}
+              valueFormatter={(value: number) => `${value.toFixed(1)} km`}
+              height={220}
+            />
+          </div>
+        </section>
+
+        <section
+          className="activities-route__section"
+          aria-labelledby="activities-title"
+        >
+          <div className="activities-route__section-header">
+            <h2
+              id="activities-title"
+              className="activities-route__section-title"
+            >
+              Your Activities
+            </h2>
+            <p className="activities-route__section-copy">
+              Select an activity to see its route, stats, and detailed analysis.
+            </p>
+          </div>
+
+          <div className="activities-route__list">
+            <ActivityCard
+              activity={mockActivities[0]}
+              weSkiRoutePoints={mockWeSkiRouteMapPoints}
+            />
+            <ActivityCard activity={mockActivities[1]} />
+            <ActivityCard
+              activity={mockActivities[2]}
+              myWhooshDetail={myWhooshDetail}
+            />
+          </div>
         </section>
       </div>
     </ContentLayout>
