@@ -1,4 +1,4 @@
-
+/// <reference types="cypress" />
 describe('Goals page', () => {
   it('should render heading and introductory copy', () => {
     cy.visit('/app/goals');
