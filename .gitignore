@@ -8,4 +8,4 @@ CLAUDE.md
 __pycache__/
 *.pyc
 dataset-generation/artifacts/
-.idea
+.idea.lsp/
