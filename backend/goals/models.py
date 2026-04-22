@@ -46,6 +46,15 @@ class Goal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['user', 'goal_type']),
+            models.Index(fields=['user', 'progress_state']),
+            models.Index(fields=['end_date']),
+            models.Index(fields=['updated_at']),
+        ]
+
     def __str__(self):
         return f"{self.title} ({self.status})"
 
@@ -78,6 +87,10 @@ class ProgressLog(models.Model):
         constraints = [
             # The same activity should only be counted towards a goal once
             models.UniqueConstraint(fields=['goal', 'activity'], name='unique_goal_activity'),
+        ]
+        indexes = [
+            models.Index(fields=['goal']),
+            models.Index(fields=['activity']),
         ]
 
     def __str__(self):
