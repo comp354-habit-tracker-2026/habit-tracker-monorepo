@@ -1,5 +1,6 @@
 import { AppProvider } from './provider';
 import { AppRouter } from './router';
+import { AuthProvider } from './context/auth-provider';
 
 /**
  * Root application component.
@@ -13,7 +14,9 @@ import { AppRouter } from './router';
 export function App() {
   return (
     <AppProvider>
-      <AppRouter />
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
     </AppProvider>
   );
 }
