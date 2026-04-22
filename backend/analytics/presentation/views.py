@@ -55,6 +55,8 @@ logger = logging.getLogger(__name__)
 class GoalProgressSeriesView(APIView):
     """Return chart-ready goal progress data for the authenticated user."""
 
+    permission_classes = [IsAuthenticated]
+    
     DEFAULT_PAGE = 1
     DEFAULT_PAGE_SIZE = 30
     MAX_PAGE_SIZE = 100

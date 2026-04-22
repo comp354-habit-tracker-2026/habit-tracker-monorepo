@@ -6,6 +6,7 @@
 # Issue #196: Progress series unit tests
 # Branch: feature/group-15-health-indicators
 from __future__ import annotations
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 from unittest.mock import MagicMock, patch
@@ -72,13 +73,15 @@ def _mock_result_with_points(count=65):
 
 class GoalProgressSeriesViewTests(SimpleTestCase):
     def setUp(self):
-        self.factory = RequestFactory()
+        self.factory = APIRequestFactory()
         self.view = GoalProgressSeriesView.as_view()
+        self.user = MagicMock()
+        self.user.is_authenticated = True
 
     def _get(self, goal_id=1, **query_params):
         request = self.factory.get(f"/progress-series/{goal_id}/", data=query_params)
+        force_authenticate(request, user=self.user)
         return self.view(request, goal_id=goal_id)
-
     def test_demo_mode_returns_200(self):
         response = self._get(goal_id=1, demo="true")
         self.assertEqual(response.status_code, 200)
