@@ -6,6 +6,7 @@
 # Issue #196: Unit tests for NotificationService
 # Branch: feature/group-15-health-indicators
 
+
 """Unit tests for NotificationService.
 
 Uses mocks so no database is required.
