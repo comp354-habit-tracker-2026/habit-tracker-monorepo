@@ -6,6 +6,7 @@
 # Issue #196: Goals unit tests
 # Branch: feature/group-15-health-indicators
 
+
 import pytest
 from unittest.mock import patch, MagicMock
 from django.contrib.auth import get_user_model
