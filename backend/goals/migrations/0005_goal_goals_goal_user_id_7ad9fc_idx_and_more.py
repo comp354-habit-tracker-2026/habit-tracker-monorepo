@@ -33,12 +33,4 @@ class Migration(migrations.Migration):
             model_name='goal',
             index=models.Index(fields=['updated_at'], name='goals_goal_updated_7ac619_idx'),
         ),
-        migrations.AddIndex(
-            model_name='progresslog',
-            index=models.Index(fields=['goal'], name='progress_lo_goal_id_26b356_idx'),
-        ),
-        migrations.AddIndex(
-            model_name='progresslog',
-            index=models.Index(fields=['activity'], name='progress_lo_activit_17efcf_idx'),
-        ),
     ]
