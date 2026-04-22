@@ -1,7 +1,7 @@
 import builtins
 
 import pytest
-from django.test.utils import override_settings
+from django.conf import settings
 from rest_framework import status
 from rest_framework.test import APIClient
 from unittest.mock import patch
@@ -86,8 +86,10 @@ class TestHealthCheckService:
         assert result["message"] == "User model check failed"
 
     def test_check_installed_apps_healthy(self):
-        with override_settings(
-            INSTALLED_APPS=[
+        with patch.object(
+            settings,
+            "INSTALLED_APPS",
+            [
                 "django.contrib.auth",
                 "django.contrib.contenttypes",
                 "rest_framework",
@@ -95,7 +97,7 @@ class TestHealthCheckService:
                 "activities",
                 "goals",
                 "analytics",
-            ]
+            ],
         ):
             result = HealthCheckService.check_installed_apps()
 
@@ -103,12 +105,14 @@ class TestHealthCheckService:
         assert "All required apps installed" in result["message"]
 
     def test_check_installed_apps_unhealthy(self):
-        with override_settings(
-            INSTALLED_APPS=[
+        with patch.object(
+            settings,
+            "INSTALLED_APPS",
+            [
                 "django.contrib.auth",
                 "django.contrib.contenttypes",
                 "rest_framework",
-            ]
+            ],
         ):
             result = HealthCheckService.check_installed_apps()
 
