@@ -117,14 +117,14 @@ class EvaluateViewSet(viewsets.ViewSet):
 
         if activity_id:
             try:
-                activity = Activity.objects.get(pk=activity_id, user=user)
+                activity = Activity.objects.get(pk=activity_id, account__user=user)
             except Activity.DoesNotExist:
                 return Response(
                     {'error': 'Activity not found'},
                     status=status.HTTP_404_NOT_FOUND,
                 )
         else:
-            activity = Activity.objects.filter(user=user).order_by('-date').first()
+            activity = Activity.objects.filter(account__user=user).order_by('-date').first()
             if not activity:
                 return Response(
                     {'error': 'No activities found for user'},

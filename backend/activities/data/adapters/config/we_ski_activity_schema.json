@@ -1,0 +1,15 @@
+{
+    "type": "object",
+    "properties": {
+        "external_id": {"type": "string"},
+        "activity_type": {"type": "string"},
+        "distance": {"type": "number"},
+        "raw_data": {"type": "object"},
+        "duration": {"type": "number"},
+        "date": {"type": "string", "format": "date-time"},
+        "calories": {"type": "integer"}
+    },
+    "required": ["external_id", "name", "distance", "raw_data"]
+
+    
+}
