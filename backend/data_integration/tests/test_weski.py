@@ -11,6 +11,9 @@ from data_integration.business.weski_session_summary import WeskiSessionSummary
 from data_integration.data.weski import WeskiGpxService
 
 
+# This file keeps the GPX fixtures inline so each test can show the specific
+# parser edge case it is asserting without jumping between helper files.
+
 # ---------------------------------------------------------------------------
 # Sample GPX content for tests
 # ---------------------------------------------------------------------------
@@ -232,6 +235,10 @@ GPX_RUN_AND_LIFT = """\
 </gpx>
 """
 
+# Bytes that cannot be decoded as UTF-8. The parser accepts raw bytes, so this
+# fixture exercises the decode step before XML parsing even begins.
+INVALID_UTF8_BYTES = b"\xff\xfe\xfa\xfb"
+
 
 # ===================================================================
 # WeskiGpxParser tests
@@ -239,6 +246,8 @@ GPX_RUN_AND_LIFT = """\
 
 
 class TestWeskiGpxParser:
+
+  # High-level parser entry points -------------------------------------------------
 
     def test_parse_string_returns_session_summary(self):
         summary = WeskiGpxParser.parse(SAMPLE_GPX)
@@ -338,7 +347,15 @@ class TestWeskiGpxParser:
         with pytest.raises(Exception):
             WeskiGpxParser.parse("this is not xml")
 
-    # Helper method tests
+    def test_parse_invalid_utf8_bytes_raises(self):
+      with pytest.raises(UnicodeDecodeError):
+        WeskiGpxParser.parse(INVALID_UTF8_BYTES)
+
+    def test_parse_file_missing_path_raises(self):
+      with pytest.raises(FileNotFoundError):
+        WeskiGpxParser.parse_file("missing-session.gpx")
+
+    # Helper method tests ------------------------------------------------------------
     def test_float_or_none_returns_float(self):
         assert WeskiGpxParser._float_or_none("3.14") == pytest.approx(3.14)
 
@@ -418,11 +435,15 @@ class TestWeskiGpxService:
 class TestWeskiUploadView:
 
     def _make_gpx_file(self, content=SAMPLE_GPX_BYTES, name="session.gpx"):
+    # BytesIO matches DRF's expected uploaded-file interface closely enough
+    # for view tests without needing to hit the filesystem.
         f = BytesIO(content)
         f.name = name
         return f
 
     def _get_authed_client(self):
+    # Keep auth setup local to the test class so each test remains explicit
+    # about whether it is exercising authenticated or anonymous behavior.
         from django.contrib.auth import get_user_model
         User = get_user_model()
         user = User.objects.create_user(username="skitest", password="pass1234")
@@ -499,6 +520,26 @@ class TestWeskiUploadView:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
+
+    def test_upload_empty_gpx_returns_400(self):
+      client, _ = self._get_authed_client()
+      response = client.post(
+        "/api/v1/data-integrations/weski/upload/",
+        {"file": self._make_gpx_file(b"")},
+        format="multipart",
+      )
+      assert response.status_code == status.HTTP_400_BAD_REQUEST
+      assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
+
+    def test_upload_invalid_utf8_gpx_returns_400(self):
+      client, _ = self._get_authed_client()
+      response = client.post(
+        "/api/v1/data-integrations/weski/upload/",
+        {"file": self._make_gpx_file(INVALID_UTF8_BYTES)},
+        format="multipart",
+      )
+      assert response.status_code == status.HTTP_400_BAD_REQUEST
+      assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
 
     def test_upload_creates_activity_record(self):
         from activities.models import Activity
