@@ -28,7 +28,7 @@ class NotificationService(BaseService):
             # if notifications disabled
             return
         
-        def send_notification(type: NotificationType.choices):
+        def send_notification(type: NotificationType):
             if (recipient_preferences.email_enabled):
                 self.notification_repository.create_notification(recipient, type, description, NotificationChannel.EMAIL)
                 # Send email notification
@@ -38,10 +38,21 @@ class NotificationService(BaseService):
                 # Send in app notification
                 return
 
-        if (event_type == NotificationType.ACHIEVEMENT and recipient_preferences.achievement_notifs):
-            send_notification()
-        if (event_type == NotificationType.INACTIVITY_REMINDER and recipient_preferences.inactivity_reminders):
-            send_notification()
+        should_send = False
+
+        if event_type == NotificationType.MILESTONE_ACHIEVED:
+            should_send = recipient_preferences.achievement_notifs
+        elif event_type == NotificationType.INACTIVITY_REMINDER:
+            should_send = recipient_preferences.inactivity_reminders
+        elif event_type in (
+            NotificationType.GOAL_ACHIEVED,
+            NotificationType.GOAL_AT_RISK,
+            NotificationType.GOAL_MISSED,
+        ):
+            should_send = recipient_preferences.goal_notifs
+
+        if should_send:
+            send_notification(event_type)
     
     def get_all_notifications(self, user_id): 
         user = User.objects.get(id=user_id)
@@ -126,5 +137,5 @@ class UserPreferencesService(BaseService):
     def create_default_user_preferences(self, user_id):
         return
     
-    def get_user_preferences(self, user: User) -> UserNotificationPreference:
+    def get_user_preferences(self, user) -> UserNotificationPreference:
         return self.repository.get_user_preferences(user)

@@ -56,6 +56,7 @@ class UserNotificationPreference(models.Model):
     email_enabled = models.BooleanField(default=True)
     in_app_enabled = models.BooleanField(default=True)
     achievement_notifs = models.BooleanField(default=True)
+    goal_notifs = models.BooleanField(default=True)
     inactivity_reminders = models.BooleanField(default=True)
     inactivity_threshold_days = models.IntegerField(default=7)
 

@@ -20,7 +20,7 @@ class NotificationRepository(BaseRepository):
     def __init__(self):
         super().__init__(Notification)
     
-    def create_notification(self, user: User, type: str, message: str, channel: str, scheduled_at=None): # type: ignore
+    def create_notification(self, user, type: str, message: str, payload: str, channel: str, scheduled_at=None, goal: Goal=None): 
         notification = Notification(
             user=user,
             type=type,
@@ -31,7 +31,7 @@ class NotificationRepository(BaseRepository):
         notification.save()
         return notification
     
-    def get_all(self, user: User): # type: ignore
+    def get_all(self, user):
         return Notification.objects.filter(user=user)
     
     def get(self, notification_id: int):
@@ -51,7 +51,7 @@ class NotificationRepository(BaseRepository):
 
         return notification
     
-    def mark_all_as_read(self, user: User):
+    def mark_all_as_read(self, user):
         Notification.objects.filter(user=user).update(read=True)
 
     def list_recent(self, user):
@@ -65,8 +65,36 @@ class UserPreferenceRepository(BaseRepository):
     def __init__(self):
         super().__init__(UserNotificationPreference)
 
-    def get_user_preferences(self, user: User):
-        return UserNotificationPreference.objects.get(user=user)
+    def get_user_preferences(self, user):
+        preferences, _ = UserNotificationPreference.objects.get_or_create(user=user)
+        return preferences
+
+    def create_user_preferences(self, user):
+        preferences, _ = UserNotificationPreference.objects.get_or_create(user=user)
+        return preferences
+
+    def update_user_preferences(self, user, **update_user_preferences):
+        preferences = self.get_user_preferences(user)
+
+        allowed_fields = {
+            "email_enabled",
+            "in_app_enabled",
+            "achievement_notifs",
+            "inactivity_reminders",
+            "inactivity_threshold_days",
+        }
+
+        changed_fields = []
+        for field, value in update_user_preferences.items():
+            if field in allowed_fields:
+                setattr(preferences, field, value)
+                changed_fields.append(field)
+
+        if changed_fields:
+            preferences.save(update_fields=changed_fields)
+
+        return preferences
 
     def update_user_prefernces(self, user_id, **update_user_prefernces):
-        return True
+        user = User.objects.get(id=user_id)
+        return self.update_user_preferences(user, **update_user_prefernces)
