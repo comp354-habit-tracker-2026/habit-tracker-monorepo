@@ -1,10 +1,4 @@
-# Written by Gorav-K; Claude (Anthropic AI) assisted with fixing tests to pass on GitHub CI.
-# Source: Claude Sonnet 4.6 via Claude Code CLI (Anthropic, 2026).
-# Required disclosure per COMP 354 AI-generated code traceability policy.
-#
-# Gorav-K — GitHub: Gorav-K
-# Issue #196: Unit tests for NotificationService
-# Branch: feature/group-15-health-indicators
+
 
 """Unit tests for NotificationService.
 
