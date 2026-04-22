@@ -109,6 +109,35 @@ docker compose logs -f api
 docker compose down
 ```
 
+## Database - Backup and Restore
+- Backup location: `backend/backups`
+
+Prerequisites:
+- docker container needs to be running
+- `.env` needs to be created and filled
+
+### Backup
+```bash
+./scripts/db-backup.sh <opt: filepath>
+```
+
+- Exports the database to a backup file.
+- Default filename is `db_timestamp.dump`.
+
+### Restore 
+```bash
+./scripts/db-restore.sh <backup_file>
+```
+
+- Restores the database from a backup file. 
+- All existing data will be overwritten.
+
+### Automation
+cron daily at 02:00:
+```bash
+0 2 * * * cd ~/habit-tracker-monorepo/backend && /usr/bin/env bash scripts/db-backup-latest.sh
+```
+
 ## API Namespaces
 
 All endpoints are under `/api/v1/`.
