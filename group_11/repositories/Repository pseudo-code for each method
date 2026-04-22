@@ -1,0 +1,94 @@
+upsert_activity_by_source:
+
+Input
+provider: str – source system (e.g., "strava")
+external_id: str – unique ID from provider
+activity_data: dict – activity fields (name, duration, distance, etc.)
+
+Output
+Activity object (created or updated)
+
+function upsert_activity_by_source(provider, external_id, activity_data):
+
+    validate provider is not empty
+    validate external_id is not empty
+    validate activity_data is not null
+
+    existing = find_activity_by_provider_and_external_id(provider, external_id)
+
+    if existing exists:
+        update existing activity with activity_data
+        save updated activity
+        return updated activity
+    else:
+        new_activity = create activity with provider, external_id, activity_data
+        save new_activity
+        return new_activity
+
+Validation Rules
+provider must not be empty
+external_id must not be empty
+activity_data must contain required fields (e.g., name, timestamp)
+Prevent duplicate (provider, external_id) pairs
+
+delete_activity:
+
+Input
+activity_id: str
+
+Output
+boolean (true if deleted, false if not found)
+
+function delete_activity(activity_id):
+
+    validate activity_id is not empty
+
+    activity = find activity by id
+
+    if activity does not exist:
+        return false
+
+    delete activity from database
+
+    return true
+
+Validation Rules
+activity_id must not be empty
+
+list_activities_by_user:
+
+Input
+user_id: str
+
+Output
+List of Activity objects
+
+function list_activities_by_user(user_id):
+
+    validate user_id is not empty
+
+    activities = query database where user_id matches
+
+    return activities list (empty if none)
+
+Validation Rules
+user_id must not be empty
+
+get_activity_by_id:
+
+Input
+activity_id: str
+
+Output
+Activity object OR None
+
+function get_activity_by_id(activity_id):
+
+    validate activity_id is not empty
+
+    activity = query database for activity_id
+
+    return activity (or null if not found)
+
+Validation Rules
+activity_id must not be empty
