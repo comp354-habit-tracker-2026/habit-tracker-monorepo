@@ -34,7 +34,6 @@ interface AnalyticsHealthData {
     severity: 'none' | 'mild' | 'severe';
   };
 }
-
 interface CheckItemProps {
   name: string;
   check: HealthCheck;
