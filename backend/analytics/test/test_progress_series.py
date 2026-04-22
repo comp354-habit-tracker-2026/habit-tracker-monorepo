@@ -131,8 +131,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
 
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_success_returns_200(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_success_returns_200(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.start_date = "2026-03-01"
@@ -155,7 +155,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
             "no_data": False,
             "points": [],
         }
-        mock_generate.return_value = mock_result
+        mock_cached.return_value = mock_result
 
         response = self._get(goal_id=1)
         self.assertEqual(response.status_code, 200)
@@ -180,10 +180,10 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
     @patch(
-        "analytics.presentation.views.generate_progress_series",
+        "analytics.presentation.views.get_cached_progress_series",
         side_effect=InvalidGranularityError("bad granularity"),
     )
-    def test_invalid_granularity_returns_400(self, mock_generate, mock_filter, mock_get):
+    def test_invalid_granularity_returns_400(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.start_date = "2026-03-01"
@@ -201,10 +201,10 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
     @patch(
-        "analytics.presentation.views.generate_progress_series",
+        "analytics.presentation.views.get_cached_progress_series",
         side_effect=UnsupportedGoalTypeError("bad goal type"),
     )
-    def test_unsupported_goal_type_returns_400(self, mock_generate, mock_filter, mock_get):
+    def test_unsupported_goal_type_returns_400(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.start_date = "2026-03-01"
@@ -222,10 +222,10 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
     @patch(
-        "analytics.presentation.views.generate_progress_series",
+        "analytics.presentation.views.get_cached_progress_series",
         side_effect=ProgressSeriesError("cannot compute"),
     )
-    def test_progress_series_error_returns_400(self, mock_generate, mock_filter, mock_get):
+    def test_progress_series_error_returns_400(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.start_date = "2026-03-01"
@@ -243,10 +243,10 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
     @patch(
-        "analytics.presentation.views.generate_progress_series",
+        "analytics.presentation.views.get_cached_progress_series",
         side_effect=RuntimeError("unexpected failure"),
     )
-    def test_unexpected_error_returns_500(self, mock_generate, mock_filter, mock_get):
+    def test_unexpected_error_returns_500(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.start_date = "2026-03-01"
@@ -263,8 +263,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
 
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_default_pagination_applies_page_1_size_30(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_default_pagination_applies_page_1_size_30(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.user_id = 1
@@ -273,7 +273,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         mock_get.return_value = mock_goal
         mock_filter.return_value.order_by.return_value = []
 
-        mock_generate.return_value = _mock_result_with_points(65)
+        mock_cached.return_value = _mock_result_with_points(65)
 
         response = self._get(goal_id=1)
         self.assertEqual(response.status_code, 200)
@@ -289,8 +289,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
     
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_custom_page_and_page_size_return_expected_slice(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_custom_page_and_page_size_return_expected_slice(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.user_id = 1
@@ -299,7 +299,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         mock_get.return_value = mock_goal
         mock_filter.return_value.order_by.return_value = []
 
-        mock_generate.return_value = _mock_result_with_points(65)
+        mock_cached.return_value = _mock_result_with_points(65)
 
         response = self._get(goal_id=1, page=2, page_size=10)
         self.assertEqual(response.status_code, 200)
@@ -318,8 +318,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
     
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_page_size_is_capped_to_max_page_size(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_page_size_is_capped_to_max_page_size(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.user_id = 1
@@ -328,7 +328,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         mock_get.return_value = mock_goal
         mock_filter.return_value.order_by.return_value = []
 
-        mock_generate.return_value = _mock_result_with_points(150)
+        mock_cached.return_value = _mock_result_with_points(150)
 
         response = self._get(goal_id=1, page=1, page_size=1000)
         self.assertEqual(response.status_code, 200)
@@ -341,8 +341,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
 
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_invalid_page_returns_400(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_invalid_page_returns_400(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.user_id = 1
@@ -351,7 +351,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         mock_get.return_value = mock_goal
         mock_filter.return_value.order_by.return_value = []
 
-        mock_generate.return_value = _mock_result_with_points(20)
+        mock_cached.return_value = _mock_result_with_points(20)
 
         response = self._get(goal_id=1, page=0, page_size=10)
         self.assertEqual(response.status_code, 400)
@@ -361,8 +361,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
 
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_invalid_page_size_returns_400(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_invalid_page_size_returns_400(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.user_id = 1
@@ -371,7 +371,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         mock_get.return_value = mock_goal
         mock_filter.return_value.order_by.return_value = []
 
-        mock_generate.return_value = _mock_result_with_points(20)
+        mock_cached.return_value = _mock_result_with_points(20)
 
         response = self._get(goal_id=1, page=1, page_size=0)
         self.assertEqual(response.status_code, 400)
@@ -381,8 +381,8 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
 
     @patch("analytics.presentation.views.Goal.objects.get")
     @patch("analytics.presentation.views.Activity.objects.filter")
-    @patch("analytics.presentation.views.generate_progress_series")
-    def test_page_beyond_total_pages_returns_empty_points(self, mock_generate, mock_filter, mock_get):
+    @patch("analytics.presentation.views.get_cached_progress_series")
+    def test_page_beyond_total_pages_returns_empty_points(self, mock_cached, mock_filter, mock_get):
         mock_goal = MagicMock()
         mock_goal.user = MagicMock()
         mock_goal.user_id = 1
@@ -391,7 +391,7 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         mock_get.return_value = mock_goal
         mock_filter.return_value.order_by.return_value = []
 
-        mock_generate.return_value = _mock_result_with_points(15)
+        mock_cached.return_value = _mock_result_with_points(15)
 
         response = self._get(goal_id=1, page=5, page_size=10)
         self.assertEqual(response.status_code, 200)
