@@ -28,7 +28,7 @@ def map_mywhoosh_session(raw: dict) -> NormalizedSession:
 
     metrics = Metrics(
         distance=distance,
-        calorties=calories,
+        calories=calories,
         duration=duration,
     )
 
