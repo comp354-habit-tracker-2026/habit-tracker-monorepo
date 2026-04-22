@@ -5,10 +5,22 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class NotificationRepository(BaseRepository):
+
+    LIST_FIELDS = (
+        "id",
+        "notification_type",
+        "title",
+        "message",
+        "is_read",
+        "created_at",
+        "goal_id",
+        "payload",
+    )
+
     def __init__(self):
         super().__init__(Notification)
     
-    def create_notification(self, user: User, type: str, message: str, channel: str, scheduled_at=None):
+    def create_notification(self, user: User, type: str, message: str, channel: str, scheduled_at=None): # type: ignore
         notification = Notification(
             user=user,
             type=type,
@@ -19,7 +31,7 @@ class NotificationRepository(BaseRepository):
         notification.save()
         return notification
     
-    def get_all(self, user: User):
+    def get_all(self, user: User): # type: ignore
         return Notification.objects.filter(user=user)
     
     def get(self, notification_id: int):
@@ -41,6 +53,13 @@ class NotificationRepository(BaseRepository):
     
     def mark_all_as_read(self, user: User):
         Notification.objects.filter(user=user).update(read=True)
+
+    def list_recent(self, user):
+        return list(
+            Notification.objects.filter(user=user)
+            .order_by("-created_at", "-id")
+            .values(*self.LIST_FIELDS)
+        )
     
 class UserPreferenceRepository(BaseRepository):
     def __init__(self):

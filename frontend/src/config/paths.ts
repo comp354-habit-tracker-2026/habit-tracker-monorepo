@@ -13,8 +13,7 @@ export const paths = {
   auth: {
     login: {
       path: '/auth/login',
-      getHref: (redirectTo?: string | null) =>
-        `/auth/login${redirectTo ? `?redirectTo=${encodeURIComponent(redirectTo)}` : ''}`,
+      getHref: () => '/auth/login'
     },
     register: {
       path: '/auth/register',
@@ -44,5 +43,19 @@ export const paths = {
       path: 'profile',
       getHref: () => '/app/profile',
     },
+
+    activities: { //added this code developed from chatGPT (by lauren)
+      path: 'activities',
+      getHref: () => '/app/activities',
+    },
+    goals: { //Goals page route
+      path:'goals',
+      getHref: ()=>'/app/goals'
+    },
+    health: {
+      path: 'health',
+      getHref: () => '/app/health',
+    },
   },
 } as const;
+

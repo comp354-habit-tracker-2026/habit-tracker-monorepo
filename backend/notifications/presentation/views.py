@@ -29,6 +29,14 @@ class DeleteNotificationView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST) 
         
+class NotificationsListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = NotificationService()
+        return Response(service.list_recent(request.user.user_id))
+
+
 class ViewNotifications(APIView):
     permission_classes = [IsAuthenticated]
 
