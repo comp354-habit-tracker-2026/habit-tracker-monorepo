@@ -51,7 +51,6 @@ def create_superuser_demo():
     else:
         print(f"\n   [Action] Automatically creating user: {username}")
         User.objects.create_superuser(username, "admin@example.com", password)
-        print(f"   [Success] Created superuser '{username}' with password '{password}'")
 
 def seed_notifications_demo():
     print("\n" + "="*49)
