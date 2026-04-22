@@ -56,9 +56,9 @@ class HealthReadyView(APIView):
                 {"status": "ready"},
                 status=http_status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
             return Response(
-                {"status": "not_ready", "error": str(e)},
+                {"status": "not_ready", "error": "Readiness check failed"},
                 status=http_status.HTTP_503_SERVICE_UNAVAILABLE
             )
 

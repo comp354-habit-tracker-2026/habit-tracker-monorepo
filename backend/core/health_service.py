@@ -30,10 +30,10 @@ class HealthCheckService:
                 "message": "Database is responding",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except Exception:
             return {
                 "status": "unhealthy",
-                "message": f"Database error: {str(e)}",
+                "message": "Database health check failed",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -50,10 +50,10 @@ class HealthCheckService:
                 "message": "All migrations applied",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except Exception:
             return {
                 "status": "unhealthy",
-                "message": f"Migration check failed: {str(e)}",
+                "message": "Migration health check failed",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -67,10 +67,10 @@ class HealthCheckService:
                 "message": f"User model accessible ({user_count} users)",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except Exception:
             return {
                 "status": "unhealthy",
-                "message": f"User model error: {str(e)}",
+                "message": "User model health check failed",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
