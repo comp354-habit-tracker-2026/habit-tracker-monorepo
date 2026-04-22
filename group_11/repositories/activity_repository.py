@@ -1,78 +1,103 @@
-from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Optional, Protocol, List, Generic, TypeVar, Literal
-
-T = TypeVar("T")
-
-Provider = Literal["strava", "mapmyrun", "weski", "mywhoosh", "manual"]
-ActivityType = Literal["run", "ride", "ski", "walk", "workout"]
+import sqlite3
+from typing import List, Dict, Optional
 
 
-@dataclass(frozen=True)
-class Activity:
-    id: str
-    user_id: str
-    provider: Provider
-    external_id: str
-    type: ActivityType
-    start_time: str
-    duration_seconds: int
-    distance_meters: Optional[int] = None
-    calories: Optional[int] = None
+class ActivityRepository:
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
 
-
-@dataclass(frozen=True)
-class Page(Generic[T]):
-    items: List[T]
-    limit: int
-    offset: int
-    total: Optional[int] = None
-
-
-class ActivityRepository(Protocol):
     def upsert_activity_by_source(
         self,
-        user_id: str,
-        provider: Provider,
+        user_id: int,
+        provider: str,
         external_id: str,
-        payload: Activity,
-    ) -> Activity:
-        """
-        Dedup key is (provider, external_id).
-        If the same key appears again, update the existing record.
-        """
-        ...
+        name: str,
+    ) -> Dict:
+        self._validate_inputs(user_id, provider, external_id)
 
-    def list_activities(
-        self,
-        user_id: str,
-        from_time: Optional[str] = None,
-        to_time: Optional[str] = None,
-        limit: int = 50,
-        offset: int = 0,
-    ) -> Page[Activity]:
-        ...
+        cursor = self.conn.cursor()
 
-    def get_activity_by_id(self, activity_id: str) -> Optional[Activity]:
-        ...
+        # Check for existing activity (deduplication)
+        cursor.execute(
+            """
+            SELECT id FROM activities
+            WHERE provider = ? AND external_id = ?
+            """,
+            (provider, external_id),
+        )
+        existing = cursor.fetchone()
 
+        if existing:
+            activity_id = existing[0]
 
-class NotImplementedActivityRepository:
-    def upsert_activity_by_source(
-        self, user_id: str, provider: Provider, external_id: str, payload: Activity
-    ) -> Activity:
-        raise NotImplementedError("upsert_activity_by_source is not implemented")
+            cursor.execute(
+                """
+                UPDATE activities
+                SET name = ?, user_id = ?
+                WHERE id = ?
+                """,
+                (name, user_id, activity_id),
+            )
+        else:
+            cursor.execute(
+                """
+                INSERT INTO activities (user_id, provider, external_id, name)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user_id, provider, external_id, name),
+            )
+            activity_id = cursor.lastrowid
 
-    def list_activities(
-        self,
-        user_id: str,
-        from_time: Optional[str] = None,
-        to_time: Optional[str] = None,
-        limit: int = 50,
-        offset: int = 0,
-    ) -> Page[Activity]:
-        raise NotImplementedError("list_activities is not implemented")
+        self.conn.commit()
 
-    def get_activity_by_id(self, activity_id: str) -> Optional[Activity]:
-        raise NotImplementedError("get_activity_by_id is not implemented")
+        return self.get_activity_by_id(activity_id)
+
+    def list_activities(self, user_id: int, limit: int = 10, offset: int = 0) -> List[Dict]:
+        self._validate_id(user_id)
+
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, user_id, provider, external_id, name
+            FROM activities
+            WHERE user_id = ?
+            LIMIT ? OFFSET ?
+            """,
+            (user_id, limit, offset),
+        )
+
+        rows = cursor.fetchall()
+
+        return [
+            dict(zip(["id", "user_id", "provider", "external_id", "name"], row))
+            for row in rows
+        ]
+
+    def get_activity_by_id(self, activity_id: int) -> Optional[Dict]:
+        self._validate_id(activity_id)
+
+        cursor = self.conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, user_id, provider, external_id, name
+            FROM activities
+            WHERE id = ?
+            """,
+            (activity_id,),
+        )
+
+        row = cursor.fetchone()
+        return dict(zip(["id", "user_id", "provider", "external_id", "name"], row)) if row else None
+
+    # ---------- Validation ----------
+    def _validate_inputs(self, user_id, provider, external_id):
+        if not user_id or user_id <= 0:
+            raise ValueError("Invalid user_id")
+        if not provider:
+            raise ValueError("Provider required")
+        if not external_id:
+            raise ValueError("External ID required")
+
+    def _validate_id(self, value: int):
+        if not value or value <= 0:
+            raise ValueError("Invalid ID")
