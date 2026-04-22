@@ -1,0 +1,19 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {"type": "number"},
+        "user_id": {"type": "number"},
+        "activity_key": {"type": "string"},
+        "workout_date": {"type": "string", "format": "date"},
+        "activity_type": {"type": "string"},
+        "calories_burned_kcal": {"type": "number"},
+        "distance_km": {"type": "number"},
+        "workout_time_seconds": {"type": "number"},
+        "avg_pace_min_per_km": {"type": "number"},
+        "max_pace_min_per_km": {"type": "number"},
+        "avg_speed_kmh": {"type": "number"},
+        "max_speed_kmh": {"type": "number"},
+        "created_at": {"type": "string", "format": "date-time"}
+        },
+    "required": ["id", "user_id", "activity_key", "workout_date", "activity_type", "distance_km", "workout_time_seconds", "created_at"]
+}
