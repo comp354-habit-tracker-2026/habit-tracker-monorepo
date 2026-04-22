@@ -1,3 +1,13 @@
-from notifications.presentation.views import NotificationsHealthView
+from presentation.views import (
+    DeleteNotificationView,
+    NotificationsListView,
+    ViewNotifications,
+    MarkNotificationAsRead,
+)
 
-__all__ = ["NotificationsHealthView"]
+__all__ = [
+    "DeleteNotificationView",
+    "NotificationsListView",
+    "ViewNotifications",
+    "MarkNotificationAsRead",
+]

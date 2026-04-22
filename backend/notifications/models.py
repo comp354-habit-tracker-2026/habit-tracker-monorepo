@@ -1,11 +1,10 @@
 # Add notification persistence models here (templates, delivery records, preferences).
-
-
-from activities import models
-from config import settings
+from django.db import models
+from django.conf import settings
 
 
 class NotificationType(models.TextChoices):
+    MILESTONE_ACHIEVED = "MILESTONE_ACHIEVED", "Milestone Achieved"
     GOAL_ACHIEVED = "GOAL_ACHIEVED", "Goal Achieved"
     GOAL_AT_RISK = "GOAL_AT_RISK", "Goal At Risk"
     GOAL_MISSED = "GOAL_MISSED", "Goal Missed"

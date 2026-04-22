@@ -1,6 +1,8 @@
 from notifications.models import Notification, NotificationChannel, NotificationType, UserNotificationPreference
 from core.data import BaseRepository
 from django.contrib.auth import get_user_model
+from goals.models import Goal
+
 
 User = get_user_model()
 
@@ -25,8 +27,10 @@ class NotificationRepository(BaseRepository):
             user=user,
             type=type,
             message=message,
+            payload=payload,
             channel=channel,
-            scheduled_at=scheduled_at
+            scheduled_at=scheduled_at,
+            goal=goal
         )
         notification.save()
         return notification
