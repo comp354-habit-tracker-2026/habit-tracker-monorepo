@@ -3,11 +3,14 @@ Health check API views.
 Provides read-only endpoints for system health monitoring.
 """
 
+import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status as http_status
 from .health_service import HealthCheckService
+
+logger = logging.getLogger(__name__)
 
 
 class HealthStatusView(APIView):
@@ -54,9 +57,10 @@ class HealthReadyView(APIView):
                 {"status": "ready"},
                 status=http_status.HTTP_200_OK
             )
-        except Exception as e:
+        except Exception:
+            logger.exception("Readiness check failed")
             return Response(
-                {"status": "not_ready", "error": str(e)},
+                {"status": "not_ready", "error": "Readiness check failed"},
                 status=http_status.HTTP_503_SERVICE_UNAVAILABLE
             )
 

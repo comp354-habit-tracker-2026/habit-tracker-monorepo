@@ -3,6 +3,7 @@ Health status service for system integration monitoring.
 Collects real-time health information about the application.
 """
 
+import logging
 from django.db import connection
 from django.apps import apps
 from django.contrib.auth import get_user_model
@@ -10,6 +11,7 @@ from typing import Dict, List, Any
 from datetime import datetime
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class HealthCheckService:
@@ -27,10 +29,11 @@ class HealthCheckService:
                 "message": "Database is responding",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except Exception:
+            logger.exception("Database health check failed")
             return {
                 "status": "unhealthy",
-                "message": f"Database error: {str(e)}",
+                "message": "Database check failed",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -47,10 +50,11 @@ class HealthCheckService:
                 "message": "All migrations applied",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except Exception:
+            logger.exception("Migration health check failed")
             return {
                 "status": "unhealthy",
-                "message": f"Migration check failed: {str(e)}",
+                "message": "Migration check failed",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -64,10 +68,11 @@ class HealthCheckService:
                 "message": f"User model accessible ({user_count} users)",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except Exception:
+            logger.exception("User model health check failed")
             return {
                 "status": "unhealthy",
-                "message": f"User model error: {str(e)}",
+                "message": "User model check failed",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
