@@ -19,20 +19,6 @@ interface HealthData {
   };
 }
 
-interface AnalyticsHealthData {
-  activity_statistics: {
-    total_distance: number;
-    total_calories: number;
-    average_duration: number;
-    activity_count: number;
-  };
-  inactivity_evaluation: {
-    days_since_last_activity: number | null;
-    inactive: boolean;
-    severity: 'none' | 'mild' | 'severe';
-  };
-}
-
 interface CheckItemProps {
   name: string;
   check: HealthCheck;
@@ -57,13 +43,9 @@ const CheckItem: React.FC<CheckItemProps> = ({ name, check }) => {
 
 export const HealthDashboard: React.FC = () => {
   const [health, setHealth] = useState<HealthData | null>(null);
-  const [analytics, setAnalytics] = useState<AnalyticsHealthData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [analyticsLastRefresh, setAnalyticsLastRefresh] = useState<Date>(new Date());
 
   const fetchSystemHealth = async () => {
     try {
@@ -80,28 +62,11 @@ export const HealthDashboard: React.FC = () => {
     }
   };
 
-  const fetchAnalyticsHealth = async () => {
-    try {
-      setAnalyticsLoading(true);
-      setAnalyticsError(null);
-      const data = (await apiClient.get('/api/v1/analytics/health-indicators/')) as unknown as AnalyticsHealthData;
-      setAnalytics(data);
-      setAnalyticsLastRefresh(new Date());
-    } catch (err) {
-      setAnalyticsError(err instanceof Error ? err.message : 'Failed to fetch analytics health indicators');
-      setAnalytics(null);
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  };
-
   useEffect(() => {
     fetchSystemHealth();
-    fetchAnalyticsHealth();
 
     const interval = setInterval(() => {
       fetchSystemHealth();
-      fetchAnalyticsHealth();
     }, 10000);
 
     return () => clearInterval(interval);
@@ -109,77 +74,14 @@ export const HealthDashboard: React.FC = () => {
 
   const handleRefresh = () => {
     fetchSystemHealth();
-    fetchAnalyticsHealth();
-  };
-
-  const formatNumber = (value: number) => (Number.isInteger(value) ? value.toString() : value.toFixed(1));
-
-  const formatMaybeNumber = (value: number | null) => (value === null ? 'No activity yet' : value.toString());
-
-  const renderAnalyticsStatus = () => {
-    if (analyticsError) {
-      return (
-        <div className={styles.errorBox}>
-          <p>Error loading analytics health indicators: {analyticsError}</p>
-          <p>You may need to sign in before viewing this section.</p>
-        </div>
-      );
-    }
-
-    if (analyticsLoading && !analytics) {
-      return (
-        <div className={styles.loadingBox}>
-          <p>Loading analytics health indicators...</p>
-        </div>
-      );
-    }
-
-    if (!analytics) {
-      return null;
-    }
-
-    return (
-      <div className={styles.analyticsCardGrid}>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Total Distance</span>
-          <span className={styles.metricValue}>{formatNumber(analytics.activity_statistics.total_distance)}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Total Calories</span>
-          <span className={styles.metricValue}>{formatNumber(analytics.activity_statistics.total_calories)}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Average Duration</span>
-          <span className={styles.metricValue}>{formatNumber(analytics.activity_statistics.average_duration)} min</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Activity Count</span>
-          <span className={styles.metricValue}>{analytics.activity_statistics.activity_count}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Days Since Last Activity</span>
-          <span className={styles.metricValue}>{formatMaybeNumber(analytics.inactivity_evaluation.days_since_last_activity)}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Inactivity Severity</span>
-          <span
-            className={`${styles.metricValue} ${
-              analytics.inactivity_evaluation.inactive ? styles.metricDanger : styles.metricSuccess
-            }`}
-          >
-            {analytics.inactivity_evaluation.inactive ? 'Inactive' : 'Active'} ({analytics.inactivity_evaluation.severity})
-          </span>
-        </div>
-      </div>
-    );
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>System Health Dashboard</h1>
-        <button onClick={handleRefresh} disabled={loading || analyticsLoading} className={styles.refreshButton}>
-          {loading || analyticsLoading ? 'Refreshing...' : 'Refresh Now'}
+        <button onClick={handleRefresh} disabled={loading} className={styles.refreshButton}>
+          {loading ? 'Refreshing...' : 'Refresh Now'}
         </button>
       </div>
 
@@ -222,14 +124,6 @@ export const HealthDashboard: React.FC = () => {
                 <CheckItem key={name} name={name.replace(/_/g, ' ').toUpperCase()} check={check} />
               ))}
             </div>
-          </div>
-
-          <div className={styles.checksContainer}>
-            <h3>Analytics Health Indicators</h3>
-            <p className={styles.timestamp}>
-              Last updated: {analyticsLastRefresh.toLocaleTimeString()} {analyticsLastRefresh.toLocaleDateString()}
-            </p>
-            {renderAnalyticsStatus()}
           </div>
         </div>
       )}
