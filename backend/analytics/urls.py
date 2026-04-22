@@ -12,7 +12,7 @@ from analytics.views import (
 )
 
 from .views import AnalyticsOverviewView
-from .views import personal_record_view
+
 
 urlpatterns = [
     path("overview/", AnalyticsOverviewView.as_view(), name="analytics_overview"),
@@ -35,6 +35,3 @@ urlpatterns = [
 
 ]
 
-urlpatterns = [
-    path("personal-record/<int:habit_id>/", personal_record_view),
-]
