@@ -240,6 +240,45 @@
   color: #9ca3af;
 }
 
+.analyticsCardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.metricCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.metricLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.metricValue {
+  display: inline-block;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metricSuccess {
+  color: #166534;
+}
+
+.metricDanger {
+  color: #991b1b;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 16px;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 import styles from './HealthDashboard.module.css';
 
 interface HealthCheck {
@@ -17,6 +18,20 @@ interface HealthData {
     total: number;
     healthy: number;
     unhealthy: number;
+  };
+}
+
+interface AnalyticsHealthData {
+  activity_statistics: {
+    total_distance: number;
+    total_calories: number;
+    average_duration: number;
+    activity_count: number;
+  };
+  inactivity_evaluation: {
+    days_since_last_activity: number | null;
+    inactive: boolean;
+    severity: 'none' | 'mild' | 'severe';
   };
 }
 
@@ -43,21 +58,19 @@ const CheckItem: React.FC<CheckItemProps> = ({ name, check }) => {
 
 export const HealthDashboard: React.FC = () => {
   const [health, setHealth] = useState<HealthData | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsHealthData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [analyticsLastRefresh, setAnalyticsLastRefresh] = useState<Date>(new Date());
 
-  const fetchHealth = async () => {
+  const fetchSystemHealth = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/v1/health/');
-      
-      if (!response.ok && response.status !== 503) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = (await apiClient.get('/api/v1/health/')) as unknown as HealthData;
       setHealth(data);
       setLastRefresh(new Date());
     } catch (err) {
@@ -68,14 +81,94 @@ export const HealthDashboard: React.FC = () => {
     }
   };
 
+  const fetchAnalyticsHealth = async () => {
+    try {
+      setAnalyticsLoading(true);
+      setAnalyticsError(null);
+      const data = (await apiClient.get('/api/v1/analytics/health-indicators/')) as unknown as AnalyticsHealthData;
+      setAnalytics(data);
+      setAnalyticsLastRefresh(new Date());
+    } catch (err) {
+      setAnalyticsError(err instanceof Error ? err.message : 'Failed to fetch analytics health indicators');
+      setAnalytics(null);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchHealth();
-    const interval = setInterval(fetchHealth, 10000); // Refresh every 10 seconds
+    fetchSystemHealth();
+    fetchAnalyticsHealth();
+    const interval = setInterval(() => {
+      fetchSystemHealth();
+      fetchAnalyticsHealth();
+    }, 10000); // Refresh every 10 seconds
     return () => clearInterval(interval);
   }, []);
 
   const handleRefresh = () => {
-    fetchHealth();
+    fetchSystemHealth();
+    fetchAnalyticsHealth();
+  };
+
+  const formatNumber = (value: number) =>
+    Number.isInteger(value) ? value.toString() : value.toFixed(1);
+
+  const formatMaybeNumber = (value: number | null) =>
+    value === null ? 'No activity yet' : value.toString();
+
+  const renderAnalyticsStatus = () => {
+    if (analyticsError) {
+      return (
+        <div className={styles.errorBox}>
+          <p>Error loading analytics health indicators: {analyticsError}</p>
+          <p>You may need to sign in before viewing this section.</p>
+        </div>
+      );
+    }
+
+    if (analyticsLoading && !analytics) {
+      return (
+        <div className={styles.loadingBox}>
+          <p>Loading analytics health indicators...</p>
+        </div>
+      );
+    }
+
+    if (!analytics) {
+      return null;
+    }
+
+    return (
+      <div className={styles.analyticsCardGrid}>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Total Distance</span>
+          <span className={styles.metricValue}>{formatNumber(analytics.activity_statistics.total_distance)}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Total Calories</span>
+          <span className={styles.metricValue}>{formatNumber(analytics.activity_statistics.total_calories)}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Average Duration</span>
+          <span className={styles.metricValue}>{formatNumber(analytics.activity_statistics.average_duration)} min</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Activity Count</span>
+          <span className={styles.metricValue}>{analytics.activity_statistics.activity_count}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Days Since Last Activity</span>
+          <span className={styles.metricValue}>{formatMaybeNumber(analytics.inactivity_evaluation.days_since_last_activity)}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Inactivity Severity</span>
+          <span className={`${styles.metricValue} ${analytics.inactivity_evaluation.inactive ? styles.metricDanger : styles.metricSuccess}`}>
+            {analytics.inactivity_evaluation.inactive ? 'Inactive' : 'Active'} ({analytics.inactivity_evaluation.severity})
+          </span>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -136,6 +229,14 @@ export const HealthDashboard: React.FC = () => {
                 />
               ))}
             </div>
+          </div>
+
+          <div className={styles.checksContainer}>
+            <h3>Analytics Health Indicators</h3>
+            <p className={styles.timestamp}>
+              Last updated: {analyticsLastRefresh.toLocaleTimeString()} {analyticsLastRefresh.toLocaleDateString()}
+            </p>
+            {renderAnalyticsStatus()}
           </div>
         </div>
       )}
