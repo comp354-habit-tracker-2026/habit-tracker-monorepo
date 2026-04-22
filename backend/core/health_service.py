@@ -3,6 +3,8 @@ Health status service for system integration monitoring.
 Collects real-time health information about the application.
 """
 
+import logging
+
 from django.db import connection
 from django.apps import apps
 from django.contrib.auth import get_user_model
