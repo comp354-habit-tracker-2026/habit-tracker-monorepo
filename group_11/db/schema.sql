@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS activities (
     user_id TEXT NOT NULL,
     provider TEXT NOT NULL,
     external_id TEXT NOT NULL,
+
+    name TEXT NOT NULL,
+    
     type TEXT NOT NULL,
     start_time TEXT NOT NULL,
     duration_seconds INTEGER NOT NULL CHECK(duration_seconds >= 0),
