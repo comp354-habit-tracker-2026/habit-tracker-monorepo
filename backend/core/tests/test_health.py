@@ -54,7 +54,7 @@ class TestHealthCheckService:
         result = HealthCheckService.check_database()
 
         assert result["status"] == "unhealthy"
-        assert result["message"] == "Database error: db down"
+        assert result["message"] == "Database health check failed"
         assert "timestamp" in result
 
     def test_check_migrations_healthy(self):
@@ -70,7 +70,7 @@ class TestHealthCheckService:
             result = HealthCheckService.check_migrations()
 
         assert result["status"] == "unhealthy"
-        assert result["message"] == "Migration check failed: boom"
+        assert result["message"] == "Migration health check failed"
 
     def test_check_user_model_healthy(self):
         result = HealthCheckService.check_user_model()
@@ -83,7 +83,7 @@ class TestHealthCheckService:
             result = HealthCheckService.check_user_model()
 
         assert result["status"] == "unhealthy"
-        assert result["message"] == "User model error: boom"
+        assert result["message"] == "User model health check failed"
 
     def test_check_installed_apps_healthy(self):
         with patch.object(
@@ -223,7 +223,7 @@ class TestHealthViews:
 
         assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
         assert response.data["status"] == "not_ready"
-        assert response.data["error"] == "db down"
+        assert response.data["error"] == "Readiness check failed"
 
     def test_health_live_view_returns_200(self, api_client):
         response = api_client.get("/api/v1/health/live/")
