@@ -1,0 +1,27 @@
+.activities-route {
+  display: grid;
+  gap: 2rem;
+}
+
+.activities-route__section {
+  display: grid;
+  gap: 1rem;
+}
+
+.activities-route__section-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.activities-route__section-title {
+  margin: 0;
+  color: #16324f;
+  font-size: 1.4rem;
+  line-height: 1.15;
+}
+
+.activities-route__section-copy {
+  margin: 0;
+  max-width: 72ch;
+  color: #4f6175;
+}
