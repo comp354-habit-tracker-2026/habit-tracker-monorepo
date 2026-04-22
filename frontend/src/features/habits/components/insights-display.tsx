@@ -1,7 +1,10 @@
 import { useState} from 'react';
 import { mockActivities } from '@/app/routes/app/mock-activities';
- export function InsightsDisplay() { 
-    const [show, setShow] = useState(false); 
+ export function InsightsDisplay() {
+    const [show, setShow] = useState(false);
+    const [start, setStart] = useState('');
+    const [end, setEnd] = useState('')
+
 
     const currMonth = new Date();
     const startOfMonth = new Date(currMonth.getFullYear(), currMonth.getMonth(), 1);
@@ -9,17 +12,32 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
 
     const currMonthActivities = mockActivities.filter(activity => {
       const date = new Date(activity.startedAt);
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        endDate.setHours(23, 59, 59);
+        return date >= startDate && date <= endDate;
+      }
       return date >= startOfMonth && date <= endOfMonth;
     });
 
     if (currMonthActivities.length === 0) {
       return (
-        <div>
-          <h2>Insights</h2>
+        <div
+        style={{
+          padding: '12px',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          backgroundColor: '#f9fafb',
+        }}
+        >
+          <h2 style = {{marginTop: 0, marginBottom: '10px', fontSize: '16px'}}>Insights</h2>
           <div>
-            <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
+            <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} 
+            style={{padding: '4px 6px', borderRadius: '6px',border: '1px solid #ccc',}}/></label>
             {' '}
-            <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} /></label>
+            <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)}
+            style={{padding: '4px 6px', borderRadius: '6px',border: '1px solid #ccc',}} /></label>
           </div>
           <p>No activity data available for this range.</p>
         </div>
@@ -30,7 +48,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     const caloriesperDay: Record<string, number> = {};
     const activityTypeCount: Record<string, number> = {};
 
-    let mostIntenseActivity = period[0];
+    let mostIntenseActivity = currMonthActivities[0];
     let totalHeartRate = 0;
     let heartrateCount = 0;
 
@@ -86,7 +104,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     //activity type breakdown
     let mostFrequentActivityType = '';
     let maxCount = 0;
-    let totalActivities = period.length;
+    const totalActivities = currMonthActivities.length;
 
     for (const type in activityTypeCount) {
       if (activityTypeCount[type] > maxCount) {
@@ -103,12 +121,12 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     }
 
 
-    let weeklyCalories = 0;
-    let weeklySteps = 0;
+    let monthlyCalories = 0;
+    let monthlySteps = 0;
 
-    for (const activity of period) {
-      weeklyCalories += activity.summary.calories || 0;
-      weeklySteps += activity.summary.steps || 0;
+    for (const activity of currMonthActivities) {
+      monthlyCalories += activity.summary.calories || 0;
+      monthlySteps += activity.summary.steps || 0;
     }
 
     // Monthly comparison logic
@@ -138,39 +156,68 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
     const averageHeartRate = heartrateCount > 0 ? Math.round(totalHeartRate / heartrateCount) : 0;
 
 
-    if(!show) { 
-        return ( 
-        <button onClick={() => setShow(true)}> 
-        View your Insights 
-        </button> ); 
-        } 
-        return ( 
-        <div>
-             <button onClick={() => setShow(false)}>
+    if(!show) {
+        return (
+        <button onClick={() => setShow(true)}
+        style={{
+          padding: '10px 20px',
+          borderRadius: '10px',
+          border: '1px solid #ccc',
+          backgroundColor: '#f3f4f6',
+          cursor: 'pointer',
+          fontWeight: 500,
+        }}>
+        View your Insights
+        </button> );
+        }
+        return (
+        <div
+        style={{
+          padding: '16px',
+          border: '1px solid #ddd',
+          borderRadius: '12px',
+          backgroundColor: '#f9fafb',
+          maxWidth: '700px',
+          marginTop: '12px',
+        }}
+        >
+             <button onClick={() => setShow(false)}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: '1px solid #ccc',
+                backgroundColor: '#f3f4f6',
+                cursor: 'pointer',
+                fontWeight: 500,
+              }}>
                 Hide Insights
                  </button>
-                 <div>
-                   <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
+                 <div style={{ marginTop: '12px', marginBottom: '16px' }}>
+                   <label style={{ marginRight: '12px', fontSize: '15px' }}>
+                    From: <input type="date" value={start} onChange={e => setStart(e.target.value)} 
+                    style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #ccc'}}/></label>
                    {' '}
-                   <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} /></label>
+                   <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} 
+                   style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #ccc'}}/></label>
                  </div>
                  <div>
                     <h2>Insights</h2>
-                    <p><strong>Most active day:</strong> {mostActiveDay} ({mostActivities} activities)</p>
-                    <p><strong>Least active day:</strong> {leastActiveDay} ({leastActivities} activities)</p>
-                    <p><strong>Highest calories in one day:</strong> {highestCalorieDay} ({highestCalories} calories)</p>
-                    <p><strong>Most intense activity:</strong> {mostIntenseActivity.title} ({mostIntenseActivity.activityType}) -{' '}
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Most active day:</strong> {mostActiveDay} ({mostActivities} activities)</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Least active day:</strong> {leastActiveDay} ({leastActivities} activities)</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Highest calories in one day:</strong> {highestCalorieDay} ({highestCalories} calories)</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Most intense activity:</strong> {mostIntenseActivity.title} ({mostIntenseActivity.activityType}) -{' '}
                      {mostIntenseActivity.summary.calories || 0} calories</p>
-                    <p><strong>Average heart rate:</strong> {averageHeartRate} bpm</p>
-                    <p><strong>Total calories:</strong> {monthlyCalories} kcal</p>
-                    <p><strong>Total steps:</strong> {monthlySteps}</p>
-                    <p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Average heart rate:</strong> {averageHeartRate} bpm</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Total calories:</strong> {monthlyCalories} kcal</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Total steps:</strong> {monthlySteps}</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}>
                       <strong>Monthly trend:</strong>{' '}
                       {calorieChange >= 0
                         ? `+${calorieChange}% more calories than last month 📈`
                         : `${calorieChange}% fewer calories than last month 📉`}
                     </p>
-                    <p><strong>Most frequent activity:</strong> {mostFrequentActivityType} ({maxCount} times)</p>
+                    <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Most frequent activity:</strong> {mostFrequentActivityType} ({maxCount} times)</p>
+                    <div style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}>
                     <p><strong>Activity breakdown:</strong></p>
                       <ul>
                       {Object.entries(activityTypePercentages).map(([type, percent]) => (
@@ -179,9 +226,10 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                         </li>
                         ))}
                       </ul>
+                      </div>
                     </div>
-                 </div> 
-                ) 
+                 </div>
+                )
         }
 
 
