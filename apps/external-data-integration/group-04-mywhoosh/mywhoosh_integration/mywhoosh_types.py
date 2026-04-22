@@ -18,7 +18,7 @@ class DataQuality:
 class NormalizedSession:
     activity_type: str
     date: date 
-    provider: str = "mywoosh"
+    provider: str = "mywhoosh"
     external_id: Optional[str] = None
     metrics: Optional[Metrics] = None
     data_quality: Optional[DataQuality] = None
