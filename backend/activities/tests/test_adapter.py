@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 from activities.data.adapters.activity_adapter_base import ActivityAdapter
 
@@ -77,7 +79,7 @@ class TestAdapterValidate:
 
 
     def test_optional_fields_missing(test_schema, base_adapter, valid_activity):
-        data = valid_activity
+        data = copy.deepcopy(valid_activity)
         del data["average_speed"]
         del data["max_speed"]
         assert TestAdapterValidate._validate_dict(base_adapter, data)

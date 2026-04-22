@@ -88,9 +88,9 @@ class ProviderTokenManager:
 
     # Function that updates an existing provider token
     # Returns the token action used for audit logging
-    def update_existing_provider_token(self, existing_provider_token, encrypted_access_token: str, 
+    def update_existing_provider_token(self, existing_provider_token, encrypted_access_token: str,
             encrypted_refresh_token: str | None, token_last_4: str,access_token_expires_at) -> str:
-        
+
         existing_provider_token.encrypted_access_token = encrypted_access_token
         existing_provider_token.encrypted_refresh_token = encrypted_refresh_token
         existing_provider_token.access_token_expires_at = access_token_expires_at
@@ -102,12 +102,12 @@ class ProviderTokenManager:
 
     # Function that inserts a new provider token in the database
     # Returns the token action used for audit logging
-    def create_new_provider_token(self, user_id: int, provider_name: str, encrypted_access_token: str, encrypted_refresh_token: str | None, 
+    def create_new_provider_token(self, user_id: int, provider_name: str, encrypted_access_token: str, encrypted_refresh_token: str | None,
             token_last_4: str, access_token_expires_at) -> str:
-       
+
         new_provider_token = ProviderToken(user_id=user_id, provider_name=provider_name, encrypted_access_token=encrypted_access_token,
             encrypted_refresh_token=encrypted_refresh_token, token_last_4=token_last_4, token_status="ACTIVE", access_token_expires_at=access_token_expires_at)
-        
+
         self.database_session.add(new_provider_token)
         return "STORE_TOKEN"
 
@@ -390,12 +390,12 @@ class ProviderTokenManager:
                 if not refreshed_access_token:
                     return self.build_error_response(provider_name, "Token refresh failed")
 
-                return {"success": True, "message": "Token refreshed successfully", "provider_name": provider_name, 
+                return {"success": True, "message": "Token refreshed successfully", "provider_name": provider_name,
                         "access_token": refreshed_access_token, "token_last_4": existing_provider_token.token_last_4}
 
             access_token = self.decrypt_token(existing_provider_token.encrypted_access_token)
 
-            return {"success": True, "message": "Token returned successfully", "provider_name": provider_name, 
+            return {"success": True, "message": "Token returned successfully", "provider_name": provider_name,
                     "access_token": access_token, "token_last_4": existing_provider_token.token_last_4
             }
 
@@ -411,7 +411,7 @@ class ProviderTokenManager:
 
             # If token does not exist or is already revoked
             if not existing_provider_token or existing_provider_token.token_status == "REVOKED":
-                return {"success": True, "message": "No active provider token to revoke", "provider_name": provider_name, 
+                return {"success": True, "message": "No active provider token to revoke", "provider_name": provider_name,
                         "token_action": "REVOKE_TOKEN"}
 
             else:  # set token as revoked
@@ -422,7 +422,7 @@ class ProviderTokenManager:
 
                 self.record_token_event("REVOKE_TOKEN", user_id, provider_name)
 
-                return {"success": True, "message": "Provider token revoked successfully", "provider_name": provider_name, 
+                return {"success": True, "message": "Provider token revoked successfully", "provider_name": provider_name,
                         "token_action": "REVOKE_TOKEN"}
 
         except Exception:
@@ -431,42 +431,88 @@ class ProviderTokenManager:
 
     def verify_provider_token(self, user_id: int, provider_name: str, scope: str = "",
                               caller_service: str = "") -> dict:
-        from sqlalchemy import text
+        from sqlalchemy import inspect, text
+        from sqlalchemy.exc import SQLAlchemyError
 
-        # --- CHECK USER IS ACTIVE (Users table) ---
-        user_row = self.database_session.execute(
-            text("SELECT is_active FROM users WHERE id = :user_id"),
-            {"user_id": user_id}
-        ).fetchone()
-
-        if not user_row:
-            result = {"allowed": False, "reason": "ACCOUNT_NOT_FOUND", "user_id": user_id,
-                      "provider_name": provider_name}
-            _log_permission_check(user_id, provider_name, scope, caller_service, False, "ACCOUNT_NOT_FOUND")
+        def _deny(reason: str) -> dict:
+            result = {
+                "allowed": False,
+                "reason": reason,
+                "user_id": user_id,
+                "provider_name": provider_name
+            }
+            _log_permission_check(user_id, provider_name, scope, caller_service, False, reason)
             return result
 
-        if not user_row[0]:  # is_active is False
-            result = {"allowed": False, "reason": "ACCOUNT_DELETED", "user_id": user_id, "provider_name": provider_name}
-            _log_permission_check(user_id, provider_name, scope, caller_service, False, "ACCOUNT_DELETED")
-            return result
+        bind = self.database_session.get_bind()
+        inspector = inspect(bind)
 
-        # --- CHECK CONSENT TABLE (#11) ---
-        consent_row = self.database_session.execute(
-            text(
-                "SELECT consent_granted FROM data_integration_data_consent WHERE user_id = :user_id AND provider = :provider"),
-            {"user_id": user_id, "provider": provider_name}
-        ).fetchone()
+        try:
+            available_tables = set(inspector.get_table_names())
+        except SQLAlchemyError:
+            logger.exception("Failed to inspect database schema while verifying provider token")
+            return _deny("VERIFICATION_BACKEND_UNAVAILABLE")
+
+        users_table = "users"
+        consent_table = "data_integration_data_consent"
+
+        if users_table not in available_tables:
+            logger.warning(
+                "Skipping user verification because table '%s' is not available on the current database connection",
+                users_table
+            )
+            return _deny("IDENTITY_STORE_UNAVAILABLE")
+
+        if consent_table not in available_tables:
+            logger.warning(
+                "Skipping consent verification because table '%s' is not available on the current database connection",
+                consent_table
+            )
+            return _deny("CONSENT_STORE_UNAVAILABLE")
+
+        try:
+            user_columns = {column["name"] for column in inspector.get_columns(users_table)}
+            consent_columns = {column["name"] for column in inspector.get_columns(consent_table)}
+        except SQLAlchemyError:
+            logger.exception("Failed to inspect required table columns while verifying provider token")
+            return _deny("VERIFICATION_BACKEND_UNAVAILABLE")
+
+        if "id" not in user_columns or "is_active" not in user_columns:
+            logger.warning("Users table is missing required columns for token verification")
+            return _deny("IDENTITY_STORE_UNAVAILABLE")
+
+        if "user_id" not in consent_columns or "provider" not in consent_columns or "consent_granted" not in consent_columns:
+            logger.warning("Consent table is missing required columns for token verification")
+            return _deny("CONSENT_STORE_UNAVAILABLE")
+
+        try:
+            # --- CHECK USER IS ACTIVE (Users table) ---
+            user_row = self.database_session.execute(
+                text("SELECT is_active FROM users WHERE id = :user_id"),
+                {"user_id": user_id}
+            ).fetchone()
+
+            if not user_row:
+                return _deny("ACCOUNT_NOT_FOUND")
+
+            if not user_row[0]:  # is_active is False
+                return _deny("ACCOUNT_DELETED")
+
+            # --- CHECK CONSENT TABLE (#11) ---
+            consent_row = self.database_session.execute(
+                text(
+                    "SELECT consent_granted FROM data_integration_data_consent WHERE user_id = :user_id AND provider = :provider"),
+                {"user_id": user_id, "provider": provider_name}
+            ).fetchone()
+        except SQLAlchemyError:
+            logger.exception("Database error while verifying user/consent state for provider token")
+            return _deny("VERIFICATION_BACKEND_UNAVAILABLE")
 
         if not consent_row:
-            result = {"allowed": False, "reason": "CONSENT_NOT_FOUND", "user_id": user_id,
-                      "provider_name": provider_name}
-            _log_permission_check(user_id, provider_name, scope, caller_service, False, "CONSENT_NOT_FOUND")
-            return result
+            return _deny("CONSENT_NOT_FOUND")
 
         if not consent_row[0]:  # consent_granted is False
-            result = {"allowed": False, "reason": "CONSENT_REVOKED", "user_id": user_id, "provider_name": provider_name}
-            _log_permission_check(user_id, provider_name, scope, caller_service, False, "CONSENT_REVOKED")
-            return result
+            return _deny("CONSENT_REVOKED")
 
         # --- CHECK TOKEN TABLE (#12) ---
         token = self.database_session.query(ProviderToken).filter_by(

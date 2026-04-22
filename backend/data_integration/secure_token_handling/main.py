@@ -23,7 +23,7 @@ except ModuleNotFoundError:
 # also the x-api-key in swagger is "group6-test-key"
 
 # Only these providers are allowed
-ALLOWED_PROVIDERS = {"strava", "mapmyrun", "weski", "mywhoosh"}
+ALLOWED_PROVIDERS = ["strava", "mapmyrun", "weski", "mywhoosh"]
 
 # Create database table when the app starts
 Base.metadata.create_all(bind=database_connection)
@@ -84,13 +84,17 @@ def root():
     tags=["Provider Tokens"],
     summary="Save provider token"
 )
-def save_provider_token_route(request: SaveProviderTokenRequest, database_session: Session = Depends(open_database_session), 
+def save_provider_token_route(request: SaveProviderTokenRequest, database_session: Session = Depends(open_database_session),
             _: None = Depends(check_api_key)):
     user_id = request.user_id
     provider_name = normalize_provider_name(request.provider_name)
     access_token = request.access_token.strip()
     refresh_token = request.refresh_token.strip() if request.refresh_token else None
     access_token_expires_at = request.access_token_expires_at
+
+    # Check if provider_name is empty
+    if not provider_name:
+        raise HTTPException(status_code=400, detail="provider_name is required")
 
     # Check if access_token is empty
     if not access_token:

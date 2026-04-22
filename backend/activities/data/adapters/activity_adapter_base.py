@@ -1,9 +1,8 @@
 from .interfaces import IActivityAdapter
 from .models import ActivitySource, Activity
-
+from jsonschema import Draft7Validator, FormatChecker
 from typing import Callable, Optional
 import json
-import jsonschema
 
 class ActivityAdapter(IActivityAdapter):
 
@@ -72,13 +71,19 @@ class ActivityAdapter(IActivityAdapter):
     #validate(raw_input_data) -> bool
     #Validate raw input data before parsing.
     def validate(self, raw_input_data: str) -> tuple[bool, Optional[Exception]]:
-        """Validate raw data before parsing."""
-        input_data_dict = self._convert_raw_input_data_to_dict(raw_input_data)
-        try:
-            jsonschema.validate(schema=self.activity_schema, instance=input_data_dict, format_checker=jsonschema.FormatChecker())
-            return True, None
-        except jsonschema.ValidationError as e:
-            return False, e
+        data = self._convert_raw_input_data_to_dict(raw_input_data)
+
+        # Ensuring FormatChecker is active
+        validator = Draft7Validator(
+            self.activity_schema,
+            format_checker=FormatChecker()
+        )
+
+        errors = list(validator.iter_errors(data))
+        if errors:
+            return False, errors[0]
+
+        return True, None
     
     # Can be overriden by child classes if data doesn't come in as json
     def _convert_raw_input_data_to_dict(self, input_data: str) -> dict:
