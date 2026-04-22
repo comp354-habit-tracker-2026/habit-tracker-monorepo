@@ -19,7 +19,7 @@ const config: Config = {
   
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
-    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "\\.(css|less|scss|sass)$": "<rootDir>/jest/style-mock.ts",
   },
   
   setupFilesAfterEnv: ["<rootDir>/jest/setup-tests.ts"],
