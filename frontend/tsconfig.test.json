@@ -1,0 +1,35 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "types": ["cypress", "node", "vite/client"],
+    "moduleResolution": "node",
+    "allowJs": false,
+    "checkJs": false,
+    "allowImportingTsExtensions": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "include": [
+    "tests/**/*",
+    "cypress/**/*.ts",
+    "cypress.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "cypress/downloads",
+    "cypress/screenshots",
+    "cypress/videos"
+  ]
+}

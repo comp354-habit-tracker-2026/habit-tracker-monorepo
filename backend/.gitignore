@@ -1,0 +1,34 @@
+# Virtual environments
+venv/
+.venv/
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local environment files
+.env
+.env.*
+
+# Django/local runtime artifacts
+*.log
+gunicorn.ctl
+staticfiles/
+media/
+
+# Database artifacts (local/dev)
+*.sqlite3
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/

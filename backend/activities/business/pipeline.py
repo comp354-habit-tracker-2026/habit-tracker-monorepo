@@ -1,0 +1,39 @@
+""" Name: Kabeya Ngoyi
+    Student ID: 27214545
+    File: pipeline.py
+    
+    Description: 
+    This file contains part of the pipeline orchestration. It
+    connects the adapter, normalizer, deduplication, logging and event publisher steps
+    for activity ingestion """
+
+#from normalizer import ActivityNormalizer
+from backend.activities.business.deduplication import ActivityDeduplicator
+from backend.activities.business.events import EventPublisher
+from backend.activities.business.hooks import LoggingHook
+
+class ActivityPipeline:
+    def __init__(self, event_hub):
+        #self.normalizer = ActivityNormalizer()
+        self.deduplicator = ActivityDeduplicator()
+        self.publisher = EventPublisher(event_hub)
+        self.hooks = LoggingHook()
+
+    def process(self, adapter, raw_activity, existing_activities):
+        adapted = adapter.parse(raw_activity) #transform
+        #normalized = self.normalizer.normalize(adapted) #normalize
+
+        results = self.deduplicator.process(adapted, existing_activities)
+
+        # Logging:
+        self.hooks.log_details(results['status'], results['changed_fields'], results['activity'])
+
+        # Publishing:
+        if results['status'] in ['NEW', 'UPDATE']:
+            RETRIES = 5
+            for _ in range(RETRIES):
+                if self.publisher.publish_event(results['activity'], results['status'])[0]:
+                    break
+
+        return results
+
