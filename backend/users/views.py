@@ -4,6 +4,7 @@ from users.presentation.views import (
     MeView,
     PasswordResetRequestView,
     PasswordResetConfirmView,
+    UserDeleteView,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "MeView",
     "PasswordResetRequestView",
     "PasswordResetConfirmView",
+    "UserDeleteView",
 ]
