@@ -7,6 +7,4 @@
  * If additional data-shaping logic is needed, add it here rather than
  * in the component.
  */
-export { useBadges } from '../api/get-gamifications';
-export { useStreaks } from '../api/get-gamifications';
-export { useMilestones } from '../api/get-gamifications';
+export { useBadges, useStreaks, useMilestones } from '../api/get-gamifications';

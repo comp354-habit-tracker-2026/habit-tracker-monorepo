@@ -7,4 +7,4 @@
  * If additional data-shaping logic is needed, add it here rather than
  * in the component.
  */
-export { useAuthentification } from '../api/get-authentification';
+export { useRegistration, useLogin } from '../api/get-authentification';

@@ -25,9 +25,12 @@
     "cypress:ci": "start-server-and-test 'npm run dev' http://localhost:5173 cypress:run"
   },
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.3.0",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.5",
     "bcrypt": "^6.0.0",
+    "email-validator": "^2.0.4",
     "express": "^5.2.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
