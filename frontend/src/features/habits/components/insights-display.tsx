@@ -16,15 +16,21 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
       return (
         <div>
           <h2>Insights</h2>
-          <p>No activity data available.</p>
+          <div>
+            <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
+            {' '}
+            <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} /></label>
+          </div>
+          <p>No activity data available for this range.</p>
         </div>
       );
     }
 
     const activitiesperDay: Record<string, number>={};
     const caloriesperDay: Record<string, number> = {};
+    const activityTypeCount: Record<string, number> = {};
 
-    let mostIntenseActivity = mockActivities[0];
+    let mostIntenseActivity = period[0];
     let totalHeartRate = 0;
     let heartrateCount = 0;
 
@@ -33,6 +39,8 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         activitiesperDay[date] = (activitiesperDay[date] ||0) +1;
         caloriesperDay[date] = (caloriesperDay[date] ||0) + (activity.summary.calories || 0);
 
+        const type = activity.activityType || 'Unknown';
+        activityTypeCount[type] = (activityTypeCount[type] || 0) + 1;
         if (
             (activity.summary.calories || 0) > (mostIntenseActivity.summary.calories || 0)
 
@@ -75,12 +83,32 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         }
     }
 
-    let monthlyCalories = 0;
-    let monthlySteps = 0;
+    //activity type breakdown
+    let mostFrequentActivityType = '';
+    let maxCount = 0;
+    let totalActivities = period.length;
 
-    for (const activity of currMonthActivities) {
-      monthlyCalories += activity.summary.calories || 0;
-      monthlySteps += activity.summary.steps || 0;
+    for (const type in activityTypeCount) {
+      if (activityTypeCount[type] > maxCount) {
+        maxCount = activityTypeCount[type];
+        mostFrequentActivityType = type;
+      }
+    }
+
+    const activityTypePercentages: Record<string, number> = {};
+    for (const type in activityTypeCount) {
+      activityTypePercentages[type] = Math.round(
+        (activityTypeCount[type] / totalActivities) * 100
+      );
+    }
+
+
+    let weeklyCalories = 0;
+    let weeklySteps = 0;
+
+    for (const activity of period) {
+      weeklyCalories += activity.summary.calories || 0;
+      weeklySteps += activity.summary.steps || 0;
     }
 
     // Monthly comparison logic
@@ -118,11 +146,16 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         } 
         return ( 
         <div>
-             <button onClick={() => setShow(false)}> 
+             <button onClick={() => setShow(false)}>
                 Hide Insights
-                 </button> 
-                 <div> 
-                    <h2>Insights</h2> 
+                 </button>
+                 <div>
+                   <label>From: <input type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
+                   {' '}
+                   <label>To: <input type="date" value={end} onChange={e => setEnd(e.target.value)} /></label>
+                 </div>
+                 <div>
+                    <h2>Insights</h2>
                     <p><strong>Most active day:</strong> {mostActiveDay} ({mostActivities} activities)</p>
                     <p><strong>Least active day:</strong> {leastActiveDay} ({leastActivities} activities)</p>
                     <p><strong>Highest calories in one day:</strong> {highestCalorieDay} ({highestCalories} calories)</p>
@@ -137,6 +170,15 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                         ? `+${calorieChange}% more calories than last month 📈`
                         : `${calorieChange}% fewer calories than last month 📉`}
                     </p>
+                    <p><strong>Most frequent activity:</strong> {mostFrequentActivityType} ({maxCount} times)</p>
+                    <p><strong>Activity breakdown:</strong></p>
+                      <ul>
+                      {Object.entries(activityTypePercentages).map(([type, percent]) => (
+                        <li key={type}>
+                          {type}: {percent}%
+                        </li>
+                        ))}
+                      </ul>
                     </div>
                  </div> 
                 ) 
@@ -144,12 +186,3 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
 
 
 
-
-        /* durationSeconds: 4320,
-      distanceKm: 34.8,
-      avgSpeedKmh: 29.0,
-      maxSpeedKmh: 52.7,
-      avgHeartRate: 151,
-      avgCadenceRpm: 86,
-      avgPowerWatts: 214,
-      calories: 740,*/
