@@ -14,9 +14,9 @@ from django.views import View
 
 from activities.models import Activity
 from goals.models import Goal
-from analytics.progess_series.models import DemoGoal, DemoActivity
+from analytics.progress_series.models import DemoGoal, DemoActivity
 
-from analytics.progess_series.service import (
+from analytics.progress_series.service import (
     InvalidGranularityError,
     InvalidPaginationError,
     ProgressSeriesError,

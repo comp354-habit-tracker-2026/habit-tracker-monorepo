@@ -12,13 +12,13 @@ from unittest.mock import MagicMock, patch
 
 from django.test import RequestFactory, SimpleTestCase
 
-from analytics.progess_series.service import (
+from analytics.progress_series.service import (
     InvalidGranularityError,
     ProgressSeriesError,
     UnsupportedGoalTypeError,
 )
 from analytics.views import GoalProgressSeriesView
-from analytics.progess_series.models import ProgressPoint
+from analytics.progress_series.models import ProgressPoint
 
 def _mock_result_with_points(count=65):
     mock_result = MagicMock()
