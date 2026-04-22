@@ -1,1 +1,1 @@
-export { HealthDashboard } from './HealthDashboard';
+export { HealthDashboard } from './health-dashboard';
