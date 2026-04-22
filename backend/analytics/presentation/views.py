@@ -4,6 +4,9 @@ from rest_framework.views import APIView
 
 from analytics.business import AnalyticsService
 
+#team 13 and 14
+from analytics.data.repositories import AnalyticsRepository
+
 from dataclasses import dataclass
 from datetime import date, timedelta
 import logging
@@ -48,6 +51,42 @@ class HealthIndicatorsView(APIView):
             "activity_statistics": service.activity_statistics(request.user),
             "inactivity_evaluation": service.inactivity_evaluation(request.user),
         })
+    #team 13
+    
+class InactivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data_from_service = service.inactivity_evaluation(request.user)
+        data = {
+            "days_since_last_activity": data_from_service.get("days_since_last_activity"),
+            "inactive": data_from_service.get("inactive"),
+            "severity": data_from_service.get("severity"),
+        }
+        return Response(data)
+    
+class HealthTrackingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data = {
+            "weekly_goal_completion":service.trend_snapshot(request.user), #currently no data yet
+        }
+               
+        return Response(data)
+    
+class HealthForecastView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data = {
+            "next_week_prediction" : service.forecast_preview(request.user), #currently no data yet
+        }
+               
+        return Response(data)
 
 class GoalProgressSeriesView(APIView):
     """Return chart-ready goal progress data for the authenticated user."""
