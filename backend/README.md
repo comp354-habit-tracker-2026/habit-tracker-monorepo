@@ -204,6 +204,12 @@ Optional flags:
 python -m pytest -q
 ```
 
+Backend-only polling smoke test for goal status summary:
+
+```bash
+python scripts/poll_goal_status_summary.py --base-url http://localhost:8000
+```
+
 ## Notes
 
 - PostgreSQL is the configured database backend.

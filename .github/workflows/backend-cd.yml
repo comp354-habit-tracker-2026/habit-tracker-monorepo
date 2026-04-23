@@ -50,11 +50,11 @@ jobs:
         with:
           azcliversion: 2.67.0
           inlineScript: |
+            echo "===== DEBUG: Starting update command ====="
             az containerapp update \
               --name backend \
               --resource-group habit-tracker-rg \
               --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} \
               --container-name backend \
               --image habitregistry.azurecr.io/backend:${{ github.sha }}
-
 

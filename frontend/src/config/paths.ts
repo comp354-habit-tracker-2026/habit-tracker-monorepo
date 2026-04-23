@@ -52,6 +52,10 @@ export const paths = {
       path:'goals',
       getHref: ()=>'/app/goals'
     },
+    health: {
+      path: 'health',
+      getHref: () => '/app/health',
+    },
   },
 } as const;
 

@@ -14,6 +14,26 @@ class ProgressPoint:
     cumulative: float
 
 @dataclass
+class PaginationMeta:
+    page: int
+    page_size: int
+    total_items: int
+    total_pages: int
+    has_next: bool
+    has_previous: bool
+
+    def to_dict(self) -> dict:
+        return {
+            "page": self.page,
+            "page_size": self.page_size,
+            "total_items": self.total_items,
+            "total_pages": self.total_pages,
+            "has_next": self.has_next,
+            "has_previous": self.has_previous,
+        }
+
+
+@dataclass
 class ProgressSeries:
     goal_id: int
     goal_title: str
@@ -26,9 +46,9 @@ class ProgressSeries:
     percent_complete: float
     no_data: bool
     points: List[ProgressPoint]
+    pagination: PaginationMeta | None = None
 
     def to_dict(self) -> dict:
-        """Convert to API-friendly dictionary"""
         return {
             "goal_id": self.goal_id,
             "goal_title": self.goal_title,
@@ -40,6 +60,7 @@ class ProgressSeries:
             "actual_value": self.actual_value,
             "percent_complete": self.percent_complete,
             "no_data": self.no_data,
+            "pagination": self.pagination.to_dict() if self.pagination else None,
             "points": [
                 {
                     "label": p.label,
@@ -72,4 +93,4 @@ class DemoActivity:
     duration: float = 0.0
     calories: float = 0.0
     user_id: int = 1
-    account_id: int = None
+    account_id: int | None = None

@@ -9,10 +9,12 @@ from core.presentation import UserScopedCreateMixin
 from core.presentation.permissions import IsAdminOrOwner
 from goals.business import GoalService
 from goals.serializers import GoalSerializer
+from goals.pagination import GoalPagination
 
 
 class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
     serializer_class = GoalSerializer
+    pagination_class = GoalPagination
     permission_classes = [IsAuthenticated, IsAdminOrOwner]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ["title", "description", "goal_type", "status"]
@@ -26,29 +28,32 @@ class GoalViewSet(UserScopedCreateMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         return self.service.get_user_queryset(self.request.user, self.request.query_params)
 
-    @action(detail=True, methods=["get"], url_path="status")
-    def status_summary(self, request, pk=None):
-        goal = self.service.get_user_goal(request.user, pk)
-        if goal is None:
-            return Response(
-                {"errorCode": "GOAL_NOT_FOUND", "message": "Goal not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        try:
-            payload = self.service.get_status_summary(goal)
-        except DomainValidationError as exc:
-            return Response(
-                {"errorCode": "GOAL_INVALID", "message": "Goal is invalid."},
-                status=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            )
-        except Exception:
-            return Response(
-                {
+    @action(detail=False, methods=["get"], url_path="status")
+    def status_summary(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        
+        goals = page if page is not None else queryset
+        
+        payloads = []
+        for goal in goals:
+            try:
+                payload = self.service.get_status_summary(goal)
+                payloads.append(payload)
+            except DomainValidationError:
+                payloads.append({
+                    "goalId": goal.id,
+                    "errorCode": "GOAL_INVALID",
+                    "message": "Goal is invalid."
+                })
+            except Exception:
+                payloads.append({
+                    "goalId": goal.id,
                     "errorCode": "GOAL_STATUS_UNAVAILABLE",
                     "message": "Unable to compute goal status at this time.",
-                },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
+                })
 
-        return Response(payload, status=status.HTTP_200_OK)
+        if page is not None:
+            return self.get_paginated_response(payloads)
+
+        return Response(payloads, status=status.HTTP_200_OK)
