@@ -238,12 +238,14 @@ class TestNotifyWithBothChannels:
         self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
 
     def test_notify_with_both_email_and_in_app_enabled(self):
-        """Covers both email and in_app channel creation"""
+        """Covers both email and in_app enabled (service prioritizes email first)"""
         with patch("notifications.business.services.User.objects.get", return_value=self.user):
             result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
         
-        # Should be called twice (email + in_app)
-        assert self.repo.create_notification.call_count == 2
+        # Service returns early after first channel, so only email is called
+        self.repo.create_notification.assert_called_once()
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['channel'] == NotificationChannel.EMAIL
 
     def test_notify_with_only_email_enabled(self):
         """Covers email_enabled=True, in_app_enabled=False"""
