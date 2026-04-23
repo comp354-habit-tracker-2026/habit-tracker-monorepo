@@ -83,16 +83,15 @@ class GoalProgressCache:
         computed = producer()
         with self._lock:
             self._entries[key] = deepcopy(computed)
-        return computed
+        return deepcopy(computed)
+
 
     def invalidate_for_user(self, user_id: int) -> None:
-        next_version = self._version_store.bump(user_id)
+        self._version_store.bump(user_id)
         with self._lock:
-            self._entries = {
-                key: value
-                for key, value in self._entries.items()
-                if key.user_id != user_id or key.activity_version >= next_version
-            }
+            self._entries = {key: value
+                             for key, value in self._entries.items()
+                             if key.user_id != user_id}
 
 
 goal_progress_cache = GoalProgressCache()

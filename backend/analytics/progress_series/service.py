@@ -170,7 +170,7 @@ def generate_progress_series(
 
         # Ignore records that belong to a different user. This keeps the
         # service safe even if the queryset passed in is broader than expected.
-        if getattr(activity, "account_id", None):
+        if getattr(activity, "account_id", None) is not None:
             activity_user_id = activity.account.user_id
         else:
             activity_user_id = getattr(activity, "user_id", None)
@@ -239,22 +239,20 @@ def generate_progress_series(
     )
 
 
-def get_cached_progress_series(
-    goal: Any,
-    activities: Iterable[Any],
-    granularity: str = "daily",
-    provider: str | None = None,
-) -> ProgressSeries:
-    """Wrap the existing progress calculation in a lightweight in-memory cache."""
+def get_cached_progress_series(goal: Any,
+                               activities: Iterable[Any],
+                               granularity: str = "daily",
+                               provider: str | None = None) -> ProgressSeries:
+    
+    #Wrap the existing progress calculation in a lightweight in-memory cache.
 
-    return goal_progress_cache.get_or_compute(
-        goal_id=goal.id,
-        user_id=goal.user_id,
-        granularity=granularity.strip().lower(),
-        provider=provider,
-        producer=lambda: generate_progress_series(
-            goal=goal,
-            activities=activities,
-            granularity=granularity,
-        ),
-    )
+    normalized_granularity = granularity.strip().lower()
+    normalized_provider = provider.strip().lower() if provider else None
+
+    return goal_progress_cache.get_or_compute(goal_id=goal.id,
+                                              user_id=goal.user_id,
+                                              granularity=normalized_granularity,
+                                              provider=normalized_provider,
+                                              producer=lambda: generate_progress_series(goal=goal,
+                                                                                        activities=activities,
+                                                                                        granularity=granularity))
