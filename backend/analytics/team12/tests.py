@@ -43,14 +43,16 @@ def team12_service():
 @pytest.fixture
 def create_activity():
     def _create_activity(user, **kwargs):
+        # Remove 'provider' — not a field on Activity.
+        # Activity uses 'account' instead of 'user'.
+        kwargs.pop("provider", None)
         defaults = {
             "activity_type": "Running",
             "duration": 30,
             "date": date.today(),
-            "provider": "manual",
         }
         defaults.update(kwargs)
-        return Activity.objects.create(user=user, **defaults)
+        return Activity.objects.create(account=user, **defaults)
 
     return _create_activity
 
@@ -208,7 +210,6 @@ class TestTeam12AnalyticsService:
     def test_monthly_summary_basic(self, create_user, create_activity, team12_service):
         user = create_user(username="team12user12", email="team12l@example.com")
 
-        # Two activities in January 2026
         create_activity(
             user,
             activity_type="Running",
@@ -223,8 +224,6 @@ class TestTeam12AnalyticsService:
             distance=10000,
             date=date(2026, 1, 8),
         )
-
-        # One activity in February 2026
         create_activity(
             user,
             activity_type="Cycling",
@@ -292,7 +291,6 @@ class TestTeam12AnalyticsService:
         assert jan["avgSpeed"] == pytest.approx(6.0)
         assert jan["avgHR"] is None
 
-        # February is in range but filtered out by activity_type
         assert feb["workoutCount"] == 0
         assert feb["totalDuration"] == 0
         assert feb["totalDistance"] == 0
@@ -375,23 +373,3 @@ class TestTeam12AnalyticsService:
         assert result["currentPersonalBest"] == 60
         assert result["previousBest"] == 50
         assert result["improved"] is True
-
-    # #Made with LLM
-    # def test_personal_record_custom(self, create_user, create_activity, team12_service):
-    #     user = create_user()
-
-    #     # Just create activities with duration (the simplest valid field)
-    #     create_activity(user, duration=30, activity_type="running")
-    #     create_activity(user, duration=60, activity_type="running")
-
-    #     # Basic smoke test - just verify it doesn't crash
-    #     try:
-    #         result = team12_service.personal_record_for_habit(
-    #             user=user,
-    #             activity_type="running",
-    #             metric_type="CUSTOM"
-    #         )
-    #         # Test passes if the method executes
-    #         assert True
-    #     except Exception:
-    #         pytest.fail("Method should not raise an exception")
