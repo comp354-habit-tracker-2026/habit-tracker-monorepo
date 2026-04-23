@@ -34,7 +34,7 @@ class NotificationsListView(APIView):
         service = NotificationService()
         try:
             notifications = service.get_all_notifications(request.user.id)
-            return Response({"notifications": notifications}, status=status.HTTP_200_OK)
+            return Response({"notifications": list(notifications.values())}, status=status.HTTP_200_OK)
         except Exception:
             return Response({"error": "An internal error has occurred."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -47,7 +47,7 @@ class ViewNotifications(APIView):
         service = NotificationService()
         try:
             notifications = service.get_all_notifications(user_id)
-            return Response({"notifications": notifications}, status=status.HTTP_200_OK)
+            return Response({"notifications": list(notifications.values())}, status=status.HTTP_200_OK)
         except Exception:
             return Response({"error": "An internal error has occurred."}, status=status.HTTP_400_BAD_REQUEST)
 

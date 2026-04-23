@@ -19,7 +19,7 @@ class NotificationService(BaseService):
         self.notification_repository = repository or NotificationRepository()
         self.user_preferences_service = user_preferences_service or UserPreferencesService()
 
-    def notify(self, title: str, description: str, payload: str, recipient_id: str, event_type: NotificationType, goal: Goal=None):
+    def notify(self, title: str, description: str, payload: str, recipient_id: int, event_type: NotificationType, goal: Goal=None):
         recipient = User.objects.get(id=recipient_id)
         if recipient is None:
             raise Exception(f"User: {recipient_id} does not exist")
@@ -31,13 +31,26 @@ class NotificationService(BaseService):
         
         def send_notification(type: NotificationType):
             if (recipient_preferences.email_enabled):
-                self.notification_repository.create_notification(recipient, type, description, payload, NotificationChannel.EMAIL, goal)
+                return self.notification_repository.create_notification(
+                    user=recipient,
+                    type=type,
+                    message=description,
+                    payload=payload,
+                    channel=NotificationChannel.EMAIL,
+                    goal=goal,
+                )
                 # Send email notification
-                return
             if (recipient_preferences.in_app_enabled):
-                self.notification_repository.create_notification(recipient, type, description, payload, NotificationChannel.IN_APP, goal)
+                return self.notification_repository.create_notification(
+                    user=recipient,
+                    type=type,
+                    message=description,
+                    payload=payload,
+                    channel=NotificationChannel.IN_APP,
+                    goal=goal,
+                )
                 # Send in app notification
-                return
+            return None
 
         should_send = False
 
@@ -53,7 +66,9 @@ class NotificationService(BaseService):
             should_send = recipient_preferences.goal_notifs
 
         if should_send:
-            send_notification(event_type)
+            return send_notification(event_type)
+
+        return None
     
     def get_all_notifications(self, user_id): 
         user = User.objects.get(id=user_id)
@@ -128,10 +143,12 @@ class UserPreferencesService(BaseService):
         self.repository = repository or UserPreferenceRepository()
 
     def update_user_preferences(self, user_id, **update_user_preferences):
-        return
+        user = User.objects.get(id=user_id)
+        return self.repository.update_user_preferences(user, **update_user_preferences)
     
     def create_default_user_preferences(self, user_id):
-        return
+        user = User.objects.get(id=user_id)
+        return self.repository.create_user_preferences(user)
     
     def get_user_preferences(self, user) -> UserNotificationPreference:
         return self.repository.get_user_preferences(user)

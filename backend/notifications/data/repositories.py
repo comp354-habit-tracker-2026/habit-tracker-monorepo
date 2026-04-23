@@ -39,10 +39,10 @@ class NotificationRepository(BaseRepository):
         return Notification.objects.filter(user=user)
     
     def get(self, notification_id: int):
-        return Notification.objects.get(id=notification_id)
+        return Notification.objects.get(pk=notification_id)
     
     def delete(self, notification_id: int):
-        Notification.objects.filter(id=notification_id).delete()
+        Notification.objects.filter(pk=notification_id).delete()
     
     def mark_as_read(self, notification_id: int):
         notification = self.get(notification_id)
