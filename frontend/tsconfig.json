@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["vite/client"],
     "esModuleInterop": true, //add based on error fix advice from ChatGPT
-    "ignoreDeprecations": "6.0" //To avoid the following error for "moduleResolution": "node": "Option 'moduleResolution=node10' is deprecated and will stop functioning in TypeScript 7.0. Specify compilerOption '"ignoreDeprecations": "6.0"' to silence this error."
+    //"ignoreDeprecations": "6.0" //To avoid the following error for "moduleResolution": "node": "Option 'moduleResolution=node10' is deprecated and will stop functioning in TypeScript 7.0. Specify compilerOption '"ignoreDeprecations": "6.0"' to silence this error."
   },
   "include": ["src"]
 }

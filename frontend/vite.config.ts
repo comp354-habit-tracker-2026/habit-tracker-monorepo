@@ -19,13 +19,11 @@ export default defineConfig(() => {
           changeOrigin: true,
         },
       },
+      port: 3000,
     },
     build: {
       target: 'esnext',
       assetsDir: 'assets',
     },
-    server: {
-    port: 3000
-  },
   };
 });

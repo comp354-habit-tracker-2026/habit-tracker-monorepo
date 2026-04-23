@@ -66,6 +66,10 @@ function createAppRouter() {
           lazy: () => lazyRoute(() => import('./routes/app/health')),
         },
         {
+          path: paths.app.achievements.path,
+          lazy: () => lazyRoute(() => import('./routes/app/gamifications')),
+        },
+        {
           path: paths.app.profile.path,
           lazy: () => lazyRoute(() => import('./routes/app/profile')),
         },
