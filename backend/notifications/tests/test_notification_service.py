@@ -315,3 +315,112 @@ class TestNotifyWithBothChannels:
         assert result is None
         self.repo.create_notification.assert_not_called()
 
+
+class TestNotificationServiceGetMethods:
+    """Test coverage for get_all_notifications, get, list_recent, delete, mark_as_read"""
+    
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.user = MagicMock()
+        self.preference_service = MagicMock()
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+
+    def test_get_all_notifications_delegates_to_repo(self):
+        """Covers get_all_notifications method"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.get_all_notifications(1)
+        
+        self.repo.get_all.assert_called_once_with(self.user)
+        assert result == self.repo.get_all.return_value
+
+    def test_get_delegates_to_repo(self):
+        """Covers get method"""
+        result = self.service.get(42)
+        
+        self.repo.get.assert_called_once_with(42)
+        assert result == self.repo.get.return_value
+
+    def test_list_recent_delegates_to_repo(self):
+        """Covers list_recent method"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.list_recent(1)
+        
+        self.repo.list_recent.assert_called_once_with(self.user)
+        assert result == self.repo.list_recent.return_value
+
+    def test_delete_delegates_to_repo(self):
+        """Covers delete method success path"""
+        self.service.delete(42)
+        self.repo.delete.assert_called_once_with(42)
+
+    def test_mark_as_read_delegates_to_repo(self):
+        """Covers mark_as_read method success path"""
+        result = self.service.mark_as_read(42)
+        
+        self.repo.mark_as_read.assert_called_once_with(42)
+        assert result == self.repo.mark_as_read.return_value
+
+    def test_mark_all_as_read_delegates_to_repo(self):
+        """Covers mark_all_as_read method"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            self.service.mark_all_as_read(1)
+        
+        self.repo.mark_all_as_read.assert_called_once_with(self.user)
+
+
+class TestCreateGoalProgressNotificationCoverage:
+    """Test coverage for create_goal_progress_notification"""
+    
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.preference_service = MagicMock()
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+        self.user = MagicMock()
+        self.user.id = 1
+        self.goal = MagicMock()
+        self.goal.pk = 42
+        self.goal.title = "Test Goal"
+        self.goal.user = self.user
+        self.computed_at = datetime(2026, 4, 1, tzinfo=timezone.utc)
+
+    def test_create_goal_progress_notification_with_goal(self):
+        """Covers create_goal_progress_notification with goal parameter"""
+        self.preference_service.get_user_preferences.return_value = MagicMock(
+            email_enabled=True,
+            in_app_enabled=False,
+            goal_notifs=True,
+        )
+        
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.create_goal_progress_notification(
+                goal=self.goal,
+                previous_state="ON_TRACK",
+                new_state="ACHIEVED",
+                progress_summary={"percentComplete": 100},
+                computed_at=self.computed_at,
+            )
+        
+        # Should have called notify with goal parameter
+        self.repo.create_notification.assert_called_once()
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['goal'] == self.goal
+
+    def test_build_goal_progress_content_achieved(self):
+        """Covers _build_goal_progress_content ACHIEVED state"""
+        title, message = NotificationService._build_goal_progress_content("My Goal", "ACHIEVED")
+        assert "achieved" in title.lower()
+        assert "My Goal" in title
+        assert "reached" in message.lower()
+
+    def test_build_goal_progress_content_at_risk(self):
+        """Covers _build_goal_progress_content AT_RISK state"""
+        title, message = NotificationService._build_goal_progress_content("My Goal", "AT_RISK")
+        assert "at risk" in title.lower()
+        assert "attention" in message.lower()
+
+    def test_build_goal_progress_content_missed(self):
+        """Covers _build_goal_progress_content MISSED state"""
+        title, message = NotificationService._build_goal_progress_content("My Goal", "MISSED")
+        assert "missed" in title.lower()
+        assert "ended" in message.lower()
+
