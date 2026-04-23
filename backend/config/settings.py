@@ -47,7 +47,10 @@ for env_host_var in ('WEBSITE_HOSTNAME', 'CONTAINER_APP_HOSTNAME', 'HOSTNAME'):
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('DJANGO_ALLOWED_HOSTS', ','.join(default_allowed_hosts)).split(',')
+    for host in [
+        *default_allowed_hosts,
+        *os.getenv('DJANGO_ALLOWED_HOSTS', '').split(','),
+    ]
     if host.strip()
 ]
 

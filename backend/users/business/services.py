@@ -12,6 +12,7 @@ class UserRegistrationService(BaseService):
         validated_data.pop("password2", None)
         created_user = self.repository.create_user(**validated_data)
         self.user_preferences_service.create_default_user_preferences(created_user.id)
+        return created_user
 
 class UserDeletionService(BaseService):
     def __init__(self, repository=None):
