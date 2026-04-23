@@ -260,69 +260,6 @@ class GoalInsightsView(APIView):
             "atRiskGoals": at_risk,
             "missedGoals": missed,
         })
-
-# Class for paginated data (shortened data) for better organization
-class PaginatedActivityHistoryView(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def get(self, request):
-        """Returns paginated list of user activities with filtering"""
-        
-        # Get filters from query params
-        activity_type = request.query_params.get('activity_type')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-        
-        from analytics.repository import AnalyticsRepository
-        
-        service = AnalyticsRepository()
-        
-        try:
-            activities = service.get_user_activities(request.user)
-        except:
-            # Dummy data for demonstration
-            activities = self._get_demo_activities()
-        
-        # Apply filters
-        if activity_type:
-            activities = [a for a in activities if a.get('activity_type') == activity_type]
-        if start_date:
-            activities = [a for a in activities if a.get('date') >= start_date]
-        if end_date:
-            activities = [a for a in activities if a.get('date') <= end_date]
-        
-        # Apply pagination
-        paginator = SmallResultsPagination()
-        page = paginator.paginate_queryset(activities, request)
-        
-        if page is not None:
-            return paginator.get_paginated_response({
-                "activities": page,
-                "filters_applied": {
-                    "activity_type": activity_type,
-                    "start_date": start_date,
-                    "end_date": end_date
-                }
-            })
-        
-        return Response({"activities": activities})
-    
-    def _get_demo_activities(self):
-        """Temporary dummy data until other teams are done"""
-        return [
-            {"date": "2026-03-01", "activity_type": "Running", "distance_km": 5.2, "duration_min": 32},
-            {"date": "2026-03-02", "activity_type": "Cycling", "distance_km": 15.0, "duration_min": 45},
-            {"date": "2026-03-03", "activity_type": "Running", "distance_km": 7.5, "duration_min": 48},
-            {"date": "2026-03-04", "activity_type": "Swimming", "distance_km": 1.2, "duration_min": 30},
-            {"date": "2026-03-05", "activity_type": "Running", "distance_km": 10.0, "duration_min": 62},
-            {"date": "2026-03-06", "activity_type": "Cycling", "distance_km": 20.0, "duration_min": 70},
-            {"date": "2026-03-07", "activity_type": "Running", "distance_km": 4.0, "duration_min": 25},
-            {"date": "2026-03-08", "activity_type": "Walking", "distance_km": 3.5, "duration_min": 45},
-            {"date": "2026-03-09", "activity_type": "Running", "distance_km": 12.0, "duration_min": 75},
-            {"date": "2026-03-10", "activity_type": "Cycling", "distance_km": 25.0, "duration_min": 90},
-            {"date": "2026-03-11", "activity_type": "Running", "distance_km": 6.0, "duration_min": 38},
-            {"date": "2026-03-12", "activity_type": "Swimming", "distance_km": 1.5, "duration_min": 35},
-        ]
     
 class GoalProgressSeriesView(APIView):
     """Return chart-ready goal progress data for the authenticated user."""
