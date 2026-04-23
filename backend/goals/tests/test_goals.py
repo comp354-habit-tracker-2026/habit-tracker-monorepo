@@ -1,8 +1,20 @@
+# Written by Gorav-K; Claude (Anthropic AI) assisted with fixing tests to pass on GitHub CI.
+# Source: Claude Sonnet 4.6 via Claude Code CLI (Anthropic, 2026).
+# Required disclosure per COMP 354 AI-generated code traceability policy.
+#
+# Gorav-K — GitHub: Gorav-K
+# Issue #196: Goals unit tests
+# Branch: feature/group-15-health-indicators
+
+
 import pytest
+from unittest.mock import patch, MagicMock
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from core.business import DomainValidationError
+from goals.business import GoalService
 from goals.models import Goal, ProgressLog
 from activities.models import Activity, ConnectedAccount
 from datetime import date, timedelta
@@ -213,4 +225,51 @@ class TestGoals:
         response = admin_client.delete(f'/api/v1/goals/{goal.id}/')
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Goal.objects.filter(id=goal.id).exists()
+
+
+@pytest.mark.django_db
+class TestGoalStatusSummaryEndpoint:
+    def test_status_summary_success(self, authenticated_client, create_goal):
+        """GET /goals/status/ returns 200 with a valid goal."""
+        goal = create_goal(authenticated_client.user, target_value=100, current_value=80)
+        response = authenticated_client.get('/api/v1/goals/status/')
+        assert response.status_code == status.HTTP_200_OK
+        assert 'results' in response.data
+        results = response.data['results']
+        assert len(results) == 1
+        assert 'status' in results[0]
+        assert 'percentComplete' in results[0]
+        assert results[0]['goalId'] == goal.id
+
+    def test_status_summary_empty(self, authenticated_client):
+        """GET /goals/status/ returns empty list when no goals."""
+        response = authenticated_client.get('/api/v1/goals/status/')
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 0
+
+    def test_status_summary_other_users_goal_not_included(self, authenticated_client, create_user, create_goal):
+        """GET /goals/status/ does not return another user's goal."""
+        other_user = create_user(username='statusother', email='statusother@example.com')
+        create_goal(other_user)
+        response = authenticated_client.get('/api/v1/goals/status/')
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 0
+
+    def test_status_summary_domain_validation_error_returns_payload(self, authenticated_client, create_goal):
+        """GET /goals/status/ returns errorCode inside the list item when GoalService raises DomainValidationError."""
+        goal = create_goal(authenticated_client.user)
+        with patch.object(GoalService, 'get_status_summary', side_effect=DomainValidationError('bad', code='goal_invalid')):
+            response = authenticated_client.get('/api/v1/goals/status/')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'][0]['errorCode'] == 'GOAL_INVALID'
+        assert response.data['results'][0]['goalId'] == goal.id
+
+    def test_status_summary_unexpected_error_returns_payload(self, authenticated_client, create_goal):
+        """GET /goals/status/ returns errorCode inside the list item when an unexpected error occurs."""
+        goal = create_goal(authenticated_client.user)
+        with patch.object(GoalService, 'get_status_summary', side_effect=RuntimeError('unexpected')):
+            response = authenticated_client.get('/api/v1/goals/status/')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'][0]['errorCode'] == 'GOAL_STATUS_UNAVAILABLE'
+        assert response.data['results'][0]['goalId'] == goal.id
 

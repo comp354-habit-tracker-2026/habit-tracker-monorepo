@@ -9,18 +9,18 @@
 
 #from normalizer import ActivityNormalizer
 from backend.activities.business.deduplication import ActivityDeduplicator
-from backend.activities.business.event_publisher import EventPublisher
+from backend.activities.business.events import EventPublisher
 from backend.activities.business.hooks import LoggingHook
 
 class ActivityPipeline:
-    def __init__(self):
+    def __init__(self, event_hub):
         #self.normalizer = ActivityNormalizer()
         self.deduplicator = ActivityDeduplicator()
-        self.publisher = EventPublisher()
+        self.publisher = EventPublisher(event_hub)
         self.hooks = LoggingHook()
 
     def process(self, adapter, raw_activity, existing_activities):
-        adapted = adapter.transform(raw_activity) #transform
+        adapted = adapter.parse(raw_activity) #transform
         #normalized = self.normalizer.normalize(adapted) #normalize
 
         results = self.deduplicator.process(adapted, existing_activities)
@@ -30,7 +30,10 @@ class ActivityPipeline:
 
         # Publishing:
         if results['status'] in ['NEW', 'UPDATE']:
-            self.publisher.publish_event(results['activity'], results['status'])
+            RETRIES = 5
+            for _ in range(RETRIES):
+                if self.publisher.publish_event(results['activity'], results['status'])[0]:
+                    break
 
         return results
 
