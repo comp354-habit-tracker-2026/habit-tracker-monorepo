@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from notifications.business.services import NotificationService, UserPreferencesService
-from notifications.models import NotificationType
+from notifications.models import NotificationType, NotificationChannel
 
 
 def make_goal(title="Run 5km", pk=1, current_value=100, target_value=100):
@@ -215,3 +215,101 @@ class TestUserPreferencesService:
 
         self.repo.get_user_preferences.assert_called_once_with(self.user)
         assert result == self.repo.get_user_preferences.return_value
+
+
+# ============================================================================
+# Coverage tests for uncovered branches in notify() and related methods
+# ============================================================================
+
+class TestNotifyWithBothChannels:
+    """Test notify() with email_enabled and in_app_enabled combinations"""
+    
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.user = MagicMock()
+        self.preferences = MagicMock(
+            email_enabled=True,
+            in_app_enabled=True,
+            achievement_notifs=True,
+            inactivity_reminders=True,
+            goal_notifs=True,
+        )
+        self.preference_service = MagicMock(get_user_preferences=MagicMock(return_value=self.preferences))
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+
+    def test_notify_with_both_email_and_in_app_enabled(self):
+        """Covers both email and in_app channel creation"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
+        
+        # Should be called twice (email + in_app)
+        assert self.repo.create_notification.call_count == 2
+
+    def test_notify_with_only_email_enabled(self):
+        """Covers email_enabled=True, in_app_enabled=False"""
+        self.preferences.in_app_enabled = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
+        
+        # Should be called once (email only)
+        assert self.repo.create_notification.call_count == 1
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['channel'] == NotificationChannel.EMAIL
+
+    def test_notify_with_only_in_app_enabled(self):
+        """Covers email_enabled=False, in_app_enabled=True"""
+        self.preferences.email_enabled = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
+        
+        # Should be called once (in_app only)
+        assert self.repo.create_notification.call_count == 1
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['channel'] == NotificationChannel.IN_APP
+
+    def test_notify_inactivity_reminder_when_enabled(self):
+        """Covers INACTIVITY_REMINDER preference enabled branch"""
+        self.preferences.inactivity_reminders = True
+        self.preferences.email_enabled = True
+        self.preferences.in_app_enabled = False
+        
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"days": 7}, 1, NotificationType.INACTIVITY_REMINDER)
+        
+        self.repo.create_notification.assert_called_once()
+
+    def test_notify_inactivity_reminder_when_disabled(self):
+        """Covers INACTIVITY_REMINDER preference disabled branch"""
+        self.preferences.inactivity_reminders = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"days": 7}, 1, NotificationType.INACTIVITY_REMINDER)
+        
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
+    def test_notify_achievement_when_enabled(self):
+        """Covers MILESTONE_ACHIEVED preference enabled branch"""
+        self.preferences.achievement_notifs = True
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"badge": 1}, 1, NotificationType.MILESTONE_ACHIEVED)
+        
+        self.repo.create_notification.assert_called_once()
+
+    def test_notify_achievement_when_disabled(self):
+        """Covers MILESTONE_ACHIEVED preference disabled branch"""
+        self.preferences.achievement_notifs = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"badge": 1}, 1, NotificationType.MILESTONE_ACHIEVED)
+        
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
+    def test_notify_goal_notifs_when_disabled(self):
+        """Covers goal_notifs disabled branch"""
+        self.preferences.goal_notifs = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"goal": 1}, 1, NotificationType.GOAL_AT_RISK)
+        
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
