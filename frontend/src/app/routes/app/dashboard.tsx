@@ -231,9 +231,7 @@ function DashboardRoute() {
              <div className="mt-4">
                 <GoalsContainer />
               </div>
-              <div className="mt-4">
-                <InsightsDisplay/>
-              </div>            
+                        
             </div>
           </div>
         </div>
@@ -388,6 +386,9 @@ function DashboardRoute() {
                   No activities were recorded on this day.
                 </div>
               )}
+              <div className="mt-4">
+                <InsightsDisplay/>
+              </div>  
             </div>
           </div>
         </div>
