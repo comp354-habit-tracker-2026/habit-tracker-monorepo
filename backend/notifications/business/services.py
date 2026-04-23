@@ -111,8 +111,8 @@ class NotificationService(BaseService):
                 "newState": new_state,
                 "computedAt": computed_at.isoformat(),
                 "progressSummary": progress_summary,
-            },
-        return self.notify(title, message, payload, goal.user.user_id, notification_type, goal)
+            }
+        return self.notify(title, message, payload, goal.user.id, notification_type, goal)
     
 
     @staticmethod
