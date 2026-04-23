@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 from data_integration.business.strava_activity_factory import StravaActivityFactory
 from data_integration.business.strava_activity_summary import StravaActivitySummary
 
+
 class StravaAuthService:
     TOKEN_URL = "https://www.strava.com/oauth/token"
 
@@ -46,6 +47,7 @@ class StravaAuthService:
     # Compatibility wrapper for the specific camelCase requirement
     def authenticateUser(self, authCode: str) -> dict[str, Any]:
         return self.authenticate_user(authCode)
+
 
 class StravaActivityFetcher:
     """Adapter for fetching summary activities from the Strava API."""
@@ -159,8 +161,8 @@ class StravaActivityFetcher:
         return params
 
     def get_running_activities(
-            self,
-            activities: list[StravaActivitySummary],
+        self,
+        activities: list[StravaActivitySummary],
     ) -> list[StravaActivitySummary]:
         """Filters an extracted activity list down to running activities only."""
         return [
@@ -170,15 +172,15 @@ class StravaActivityFetcher:
         ]
 
     def getRunningActivities(
-            self,
-            activities: list[StravaActivitySummary],
+        self,
+        activities: list[StravaActivitySummary],
     ) -> list[StravaActivitySummary]:
         """Compatibility wrapper for the camelCase method name."""
         return self.get_running_activities(activities)
 
     def get_cycling_activities(
-            self,
-            activities: list[StravaActivitySummary],
+        self,
+        activities: list[StravaActivitySummary],
     ) -> list[StravaActivitySummary]:
         """Filters an extracted activity list down to outdoor cycling activities only."""
         return [
@@ -188,8 +190,8 @@ class StravaActivityFetcher:
         ]
 
     def getCyclingActivities(
-            self,
-            activities: list[StravaActivitySummary],
+        self,
+        activities: list[StravaActivitySummary],
     ) -> list[StravaActivitySummary]:
         """Compatibility wrapper for the camelCase method name."""
         return self.get_cycling_activities(activities)
