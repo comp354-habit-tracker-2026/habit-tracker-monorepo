@@ -1029,7 +1029,7 @@ class AchievementEventSignalsTest(TestCase):
         from gamification.signals import _send_achievement_event
         from notifications.models import NotificationType
         
-        with patch('gamification.signals.NotificationService') as mock_service_class:
+        with patch('notifications.business.services.NotificationService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             
@@ -1044,14 +1044,15 @@ class AchievementEventSignalsTest(TestCase):
             # Verify notify was called with MILESTONE_ACHIEVED type
             mock_service.notify.assert_called_once()
             call_args = mock_service.notify.call_args
-            assert call_args.kwargs['recipient_id'] == self.user.id
-            assert call_args.kwargs['event_type'] == NotificationType.MILESTONE_ACHIEVED
+            # notify signature: notify(title, description, payload, recipient_id, event_type, goal=None)
+            assert call_args[0][3] == self.user.id
+            assert call_args[0][4] == NotificationType.MILESTONE_ACHIEVED
 
     def test_send_achievement_notification_fallback_logging(self):
         """Covers _send_achievement_event function exception handling and logging"""
         from gamification.signals import _send_achievement_event
         
-        with patch('gamification.signals.NotificationService', side_effect=ImportError("NotificationService not available")):
+        with patch('notifications.business.services.NotificationService', side_effect=ImportError("NotificationService not available")):
             with patch('gamification.signals.logger.info') as mock_logger:
                 _send_achievement_event(self.user, 'milestone_reached', {
                     'milestone_id': 1,
@@ -1069,7 +1070,7 @@ class AchievementEventSignalsTest(TestCase):
         """Covers _send_achievement_event with streak_milestone event type"""
         from gamification.signals import _send_achievement_event
         
-        with patch('gamification.signals.NotificationService') as mock_service_class:
+        with patch('notifications.business.services.NotificationService') as mock_service_class:
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
             

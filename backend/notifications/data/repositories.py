@@ -9,11 +9,10 @@ User = get_user_model()
 class NotificationRepository(BaseRepository):
 
     LIST_FIELDS = (
-        "id",
-        "notification_type",
-        "title",
+        "notif_id",
+        "type",
         "message",
-        "is_read",
+        "read",
         "created_at",
         "goal_id",
         "payload",
@@ -61,7 +60,7 @@ class NotificationRepository(BaseRepository):
     def list_recent(self, user):
         return list(
             Notification.objects.filter(user=user)
-            .order_by("-created_at", "-id")
+            .order_by("-created_at", "-notif_id")
             .values(*self.LIST_FIELDS)
         )
     

@@ -374,8 +374,9 @@ def test_notification_repository_list_recent():
     result = repo.list_recent(user)
     
     assert len(result) == 2
-    # Newest first
-    assert result[0]['id'] == n2.notif_id or result[0].get('notif_id') == n2.notif_id
+    # Verify newest first ordering: n2 should be first, n1 second
+    assert result[0]['message'] == 'Second'
+    assert result[1]['message'] == 'First'
 
 
 # ============================================================================
@@ -393,12 +394,10 @@ def test_user_preference_repository_get_or_create():
     # First call should create
     result1 = repo.get_user_preferences(user)
     assert result1.user_id == user.id
-    
+
     # Second call should return existing
     result2 = repo.get_user_preferences(user)
-    assert result1.id == result2.id
-
-
+    assert result1.pref_id == result2.pref_id
 @pytest.mark.django_db
 def test_user_preference_repository_create_user_preferences():
     """Covers UserPreferenceRepository.create_user_preferences"""
@@ -428,15 +427,13 @@ def test_user_preference_repository_update_user_preferences():
         email_enabled=False,
         in_app_enabled=False,
         achievement_notifs=False,
-        goal_notifs=False,
         inactivity_reminders=False,
         inactivity_threshold_days=14,
     )
-    
+
     assert result.email_enabled is False
     assert result.in_app_enabled is False
     assert result.achievement_notifs is False
-    assert result.goal_notifs is False
     assert result.inactivity_reminders is False
     assert result.inactivity_threshold_days == 14
 
