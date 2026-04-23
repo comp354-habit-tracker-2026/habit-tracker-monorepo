@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import { fileURLToPath, URL } from 'node:url'; // Import to resolve paths machine agnostically i.e. windows, mac, ...
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig(() => {
   return {
@@ -12,6 +12,14 @@ export default defineConfig(() => {
       },
     },
     envDir: 'src/environments/',
+    server: {
+      proxy: {
+        '/api/v1/': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        },
+      },
+    },
     build: {
       target: 'esnext',
       assetsDir: 'assets',

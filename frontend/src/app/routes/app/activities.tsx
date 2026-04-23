@@ -53,10 +53,7 @@ export default function ActivitiesRoute() {
           aria-labelledby="overview-title"
         >
           <div className="activities-route__section-header">
-            <h2
-              id="overview-title"
-              className="activities-route__section-title"
-            >
+            <h2 id="overview-title" className="activities-route__section-title">
               Overview
             </h2>
             <p className="activities-route__section-copy">
@@ -69,7 +66,9 @@ export default function ActivitiesRoute() {
             aria-label="All-time totals"
           >
             <li className="activities-route__agg-stat">
-              <span className="activities-route__agg-value">{totalSessions}</span>
+              <span className="activities-route__agg-value">
+                {totalSessions}
+              </span>
               <span className="activities-route__agg-label">Sessions</span>
             </li>
             <li className="activities-route__agg-stat">
