@@ -197,6 +197,17 @@ def test_get_running_activities_filters_all_supported_run_types():
     assert [activity.external_id for activity in filtered_activities] == ["1", "2", "3"]
 
 
+def test_get_running_activities_camel_case_wrapper_delegates_to_snake_case_method():
+    fetcher = StravaActivityFetcher()
+    activities = [StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 42, "sport_type": "Run"})]
+
+    with patch.object(fetcher, "get_running_activities", return_value=activities) as mock_method:
+        result = fetcher.getRunningActivities(activities)
+
+    assert result == activities
+    mock_method.assert_called_once_with(activities)
+
+
 def test_get_cycling_activities_filters_outdoor_rides():
     fetcher = StravaActivityFetcher()
     ride_activity = StravaActivityFactory.create_activity_summary({**RAW_ACTIVITY, "id": 10, "sport_type": "Ride"})
