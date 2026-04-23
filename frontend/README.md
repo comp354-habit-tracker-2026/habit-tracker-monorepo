@@ -90,6 +90,9 @@ npm install
 
 # Start the dev server (loads src/environments/.env.dev)
 npm run dev
+
+# Start Storybook (component playground)
+npm run storybook
 ```
 
 ---
@@ -141,6 +144,7 @@ VITE_BACKEND_URL=https://api.yourapp.com
 | `npm run format:check` | —      | Check formatting without writing changes (for CI)  |
 | `npm run cypress:open` | —      | Open Cypress interactive test runner               |
 | `npm run cypress:ci`   | `dev`  | Start dev server and run Cypress headlessly        |
+| `npm run storybook`    | —      | Open Storybook interactive component playground    |
 
 ---
 

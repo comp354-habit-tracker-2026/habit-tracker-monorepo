@@ -43,6 +43,10 @@ class Badge(models.Model):
 
     class Meta:
         ordering = ['badge_type', 'threshold']
+        indexes = [
+            models.Index(fields=['badge_type', 'threshold']),
+            models.Index(fields=['activity_type', 'metric']),
+        ]
 
     def __str__(self):
         return self.name
@@ -62,6 +66,10 @@ class UserBadge(models.Model):
     class Meta:
         unique_together = [['user', 'badge']]
         ordering = ['-earned_at']
+        indexes = [
+            models.Index(fields=['user', '-earned_at']),
+            models.Index(fields=['badge', '-earned_at']),
+        ]
 
     def __str__(self):
         return f"{self.user} earned {self.badge.name}"
@@ -80,6 +88,11 @@ class Streak(models.Model):
     last_activity_date = models.DateField(null=True, blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['last_activity_date']),
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.current_count} day streak"
@@ -112,6 +125,10 @@ class Milestone(models.Model):
 
     class Meta:
         ordering = ['metric', 'threshold']
+        indexes = [
+            models.Index(fields=['metric', 'threshold']),
+            models.Index(fields=['activity_type', 'metric']),
+        ]
 
     def __str__(self):
         return self.name
@@ -131,6 +148,10 @@ class UserMilestone(models.Model):
     class Meta:
         unique_together = [['user', 'milestone']]
         ordering = ['-reached_at']
+        indexes = [
+            models.Index(fields=['user', '-reached_at']),
+            models.Index(fields=['milestone', '-reached_at']),
+        ]
 
     def __str__(self):
         return f"{self.user} reached {self.milestone.name}"

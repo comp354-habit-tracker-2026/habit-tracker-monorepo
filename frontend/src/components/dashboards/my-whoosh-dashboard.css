@@ -1,0 +1,331 @@
+.my-whoosh-dashboard {
+  display: grid;
+  gap: 2rem;
+  padding: 2rem;
+  border: 1px solid #e9edf3;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #16324f;
+  box-shadow: 0 20px 60px rgba(26, 54, 93, 0.08);
+}
+
+.my-whoosh-dashboard--embedded {
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  gap: 1.5rem;
+}
+
+.my-whoosh-dashboard__header {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.my-whoosh-dashboard__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #fc4c02;
+  text-transform: uppercase;
+}
+
+.my-whoosh-dashboard__title {
+  margin: 0;
+  font-size: 1.9rem;
+  line-height: 1.1;
+  color: #0a1b2c;
+  font-weight: 700;
+}
+
+.my-whoosh-dashboard__meta {
+  margin: 0;
+  color: #6b7a8a;
+  font-size: 0.95rem;
+}
+
+.my-whoosh-dashboard__hero {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.my-whoosh-dashboard__headline-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem 0;
+  margin: 0;
+  padding: 1.25rem 0;
+  list-style: none;
+  border-top: 1px solid #e9edf3;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.my-whoosh-dashboard__headline-stat {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0 1.75rem;
+  border-left: 1px solid #e9edf3;
+  flex: 1 1 140px;
+  min-width: 140px;
+}
+
+.my-whoosh-dashboard__headline-stat:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.my-whoosh-dashboard__headline-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #0a1b2c;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-whoosh-dashboard__headline-unit {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #6b7a8a;
+}
+
+.my-whoosh-dashboard__headline-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b7a8a;
+}
+
+.my-whoosh-dashboard__secondary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-whoosh-dashboard__secondary-stat {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.my-whoosh-dashboard__secondary-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b7a8a;
+}
+
+.my-whoosh-dashboard__secondary-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #16324f;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-whoosh-dashboard__analysis {
+  display: grid;
+  gap: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e9edf3;
+}
+
+.my-whoosh-dashboard__section-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0a1b2c;
+}
+
+.my-whoosh-dashboard__stream-row {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.my-whoosh-dashboard__stream-row-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.my-whoosh-dashboard__stream-row-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #16324f;
+}
+
+.my-whoosh-dashboard__stream-row-meta {
+  font-size: 0.85rem;
+  color: #6b7a8a;
+  font-variant-numeric: tabular-nums;
+}
+
+.my-whoosh-dashboard__stream-row-chart {
+  width: 100%;
+  min-width: 0;
+}
+
+.my-whoosh-dashboard__stream-skeleton {
+  width: 100%;
+  height: 100%;
+  min-height: 140px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(216, 228, 243, 0.52),
+    rgba(232, 239, 248, 0.88),
+    rgba(216, 228, 243, 0.52)
+  );
+  background-size: 240% 100%;
+  animation: my-whoosh-dashboard-skeleton 1.7s ease-in-out infinite;
+}
+
+@keyframes my-whoosh-dashboard-skeleton {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+.my-whoosh-dashboard__zones {
+  display: grid;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e9edf3;
+}
+
+.my-whoosh-dashboard__zones-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.my-whoosh-dashboard__zones-empty {
+  margin: 0;
+  color: #6b7a8a;
+  font-size: 0.92rem;
+}
+
+.my-whoosh-dashboard__tabs {
+  display: inline-flex;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: #f3f6fa;
+  gap: 0.25rem;
+}
+
+.my-whoosh-dashboard__tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7a8a;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.my-whoosh-dashboard__tab:hover {
+  color: #16324f;
+}
+
+.my-whoosh-dashboard__tab--active {
+  background: #ffffff;
+  color: #fc4c02;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+}
+
+.my-whoosh-dashboard__zone-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-whoosh-dashboard__zone-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 120px) 1fr minmax(64px, auto) minmax(44px, auto);
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.my-whoosh-dashboard__zone-label {
+  color: #16324f;
+  font-weight: 600;
+}
+
+.my-whoosh-dashboard__zone-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: #f0f3f7;
+  overflow: hidden;
+}
+
+.my-whoosh-dashboard__zone-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  transition: width 220ms ease;
+}
+
+.my-whoosh-dashboard__zone-minutes {
+  color: #16324f;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.my-whoosh-dashboard__zone-percent {
+  color: #6b7a8a;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .my-whoosh-dashboard {
+    padding: 1.25rem;
+    gap: 1.5rem;
+  }
+
+  .my-whoosh-dashboard__title {
+    font-size: 1.5rem;
+  }
+
+  .my-whoosh-dashboard__headline-stat {
+    flex: 1 1 calc(50% - 0.5rem);
+    border-left: none;
+    padding: 0;
+  }
+
+  .my-whoosh-dashboard__headline-value {
+    font-size: 1.5rem;
+  }
+
+  .my-whoosh-dashboard__zone-row {
+    grid-template-columns: minmax(80px, 100px) 1fr minmax(56px, auto) minmax(36px, auto);
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+}
