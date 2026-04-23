@@ -30,3 +30,6 @@ cypress/downloads
 # Include the plugin and project configuration
 !/.vscode/settings.json
 !/.vscode/extensions.json
+
+*storybook.log
+storybook-static

@@ -1,0 +1,37 @@
+.we-ski-route-map-chart {
+  padding: 0;
+  border: 1px solid #d7deea;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(26, 54, 93, 0.08);
+  overflow: hidden;
+}
+
+.we-ski-route-map-chart--empty {
+  min-height: 220px;
+}
+
+.we-ski-route-map-chart__empty-copy {
+  margin: 0;
+  padding: 1.5rem;
+  color: #4f6175;
+}
+
+.we-ski-route-map-chart__visual {
+  width: 100%;
+}
+
+.we-ski-route-map-chart__map {
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+}
+
+.we-ski-route-map-chart__map.leaflet-container {
+  font-family: inherit;
+}
+
+.we-ski-route-map-chart__map .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.88);
+  color: #4f6175;
+}
