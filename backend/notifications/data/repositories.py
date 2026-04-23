@@ -36,7 +36,7 @@ class NotificationRepository(BaseRepository):
         return notification
     
     def get_all(self, user):
-        return Notification.objects.filter(user=user)
+        return Notification.objects.filter(user=user).order_by("-created_at", "-notif_id")
     
     def get(self, notification_id: int):
         return Notification.objects.get(pk=notification_id)
