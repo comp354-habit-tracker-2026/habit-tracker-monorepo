@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 from data_integration.business.strava_activity_factory import StravaActivityFactory
 from data_integration.business.strava_activity_summary import StravaActivitySummary
 
+
 class StravaAuthService:
     TOKEN_URL = "https://www.strava.com/oauth/token"
 
@@ -47,12 +48,16 @@ class StravaAuthService:
     def authenticateUser(self, authCode: str) -> dict[str, Any]:
         return self.authenticate_user(authCode)
 
+
 class StravaActivityFetcher:
     """Adapter for fetching summary activities from the Strava API."""
 
     base_url = "https://www.strava.com/api/v3"
     default_page_size = 30
     max_page_size = 200
+    skiing_sport_types = frozenset({"AlpineSki", "BackcountrySki", "NordicSki", "RollerSki"})
+    running_sport_types = frozenset({"Run", "TrailRun", "VirtualRun"})
+    cycling_sport_types = frozenset({"Ride", "MountainBikeRide", "GravelRide"})
 
     def get_all_activities(
         self,
@@ -100,6 +105,42 @@ class StravaActivityFetcher:
             end_date=endDate,
         )
 
+    def get_skiing_activities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Filters an extracted activity list down to skiing activities only."""
+        return [
+            activity
+            for activity in activities
+            if activity.sport_type in self.skiing_sport_types
+        ]
+
+    def getSkiingActivities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Compatibility wrapper for the camelCase method name."""
+        return self.get_skiing_activities(activities)
+
+    def get_indoor_cycling_activities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Filters an extracted activity list down to indoor cycling activities only."""
+        return [
+            activity
+            for activity in activities
+            if activity.sport_type == "VirtualRide"
+        ]
+
+    def getIndoorCyclingActivities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Compatibility wrapper for the camelCase method name."""
+        return self.get_indoor_cycling_activities(activities)
+
     def _build_query_params(
         self,
         start_date: date | datetime | str | None,
@@ -118,6 +159,42 @@ class StravaActivityFetcher:
             params["before"] = before
 
         return params
+
+    def get_running_activities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Filters an extracted activity list down to running activities only."""
+        return [
+            activity
+            for activity in activities
+            if activity.sport_type in self.running_sport_types
+        ]
+
+    def getRunningActivities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Compatibility wrapper for the camelCase method name."""
+        return self.get_running_activities(activities)
+
+    def get_cycling_activities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Filters an extracted activity list down to outdoor cycling activities only."""
+        return [
+            activity
+            for activity in activities
+            if activity.sport_type in self.cycling_sport_types
+        ]
+
+    def getCyclingActivities(
+        self,
+        activities: list[StravaActivitySummary],
+    ) -> list[StravaActivitySummary]:
+        """Compatibility wrapper for the camelCase method name."""
+        return self.get_cycling_activities(activities)
 
     def _request_activities(
         self,
