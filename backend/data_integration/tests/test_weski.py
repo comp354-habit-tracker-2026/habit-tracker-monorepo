@@ -336,6 +336,28 @@ class TestWeskiGpxParser:
         assert isinstance(summary.raw_data, dict)
         assert "track_name" in summary.raw_data
 
+    def test_parse_returns_expected_summary_output(self):
+      summary = WeskiGpxParser.parse(SAMPLE_GPX)
+
+      assert summary.track_name == "Morning Ski Session"
+      assert summary.start_time == datetime(2026, 1, 25, 11, 0, 0, tzinfo=timezone.utc)
+      assert summary.total_time_seconds == 50.0
+      assert summary.number_of_runs == 1
+      assert summary.total_distance_km == pytest.approx(0.68, rel=0.05)
+      assert summary.total_elevation_gain_meters == pytest.approx(40.0)
+      assert summary.average_speed_kmh == pytest.approx(11.736)
+      assert summary.max_speed_kmh == pytest.approx(21.6)
+      assert summary.raw_data == {
+        "track_name": "Morning Ski Session",
+        "start_time": datetime(2026, 1, 25, 11, 0, 0, tzinfo=timezone.utc),
+        "total_elevation_gain_meters": pytest.approx(40.0),
+        "total_distance_km": pytest.approx(0.68, rel=0.05),
+        "number_of_runs": 1,
+        "total_time_seconds": 50.0,
+            "average_speed_kmh": pytest.approx(11.736),
+        "max_speed_kmh": pytest.approx(21.6),
+      }
+
     def test_parse_file(self, tmp_path):
         gpx_file = tmp_path / "test.gpx"
         gpx_file.write_text(SAMPLE_GPX, encoding="utf-8")
@@ -494,6 +516,32 @@ class TestWeskiUploadView:
         assert "distance_km" in response.data
         assert "number_of_runs" in response.data
 
+    def test_upload_success_returns_expected_output_values(self):
+        client, _ = self._get_authed_client()
+        expected_summary = WeskiGpxParser.parse(SAMPLE_GPX_BYTES)
+
+        response = client.post(
+            "/api/v1/data-integrations/weski/upload/",
+            {"file": self._make_gpx_file()},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data == {
+            "id": response.data["id"],
+            "activity_type": "skiing",
+            "date": "2026-01-25",
+            "duration_minutes": 0,
+            "distance_km": pytest.approx(round(expected_summary.total_distance_km, 2)),
+            "provider": "weski",
+            "external_id": expected_summary.external_id,
+            "track_name": expected_summary.track_name,
+            "number_of_runs": expected_summary.number_of_runs,
+            "total_elevation_gain_meters": pytest.approx(expected_summary.total_elevation_gain_meters),
+            "average_speed_kmh": pytest.approx(expected_summary.average_speed_kmh),
+            "max_speed_kmh": pytest.approx(expected_summary.max_speed_kmh),
+        }
+
     def test_upload_duplicate_returns_conflict(self):
         client, _ = self._get_authed_client()
         gpx = SAMPLE_GPX_BYTES
@@ -510,6 +558,7 @@ class TestWeskiUploadView:
             format="multipart",
         )
         assert response.status_code == status.HTTP_409_CONFLICT
+        assert response.data == {"error": "This GPX session has already been uploaded."}
 
     def test_upload_invalid_gpx_returns_400(self):
         client, _ = self._get_authed_client()
@@ -522,24 +571,24 @@ class TestWeskiUploadView:
         assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
 
     def test_upload_empty_gpx_returns_400(self):
-      client, _ = self._get_authed_client()
-      response = client.post(
-        "/api/v1/data-integrations/weski/upload/",
-        {"file": self._make_gpx_file(b"")},
-        format="multipart",
-      )
-      assert response.status_code == status.HTTP_400_BAD_REQUEST
-      assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
+        client, _ = self._get_authed_client()
+        response = client.post(
+            "/api/v1/data-integrations/weski/upload/",
+            {"file": self._make_gpx_file(b"")},
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
 
     def test_upload_invalid_utf8_gpx_returns_400(self):
-      client, _ = self._get_authed_client()
-      response = client.post(
-        "/api/v1/data-integrations/weski/upload/",
-        {"file": self._make_gpx_file(INVALID_UTF8_BYTES)},
-        format="multipart",
-      )
-      assert response.status_code == status.HTTP_400_BAD_REQUEST
-      assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
+        client, _ = self._get_authed_client()
+        response = client.post(
+            "/api/v1/data-integrations/weski/upload/",
+            {"file": self._make_gpx_file(INVALID_UTF8_BYTES)},
+            format="multipart",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "parse" in response.data["error"].lower() or "GPX" in response.data["error"]
 
     def test_upload_creates_activity_record(self):
         from activities.models import Activity
@@ -554,3 +603,29 @@ class TestWeskiUploadView:
         assert activity.distance > 0
         assert activity.raw_data is not None
         assert "number_of_runs" in activity.raw_data
+
+    def test_upload_activity_record_matches_summary_output(self):
+        from activities.models import Activity
+
+        client, user = self._get_authed_client()
+        expected_summary = WeskiGpxParser.parse(SAMPLE_GPX_BYTES)
+
+        response = client.post(
+            "/api/v1/data-integrations/weski/upload/",
+            {"file": self._make_gpx_file()},
+            format="multipart",
+        )
+
+        activity = Activity.objects.get(provider="weski", user=user)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert activity.external_id == expected_summary.external_id
+        assert activity.activity_type == "skiing"
+        assert float(activity.distance) == pytest.approx(round(expected_summary.total_distance_km, 2))
+        assert activity.raw_data == {
+          "track_name": expected_summary.track_name,
+          "total_elevation_gain_meters": pytest.approx(expected_summary.total_elevation_gain_meters),
+          "number_of_runs": expected_summary.number_of_runs,
+          "total_time_seconds": expected_summary.total_time_seconds,
+          "average_speed_kmh": pytest.approx(expected_summary.average_speed_kmh),
+          "max_speed_kmh": pytest.approx(expected_summary.max_speed_kmh),
+        }
