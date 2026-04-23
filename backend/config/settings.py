@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     # `python manage.py flushexpiredtokens` periodically so expired tokens
     # are removed and the database does not grow indefinitely.
     'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -87,6 +88,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -200,3 +202,12 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 10.0,  # seconds
     },
 }
+
+# CORS settings guided by AI
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+# TODO Dynamically set allowed origins based on environment
+
+CORS_ALLOW_CREDENTIALS = True
