@@ -47,14 +47,24 @@ export function ActivitiesList({ onActivityClick }: ActivitiesListProps) {
     // Sort
     result.sort((a, b) => {
       switch (sortOption) {
-        case 'date-newest':
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        case 'date-oldest':
-          return new Date(a.date).getTime() - new Date(b.date).getTime();
-        case 'duration':
+        case 'date-newest': {
+          const dateB = new Date(b.date).getTime();
+          const dateA = new Date(a.date).getTime();
+          return dateB - dateA;
+        }
+        case 'date-oldest': {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateA - dateB;
+        }
+        case 'duration': {
           return b.duration - a.duration;
-        case 'distance':
-          return (b.distance ?? 0) - (a.distance ?? 0);
+        }
+        case 'distance': {
+          const distanceB = b.distance ?? 0;
+          const distanceA = a.distance ?? 0;
+          return distanceB - distanceA;
+        }
         default:
           return 0;
       }
