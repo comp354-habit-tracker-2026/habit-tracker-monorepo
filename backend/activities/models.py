@@ -92,8 +92,6 @@ class Activity(models.Model):
             models.Index(fields=['date'], name='idx_activity_date'),
             # Filter by date and created_at
             models.Index(fields=['-date', '-created_at'], name='idx_activity_date_created_desc'),
-            # Filter by account user and date
-            models.Index(fields=['account__user', 'date'], name='idx_activity_user_date'),
         ]
 
     def save(self, *args, **kwargs):
