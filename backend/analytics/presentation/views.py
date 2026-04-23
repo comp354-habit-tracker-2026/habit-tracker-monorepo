@@ -8,7 +8,7 @@ from analytics.business import AnalyticsService
 from analytics.data.repositories import AnalyticsRepository
 
 #team 12
-#from analytics.team12.services import Team12AnalyticsService
+from analytics.team12.services import Team12AnalyticsService
 
 #team 15
 from goals.business import GoalService
@@ -23,6 +23,9 @@ from django.http import JsonResponse
 from activities.models import Activity
 from goals.models import Goal
 from analytics.progress_series.models import DemoGoal, DemoActivity
+
+import logging
+logger = logging.getLogger(__name__)
 
 from analytics.progress_series.service import (
     InvalidGranularityError,
@@ -46,7 +49,7 @@ class AnalyticsOverviewView(APIView):
         return Response(data)
 
 #team 12
-""" class ActivityStatisticsView(APIView):
+class ActivityStatisticsView(APIView):
     def get(self, request):
         user = request.user
 
@@ -96,7 +99,7 @@ class WeeklySummaryView(APIView):
         )
 
         return Response(data)
- """
+
 
 # ============================================================
 # G13 - cathytham - InactivityDetector - PR #241
