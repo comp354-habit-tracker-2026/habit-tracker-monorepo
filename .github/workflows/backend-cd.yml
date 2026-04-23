@@ -1,0 +1,60 @@
+name: Trigger auto deployment for backend
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - "backend/**"
+    - ".github/workflows/backend-cd.yml"
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.BACKEND_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.BACKEND_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: habitregistry.azurecr.io
+          username: ${{ secrets.BACKEND_REGISTRY_USERNAME }}
+          password: ${{ secrets.BACKEND_REGISTRY_PASSWORD }}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ github.workspace }}/backend
+          push: true
+          tags: habitregistry.azurecr.io/backend:${{ github.sha }}
+
+      - name: Update Azure Container App
+        uses: azure/cli@v2
+        with:
+          azcliversion: 2.67.0
+          inlineScript: |
+            echo "===== DEBUG: Starting update command ====="
+            az containerapp update \
+              --name backend \
+              --resource-group habit-tracker-rg \
+              --subscription ${{ secrets.BACKEND_AZURE_SUBSCRIPTION_ID }} \
+              --container-name backend \
+              --image habitregistry.azurecr.io/backend:${{ github.sha }}
+

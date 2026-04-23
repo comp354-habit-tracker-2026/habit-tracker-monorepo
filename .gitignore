@@ -1,0 +1,16 @@
+.venv
+.env
+.env.local
+.env.*.local
+CLAUDE.md
+
+# Python / Group 14
+__pycache__/
+*.pyc
+dataset-generation/artifacts/
+.idea
+
+# Celery Beat state
+celerybeat-schedule
+celerybeat-schedule.*
+.idea.lsp/
