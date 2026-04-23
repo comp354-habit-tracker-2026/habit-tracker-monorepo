@@ -4,6 +4,7 @@ from django.conf import settings
 
 
 class NotificationType(models.TextChoices):
+    NONE = 'NONE', 'None'
     MILESTONE_ACHIEVED = "MILESTONE_ACHIEVED", "Milestone Achieved"
     GOAL_ACHIEVED = "GOAL_ACHIEVED", "Goal Achieved"
     GOAL_AT_RISK = "GOAL_AT_RISK", "Goal At Risk"
