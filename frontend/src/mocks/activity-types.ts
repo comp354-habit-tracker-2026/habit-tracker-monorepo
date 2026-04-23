@@ -40,6 +40,7 @@ export type ActivitySummary = {
 
 export type ActivityListItem = {
   id: string;
+  activityKey?: ActivityType;
   source: ActivitySource;
   sourceFormat: ActivitySourceFormat;
   activityType: ActivityType;
@@ -118,6 +119,7 @@ export type ActivityBreakdownItem = {
   value: number;
   color: string;
   date?: string | Date;
+  filterKey?: ActivityType;
 };
 
 export type ActivityTimeSeriesPoint = {
