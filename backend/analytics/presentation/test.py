@@ -164,15 +164,16 @@ class Team13ViewTests(TestCase):
         self.factory = APIRequestFactory()
         self.user = make_user()
 
-    @patch("analytics.presentation.views.AnalyticsRepository")
-    def test_health_indicators_view_returns_200(self, MockRepo):
-        MockRepo.return_value.activity_statistics.return_value = {"steps": 5000}
+    @patch("analytics.presentation.views.AnalyticsService")
+    def test_health_indicators_view_returns_200(self, MockService):
+        MockService.return_value.activity_statistics.return_value = {}
+        MockService.return_value.inactivity_evaluation.return_value = {}
         request = make_request(self.factory, None, self.user)
         response = HealthIndicatorsView.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @patch("analytics.presentation.views.AnalyticsRepository")
-    def test_health_indicators_requires_auth(self, MockRepo):
+    @patch("analytics.presentation.views.AnalyticsService")
+    def test_health_indicators_requires_auth(self, MockService):
         request = self.factory.get("/")
         response = HealthIndicatorsView.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -214,7 +215,6 @@ class Team13ViewTests(TestCase):
         response = HealthForecastView.as_view()(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("next_week_prediction", response.data)
-
 
 # ---------------------------------------------------------------------------
 # Team 14 views
