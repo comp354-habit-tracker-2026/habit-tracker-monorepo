@@ -23,7 +23,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from baseline_forecaster import generate_baseline_forecast
+from ..business.baseline_forecaster import generate_baseline_forecast
 
 
 # ---------------------------------------------------------------------------
