@@ -17,13 +17,22 @@ class GoalSerializer(serializers.ModelSerializer):
             "current_value",
             "goal_type",
             "status",
+            "progress_state",
+            "progress_state_changed_at",
             "start_date",
             "end_date",
             "progress_percentage",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "progress_percentage"]
+        read_only_fields = [
+            "id",
+            "progress_state",
+            "progress_state_changed_at",
+            "created_at",
+            "updated_at",
+            "progress_percentage",
+        ]
 
     def get_progress_percentage(self, obj):
         return GoalService.progress_percentage(obj.current_value, obj.target_value)

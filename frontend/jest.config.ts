@@ -18,7 +18,8 @@ const config: Config = {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   
   moduleNameMapper: {
-    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "\\.(css|less|scss|sass)$": "<rootDir>/jest/style-mock.ts",
   },
   
   setupFilesAfterEnv: ["<rootDir>/jest/setup-tests.ts"],

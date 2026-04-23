@@ -1,13 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+
 class User(AbstractUser):
-    # OAuth provider fields
-    oauth_provider = models.CharField(max_length=50, blank=True, null=True)
-    oauth_provider_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
-    
+    # oauth_provider and oauth_provider_id were removed from here.
+    # Linking a user to an external fitness platform (Strava, MapMyRun, etc.)
+    # is now handled by the ConnectedAccount model in the activities app,
+    # which supports multiple providers per user.
+
     class Meta:
         db_table = 'users'
-        indexes = [
-            models.Index(fields=['oauth_provider', 'oauth_provider_id']),
-        ]
