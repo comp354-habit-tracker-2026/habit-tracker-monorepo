@@ -6,57 +6,11 @@
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
-  
-  background-color: rgba(97, 181, 255, 0.723);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-
-.hide {
-  display: none;
-}
-
-.offscreen {
-  display: none;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    flex-grow: 1;
-    padding-bottom: 1rem;
-}
-
-.valid {
-    color: rgb(46, 162, 46);
-    margin-left: 0.25rem;
-}
-
-.invalid {
-    color: rgb(223, 34, 34);
-    margin-left: 0.25rem;
-}
-
-.errmsg {
-    background-color: lightpink;
-    color: firebrick;
-    font-weight: bold;
-    padding: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.instructions {
-    border-radius: 0.5rem;
-    background: rgb(5, 29, 49);
-    color: rgb(152, 207, 255);
-    padding: 0.25rem;
-    position: relative;
-    bottom: -10px;
 }
 
 a {
@@ -90,7 +44,6 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
-  margin-top: 1rem;
 }
 button:hover {
   border-color: #646cff;
@@ -119,123 +72,6 @@ button:focus-visible {
   
   .content-layout__body {
     color: #2d3748;
-  }
-  
-  /* Light mode - Activity Cards */
-  .activity-card {
-    background-color: #f7fafc;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .activity-card:hover {
-    background-color: #edf2f7;
-    border-color: #cbd5e0;
-  }
-  
-  .activity-card__title {
-    color: #1a202c;
-  }
-  
-  .activity-card__date {
-    color: #718096;
-  }
-  
-  .activity-card__metric-label {
-    color: #a0aec0;
-  }
-  
-  .activity-card__metric-value {
-    color: #2d3748;
-  }
-  
-  /* Light mode - Sort Control */
-  .sort-control__label {
-    color: #4a5568;
-  }
-  
-  .sort-control__select {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    color: #1a202c;
-  }
-  
-  .sort-control__select:hover {
-    background-color: #f7fafc;
-    border-color: #cbd5e0;
-  }
-  
-  .sort-control__select option {
-    background-color: #ffffff;
-    color: #1a202c;
-  }
-  
-  /* Light mode - Search Bar */
-  .search-bar__input {
-    background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    color: #1a202c;
-  }
-  
-  .search-bar__input:hover {
-    background-color: #f7fafc;
-    border-color: #cbd5e0;
-  }
-  
-  .search-bar__input:focus {
-    background-color: #ffffff;
-  }
-  
-  .search-bar__input::placeholder {
-    color: #a0aec0;
-  }
-  
-  .search-bar__icon {
-    color: #a0aec0;
-  }
-  
-  .search-bar__clear {
-    background-color: #e2e8f0;
-    color: #718096;
-  }
-  
-  .search-bar__clear:hover {
-    background-color: #cbd5e0;
-    color: #2d3748;
-  }
-  
-  /* Light mode - Lists */
-  .activities-list__empty {
-    background-color: #f7fafc;
-    border: 1px dashed #e2e8f0;
-  }
-  
-  .activities-list__empty-message {
-    color: #718096;
-  }
-  
-  .activities-list__no-results {
-    background-color: #f7fafc;
-    border: 1px dashed #e2e8f0;
-  }
-  
-  .activities-list__no-results-message {
-    color: #718096;
-  }
-  
-  /* Light mode - Skeleton */
-  .activity-list-skeleton__item {
-    background-color: #f7fafc;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .activity-list-skeleton__icon,
-  .activity-list-skeleton__line {
-    background: linear-gradient(
-      90deg,
-      #edf2f7 25%,
-      #f7fafc 50%,
-      #edf2f7 75%
-    );
   }
 }
 
