@@ -1,45 +1,64 @@
 /// <reference types="cypress" />
 
+const totalSessions = 9;
+const totalDistanceKm = '202.1';
+const totalCalories = '7,239';
+
 describe('Activities page', () => {
   beforeEach(() => {
+    cy.intercept('GET', '**/api/v1/activities/', {
+      statusCode: 500,
+      body: { message: 'Activities unavailable' },
+    }).as('getActivities');
+
     cy.visit('/app/activities');
+    cy.wait('@getActivities');
+    cy.wait('@getActivities');
   });
 
   it('renders the activities dashboard shell', () => {
     cy.url().should('include', '/app/activities');
     cy.contains('h1', 'Activities').should('be.visible');
+    cy.contains('h2', 'Filters').should('be.visible');
     cy.contains('h2', 'Overview').should('be.visible');
     cy.contains('h2', 'Your Activities').should('be.visible');
-    cy.contains('Activities over time').should('be.visible');
-    cy.contains('Activity breakdown').should('be.visible');
-    cy.contains('Distance by activity').should('be.visible');
+    cy.contains('Activity volume over time').should('be.visible');
+    cy.contains('Activity mix').should('be.visible');
+    cy.contains('Distance by activity type').should('be.visible');
+    cy.contains(
+      'Live activities could not be loaded right now. Demo data is showing instead.',
+    ).should('be.visible');
   });
 
   it('shows aggregate totals from the mock activity data', () => {
-    cy.get('[aria-label="All-time totals"] .activities-route__agg-stat').should(
+    cy.get('[aria-label="Visible activity totals"] .activities-route__agg-stat').should(
       'have.length',
       3,
     );
 
-    cy.get('[aria-label="All-time totals"] .activities-route__agg-stat')
+    cy.get('[aria-label="Visible activity totals"] .activities-route__agg-stat')
       .eq(0)
-      .should('contain.text', '86')
-      .and('contain.text', 'Sessions');
+      .should('contain.text', String(totalSessions))
+      .and('contain.text', 'Activities');
 
-    cy.get('[aria-label="All-time totals"] .activities-route__agg-stat')
+    cy.get('[aria-label="Visible activity totals"] .activities-route__agg-stat')
       .eq(1)
-      .should('contain.text', '757.1')
+      .should('contain.text', totalDistanceKm)
       .and('contain.text', 'km')
       .and('contain.text', 'Distance');
 
-    cy.get('[aria-label="All-time totals"] .activities-route__agg-stat')
+    cy.get('[aria-label="Visible activity totals"] .activities-route__agg-stat')
       .eq(2)
-      .should('contain.text', '31,330')
+      .should('contain.text', totalCalories)
       .and('contain.text', 'Calories');
   });
 
-  it('renders the three mock activity cards with summary content', () => {
-    cy.get('.activity-detail-card').should('have.length', 3);
+  it('renders the mock activity cards with summary content', () => {
+    cy.get('.activity-detail-card').should('have.length', totalSessions);
+    cy.contains(
+      '.activities-route__section-copy',
+      `Showing ${totalSessions} of ${totalSessions} activities.`,
+    ).should('be.visible');
 
     cy.contains('.activity-detail-card__title', 'Sommet Saint-Sauveur').should(
       'be.visible',
