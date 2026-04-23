@@ -219,11 +219,13 @@ def get_cached_progress_series(
 ) -> ProgressSeries:
     """Wrap the existing progress calculation in a lightweight in-memory cache."""
 
+    normalized_provider = provider.strip().lower() if provider else None
+
     return goal_progress_cache.get_or_compute(
         goal_id=goal.id,
         user_id=goal.user_id,
         granularity=granularity.strip().lower(),
-        provider=provider,
+        provider=normalized_provider,
         producer=lambda: generate_progress_series(
             goal=goal,
             activities=activities,
