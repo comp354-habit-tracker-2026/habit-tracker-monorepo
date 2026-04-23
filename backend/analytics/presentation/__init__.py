@@ -1,3 +1,18 @@
-from .views import AnalyticsOverviewView, HealthIndicatorsView
+from .views import (AnalyticsOverviewView, HealthIndicatorsView, InactivitiesView, HealthTrackingView, HealthForecastView, GoalProgressSeriesView,
+    # ActivityStatisticsView,
+    # PersonalRecordsView,
+    # ActivityTypeBreakdownView,
+    # WeeklySummaryView,
+    # ActivityStreaksView,
+    ActivityForecastView,
+    GoalInsightsView, GoalCompletionRateView,AtRiskGoalsView, GoalsAnalyticsSummaryView,)
 
-__all__ = ["AnalyticsOverviewView", "HealthIndicatorsView"]
+__all__ = ["AnalyticsOverviewView", "HealthIndicatorsView", "InactivitiesView", "HealthTrackingView", "HealthForecastView", "GoalProgressSeriesView",
+    # "ActivityStatisticsView",
+    # "PersonalRecordsView",
+    # "ActivityTypeBreakdownView",
+    # "WeeklySummaryView",
+    # "ActivityStreaksView",
+    "ActivityForecastView",
+    "GoalInsightsView","GoalCompletionRateView","AtRiskGoalsView", "GoalsAnalyticsSummaryView",
+    ]

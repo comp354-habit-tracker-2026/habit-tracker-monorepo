@@ -4,6 +4,15 @@ from rest_framework.views import APIView
 
 from analytics.business import AnalyticsService
 
+#team 13 and 14
+from analytics.data.repositories import AnalyticsRepository
+
+#team 12
+#from analytics.team12.services import Team12AnalyticsService
+
+#team 15
+from goals.business import GoalService
+
 from dataclasses import dataclass
 from datetime import date, timedelta
 import logging
@@ -14,6 +23,9 @@ from django.http import JsonResponse
 from activities.models import Activity
 from goals.models import Goal
 from analytics.progress_series.models import DemoGoal, DemoActivity
+
+import logging
+logger = logging.getLogger(__name__)
 
 from analytics.progress_series.service import (
     InvalidGranularityError,
@@ -35,7 +47,60 @@ class AnalyticsOverviewView(APIView):
             "forecast": service.forecast_preview(request.user),
         }
         return Response(data)
-    
+
+#team 12
+# class ActivityStatisticsView(APIView):
+#     def get(self, request):
+#         user = request.user
+#
+#         service = Team12AnalyticsService()
+#         data = service.activity_statistics(user)
+#
+#         return Response(data)
+#
+#
+# class PersonalRecordsView(APIView):
+#     def get(self, request):
+#         user = request.user
+#         service = Team12AnalyticsService()
+#         data = service.personal_records(user)
+#         return Response(data)
+#
+#
+# class ActivityTypeBreakdownView(APIView):
+#     def get(self, request):
+#         user = request.user
+#         service = Team12AnalyticsService()
+#         data = service.activity_type_breakdown(user)
+#         return Response(data)
+#
+#
+# class ActivityStreaksView(APIView):
+#     def get(self, request):
+#         user = request.user
+#         service = Team12AnalyticsService()
+#         data = service.activity_streaks(user)
+#         return Response(data)
+#
+#
+# class WeeklySummaryView(APIView):
+#     def get(self, request):
+#         user = request.user
+#         from_param = request.query_params.get("from")
+#         to_param = request.query_params.get("to")
+#         activity_type = request.query_params.get("activity_type")
+#
+#         service = Team12AnalyticsService()
+#         data = service.weekly_summary(
+#             user=user,
+#             from_param=from_param,
+#             to_param=to_param,
+#             activity_type=activity_type,
+#         )
+#
+#         return Response(data)
+
+
 # ============================================================
 # G13 - cathytham - InactivityDetector - PR #241
 # ============================================================
@@ -48,7 +113,154 @@ class HealthIndicatorsView(APIView):
             "activity_statistics": service.activity_statistics(request.user),
             "inactivity_evaluation": service.inactivity_evaluation(request.user),
         })
+    #team 13
+    
+class InactivitiesView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        service = AnalyticsRepository()
+        data_from_service = service.inactivity_evaluation(request.user)
+        data = {
+            "days_since_last_activity": data_from_service.get("days_since_last_activity"),
+            "inactive": data_from_service.get("inactive"),
+            "severity": data_from_service.get("severity"),
+        }
+        return Response(data)
+    
+class HealthTrackingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data = {
+            "weekly_goal_completion":service.trend_snapshot(request.user), #currently no data yet
+        }
+               
+        return Response(data)
+    
+class HealthForecastView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()
+        data = {
+            "next_week_prediction" : service.forecast_preview(request.user), #currently no data yet
+        }
+               
+        return Response(data)
+
+#team 14
+class ActivityForecastView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = AnalyticsRepository()     #placeholder service
+        try:
+            data = service.forecast_preview(request.user)   #placeholder call
+            response_data = {
+                "predictions": data.get("predictions", []),  #list of {date,predictedValue} obj
+                "metadata": {
+                    "methodUsed": request.query_params.get("method", "baseline"),
+                    "windowK": request.query_params.get("windowK", 3),
+                    "fallbackUsed": data.get("fallbackUsed", False),
+                }
+            }
+            return Response(response_data)
+        except Exception:
+            logger.exception("Error while generating activity forecast")
+            return Response(
+                {"Forecasting Engine Error": "An internal error occurred while generating the activity forecast."},
+                status=500,
+            )
+
+class GoalsAnalyticsSummaryView(APIView): #top level goals summary
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        summaries = [service.get_status_summary(g) for g in queryset]
+
+        data = {
+            "totalGoals": len(summaries),
+            "achieved": sum(1 for g in summaries if g["status"] == "ACHIEVED"),
+            "onTrack": sum(1 for g in summaries if g["status"] == "ON_TRACK"),
+            "atRisk": sum(1 for g in summaries if g["status"] == "AT_RISK"),
+            "missed": sum(1 for g in summaries if g["status"] == "MISSED"),
+            "averageCompletion": (
+                sum(g["percentComplete"] for g in summaries) / len(summaries)
+                if summaries else 0
+            ),
+        }
+
+        return Response(data)
+
+class AtRiskGoalsView(APIView): #returns goals that are at risk of being broken
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        data = [
+            s for g in queryset
+            if (s := service.get_status_summary(g))["status"] == "AT_RISK"
+        ]
+
+        return Response({
+            "count": len(data),
+            "goals": data
+        })
+
+class GoalCompletionRateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        summaries = [service.get_status_summary(g) for g in queryset]
+
+        total = len(summaries)
+        achieved = sum(1 for g in summaries if g["status"] == "ACHIEVED")
+
+        return Response({
+            "completionRate": (achieved / total * 100) if total else 0
+        })
+
+class GoalInsightsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        service = GoalService()
+        queryset = service.get_user_queryset(request.user, request.query_params)
+
+        summaries = [service.get_status_summary(g) for g in queryset]
+
+        at_risk = [g for g in summaries if g["status"] == "AT_RISK"]
+        missed = [g for g in summaries if g["status"] == "MISSED"]
+
+        insights = []
+
+        if len(at_risk) > 0:
+            insights.append(f"{len(at_risk)} goals are at risk")
+
+        if len(missed) > 0:
+            insights.append(f"{len(missed)} goals missed their deadline")
+
+        if summaries:
+            avg = sum(g["percentComplete"] for g in summaries) / len(summaries)
+            if avg < 50:
+                insights.append("Overall progress is below 50%")
+
+        return Response({
+            "insights": insights,
+            "atRiskGoals": at_risk,
+            "missedGoals": missed,
+        })
+    
 class GoalProgressSeriesView(APIView):
     """Return chart-ready goal progress data for the authenticated user."""
 
