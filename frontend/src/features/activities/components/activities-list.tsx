@@ -1,35 +1,37 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
 import { ActivityListSkeleton } from './activity-list-skeleton';
 import { ActivityCard } from './activity-card';
 import { SortControl, type SortOption } from './sort-control';
 import { SearchBar } from './search-bar';
+import { FilterBar } from './filter-bar';
+
 import { useActivities } from '../api/get-activities';
 import type { Activity } from '../types/activity';
+import type { ActivityFilters } from '../types/filters';
 
 type ActivitiesListProps = {
   onActivityClick?: (activity: Activity) => void;
 };
 
-/**
- * Renders the full list of user's activities.
- * Handles loading, error, and empty states.
- * Data fetching lives in the API layer (useActivities).
- * 
- * Adds refresh/sync functionality to re-trigger API calls
- * Implements client-side sorting and searching
- */
 export function ActivitiesList({ onActivityClick }: ActivitiesListProps) {
   const activitiesQuery = useActivities();
+
   const [sortOption, setSortOption] = useState<SortOption>('date-newest');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter and sort activities (client-side, no API re-fetch)
-  // MUST be called unconditionally at top level (Rules of Hooks)
-  const filteredAndSortedActivities = useMemo(() => {
-    const allActivities = activitiesQuery.data ?? [];
-    let result = [...allActivities];
+  const [filters, setFilters] = useState<ActivityFilters>({
+    selectedTypes: [],
+    startDate: '',
+    endDate: '',
+  });
 
-    // Apply search filter
+  // Combined filtering + search + sorting
+  const processedActivities = useMemo(() => {
+    const all = activitiesQuery.data ?? [];
+    let result = [...all];
+
+    // Search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((activity) =>
@@ -39,7 +41,10 @@ export function ActivitiesList({ onActivityClick }: ActivitiesListProps) {
       );
     }
 
-    // Apply sorting
+    // Filter (your feature)
+    result = filterActivities(result, filters);
+
+    // Sort
     result.sort((a, b) => {
       switch (sortOption) {
         case 'date-newest':
@@ -49,118 +54,98 @@ export function ActivitiesList({ onActivityClick }: ActivitiesListProps) {
         case 'duration':
           return b.duration - a.duration;
         case 'distance':
-          const aDistance = a.distance ?? 0;
-          const bDistance = b.distance ?? 0;
-          return bDistance - aDistance;
+          return (b.distance ?? 0) - (a.distance ?? 0);
         default:
           return 0;
       }
     });
 
     return result;
-  }, [activitiesQuery.data, searchQuery, sortOption]);
+  }, [activitiesQuery.data, searchQuery, sortOption, filters]);
 
-  // Loading state
-  if (activitiesQuery.isLoading) {
-    return <ActivityListSkeleton />;
-  }
+  if (activitiesQuery.isLoading) return <ActivityListSkeleton />;
 
-  // Error state
   if (activitiesQuery.isError) {
-    return (
-      <div className="activities-list__error" role="alert">
-        <p className="activities-list__error-message">
-          Failed to load activities. Please try again.
-        </p>
-        <button
-          className="activities-list__retry-button"
-          onClick={() => activitiesQuery.refetch()}
-          disabled={activitiesQuery.isRefetching}
-        >
-          {activitiesQuery.isRefetching ? 'Retrying...' : 'Retry'}
-        </button>
-      </div>
-    );
+    return <p>Failed to load activities.</p>;
   }
 
   const allActivities = activitiesQuery.data ?? [];
 
-  // No results state (after filtering)
-  if (filteredAndSortedActivities.length === 0 && allActivities.length > 0) {
-    return (
-      <div>
-        <div className="activities-list__controls">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <SortControl value={sortOption} onChange={setSortOption} />
-        </div>
-        <div className="activities-list__no-results" role="status">
-          <p className="activities-list__no-results-message">
-            No activities match your search "{searchQuery}".
-          </p>
-          <button
-            className="activities-list__clear-search"
-            onClick={() => setSearchQuery('')}
-          >
-            Clear search
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const availableTypes = Array.from(
+    new Set(allActivities.map((a) => a.activity_type))
+  ).sort();
 
-  // Empty state (no activities at all)
   if (allActivities.length === 0) {
-    return (
-      <div className="activities-list__empty" role="status">
-        <p className="activities-list__empty-message">
-          No activities yet. Start tracking your first activity!
-        </p>
-        {/*Refresh button for empty state */}
-        <button
-          className="activities-list__refresh-button"
-          onClick={() => activitiesQuery.refetch()}
-          disabled={activitiesQuery.isRefetching}
-        >
-          {activitiesQuery.isRefetching ? '⟳ Syncing...' : '⟳ Sync Activities'}
-        </button>
-      </div>
-    );
+    return <p>No activities yet.</p>;
   }
 
-  // Success state - render list with controls
   return (
     <div>
-      {/* Controls: Search and Sort */}
+      {/* Controls */}
       <div className="activities-list__controls">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         <SortControl value={sortOption} onChange={setSortOption} />
       </div>
-      
-      {/* AI-WRITTEN: Refresh/Sync button at top of list with loading indicator */}
-      <div className="activities-list__header">
-        <button
-          className="activities-refresh-button"
-          onClick={() => activitiesQuery.refetch()}
-          disabled={activitiesQuery.isRefetching}
-          aria-label="Refresh activities from Insights API"
-        >
-          <span className={activitiesQuery.isRefetching ? 'spin' : ''}>⟳</span>
-          <span className="activities-refresh-button__text">
-            {activitiesQuery.isRefetching ? 'Syncing...' : 'Sync'}
-          </span>
-        </button>
-      </div>
-      
-      <ul className="activities-list" role="list">
-        {filteredAndSortedActivities.map((activity) => (
-          <li key={activity.id} className="activities-list__item">
-            <ActivityCard
-              activity={activity}
-              onClick={onActivityClick}
-            />
+
+      <FilterBar
+        availableTypes={availableTypes}
+        selectedTypes={filters.selectedTypes}
+        startDate={filters.startDate}
+        endDate={filters.endDate}
+        onTypeToggle={(type) => {
+          setFilters((prev) => ({
+            ...prev,
+            selectedTypes: prev.selectedTypes.includes(type)
+              ? prev.selectedTypes.filter((t) => t !== type)
+              : [...prev.selectedTypes, type],
+          }));
+        }}
+        onStartDateChange={(value: string) =>
+          setFilters((prev) => ({ ...prev, startDate: value }))
+        }
+        onEndDateChange={(value: string) =>
+          setFilters((prev) => ({ ...prev, endDate: value }))
+        }
+        onClearFilters={() =>
+          setFilters({ selectedTypes: [], startDate: '', endDate: '' })
+        }
+      />
+
+      <p>
+        Showing {processedActivities.length} of {allActivities.length} activities
+      </p>
+
+      <ul>
+        {processedActivities.map((activity) => (
+          <li key={activity.id}>
+            <ActivityCard activity={activity} onClick={onActivityClick} />
           </li>
         ))}
       </ul>
     </div>
   );
 }
+
+function filterActivities(
+  activities: Activity[],
+  filters: ActivityFilters
+): Activity[] {
+  return activities.filter((activity) => {
+    const matchesType =
+      filters.selectedTypes.length === 0 ||
+      filters.selectedTypes.includes(activity.activity_type);
+
+    const activityDate = new Date(activity.date);
+
+    const matchesStartDate =
+      !filters.startDate ||
+      activityDate >= new Date(`${filters.startDate}T00:00:00`);
+
+    const matchesEndDate =
+      !filters.endDate ||
+      activityDate <= new Date(`${filters.endDate}T23:59:59.999`);
+
+    return matchesType && matchesStartDate && matchesEndDate;
+  });
+}
+
