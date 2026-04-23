@@ -81,9 +81,12 @@ class GoalProgressCache:
             return deepcopy(cached)
 
         computed = producer()
+        stored = deepcopy(computed)
+
         with self._lock:
-            self._entries[key] = deepcopy(computed)
-        return computed
+            self._entries[key] = stored
+
+        return deepcopy(stored)
 
     def invalidate_for_user(self, user_id: int) -> None:
         next_version = self._version_store.bump(user_id)
