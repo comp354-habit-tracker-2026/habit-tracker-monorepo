@@ -74,6 +74,8 @@ INSTALLED_APPS = [
     'analytics',
     'notifications',
     'data_integration',
+    'core',
+    'gamification'
 ]
 
 MIDDLEWARE = [
@@ -180,12 +182,5 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-]
+STRAVA_CLIENT_ID = os.environ.get('STRAVA_CLIENT_ID')
+STRAVA_CLIENT_SECRET = os.environ.get('STRAVA_CLIENT_SECRET')
