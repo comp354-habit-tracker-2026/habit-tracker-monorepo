@@ -1,9 +1,10 @@
 from django.urls import include, path
 from django.http import JsonResponse
 from rest_framework.routers import DefaultRouter
-from .views import StravaAuthViewSet
+from .views import FileRecordViewSet, StravaAuthViewSet, WeskiUploadViewSet, upload_mapmyrun_file
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from data_integration.presentation.mapmyrun_views import get_mapmyrun_activities
 
 # 1. Create a simple view for the root of the integration path
 # Use this to test that you can connect to this subsystem in the first place
@@ -18,9 +19,9 @@ def integration_root(request):
 # The @action decorators in your ViewSet (connect/refresh) 
 # will automatically become /strava/connect/ and /strava/refresh/
 router = DefaultRouter()
+router.register(r'files', FileRecordViewSet, basename="file-record")
 router.register(r'strava', StravaAuthViewSet, basename="strava")
-# Later you can add: router.register(r'mywhoosh', MyWhooshViewSet, basename="mywhoosh")
-# etc. for other integrations.
+router.register(r'weski', WeskiUploadViewSet, basename="weski")
 
 urlpatterns = [
         # This handles the literal "/data-integration/" path
@@ -29,4 +30,7 @@ urlpatterns = [
         # This includes all the routes the router generated
         # Result: /data-integration/strava/connect/
         path('', include(router.urls)),
+
+        path('upload/mapmyrun/<int:user_id>/', upload_mapmyrun_file, name='upload-mapmyrun-file'),
+        path("activities/mapmyrun/<int:user_id>/", get_mapmyrun_activities, name='get-mapmyrun-activities'),
 ]
