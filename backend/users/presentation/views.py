@@ -105,5 +105,8 @@ def update_user_profile(request, user_id):
             "weight": user.weight,
             "avatar": user.avatar.url if user.avatar else None
         })
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        return Response(
+            {"error": "Unable to update user profile."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
