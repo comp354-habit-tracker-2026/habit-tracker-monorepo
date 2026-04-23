@@ -122,7 +122,7 @@ Prerequisites:
 ```
 
 - Exports the database to a backup file.
-- Default filename is `db_timestamp.dump`.
+- Default output is `backups/habit_tracker_<timestamp>.dump`.
 
 ### Restore 
 ```bash
@@ -135,7 +135,7 @@ Prerequisites:
 ### Automation
 cron daily at 02:00:
 ```bash
-0 2 * * * cd ~/habit-tracker-monorepo/backend && /usr/bin/env bash scripts/db-backup-latest.sh
+0 2 * * * cd ~/habit-tracker-monorepo/backend && /usr/bin/env bash scripts/db-backup.sh
 ```
 
 ## API Namespaces
