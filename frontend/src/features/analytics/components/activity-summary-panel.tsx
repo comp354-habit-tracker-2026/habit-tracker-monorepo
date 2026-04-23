@@ -20,9 +20,9 @@ export function ActivitySummaryPanel() {
     <div>
       <h2>Activity Summary</h2>
       <ul>
-        <li>Total Distance: {stats.total_distance} km</li>
+        <li>Total Distance: {stats.total_distance.toFixed(2)} km</li>
         <li>Total Calories: {stats.total_calories} kcal</li>
-        <li>Average Duration: {stats.average_duration} min</li>
+        <li>Average Duration: {stats.average_duration.toFixed(0)} min</li>
         <li>Total Activities: {stats.activity_count}</li>
       </ul>
     </div>
