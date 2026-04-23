@@ -3,6 +3,7 @@
 //import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api-client';
+import axios from 'axios';
 
 type userRegist = {
   'username': string;
@@ -26,13 +27,55 @@ type userLogin = {
 //   const response = await apiClient.get<{ results: User[] }>('/api/v1/auth/login/');
 //   return (response as unknown as { results: User[] }).results;
 // }
-async function checkRegistration(data: userRegist) {
-  const response = await apiClient.post('/api/v1/auth/register/', data);
-  return response;
+// export async function checkRegistration(data: userRegist) {
+//   console.log("userRegist = ", data);
+//   try {
+//     const response = await apiClient.post('/api/v1/auth/register/', data)
+//     if(!(response instanceof Error))
+//     {
+//       console.log("send post success");
+//     }
+//     return (response);
+//   } catch(err) {
+//     if(err instanceof Error)
+//     {
+//       console.log("error send post.");
+//     }
+//   };
+// }
+export async function checkRegistration(data: userRegist) {
+  try {
+    const response = await apiClient.post('/api/v1/auth/register/', data);
+
+    return {
+      ok: true,
+      status: response.status,
+      data: response.data,
+      message: null,
+    };
+  } catch (err: unknown) {
+      console.log("WRAPPER ERROR:", err);
+
+      if (axios.isAxiosError(err)) {
+          return {
+              ok: false,
+              status: err.response?.status ?? null,
+              data: err.response?.data ?? null,
+              message: err.message,
+          };
+      }
+
+      return {
+          ok: false,
+          status: null,
+          data: null,
+          message: err instanceof Error ? err.message : "Unknown error",
+      };
+  }
 }
-async function checkLogin(data: userLogin) {
-  const response = await apiClient.post('/api/v1/auth/login/', data);
-  return response;
+
+export async function checkLogin(data: userLogin) {
+  return await apiClient.post('/api/v1/auth/login/', data);
 }
 
 // ---------------------------------------------------------------------------

@@ -6,11 +6,57 @@
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
+  
+  background-color: rgba(97, 181, 255, 0.723);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+
+.hide {
+  display: none;
+}
+
+.offscreen {
+  display: none;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    flex-grow: 1;
+    padding-bottom: 1rem;
+}
+
+.valid {
+    color: rgb(46, 162, 46);
+    margin-left: 0.25rem;
+}
+
+.invalid {
+    color: rgb(223, 34, 34);
+    margin-left: 0.25rem;
+}
+
+.errmsg {
+    background-color: lightpink;
+    color: firebrick;
+    font-weight: bold;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.instructions {
+    border-radius: 0.5rem;
+    background: rgb(5, 29, 49);
+    color: rgb(152, 207, 255);
+    padding: 0.25rem;
+    position: relative;
+    bottom: -10px;
 }
 
 a {
@@ -44,6 +90,7 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  margin-top: 1rem;
 }
 button:hover {
   border-color: #646cff;

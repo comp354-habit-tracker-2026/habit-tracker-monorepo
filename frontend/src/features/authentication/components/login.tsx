@@ -5,14 +5,19 @@
 import { Link } from 'react-router';
 import { paths } from '@/config/paths';
 
-//import React from "react";
-import { useRef, useState, useEffect} from 'react';
-//import { useRef, useState, useEffect, useContext } from 'react';
-//import AuthContext from '../context/auth-provider';
-// import { useLogin } from '../api/get-authentification';
+import React from "react";
+import { useRef, useState, useEffect, useContext } from 'react';
+import AuthContext from '@/app/context/auth-provider';
+import { checkLogin } from '../api/get-authentification';
+import axios from "axios";
+
+type user = {
+  'username': string;
+  'password': string;
+}
 
 export function Login () {
-  //const { setAuth } = useContext(AuthContext);
+  const { setAuth } = useContext(AuthContext);
   const userRef = useRef<HTMLInputElement | null>(null);
   const errRef = useRef<HTMLParagraphElement | null>(null);
   
@@ -31,44 +36,52 @@ export function Login () {
     setUser('');
     setPwd('');
     setSuccess(true);
-    //console.log(user, pwd);
-    // try {
-    //   const response = await axiosCreate.post(LOGIN_URL, 
-    //     {user, pwd},
-    //   const response = await apiClient.post(LOGIN_URL, 
-    //     {user, pwd},
-    //     //JSON.stringify({userName: user, passWord: pwd})) 
-    //   {
-    //     headers: { 'Content-Type': 'application/json'},
-    //     withCredentials: true
-    //   }
-    //   );
-    //   console.log(JSON.stringify(response?.data)); //chat
-    //   //console.log(JSON.stringify(response));
-    //   const accessToken = response?.data?.accessToken;
-    //   const roles = response?.data?.roles; //chat
-    //   setAuth({ user, pwd, roles, accessToken });      
-    //   setUser('');
-    //   setPwd('');
-    //   setSuccess(true);
-    // } catch (err) {
-    //   if (err instanceof Error) {
-    //     if (!err.response) {
-    //       setErrMsg("No Server Response");
-    //     } else if (err.response.status === 400) {
-    //       setErrMsg("Missing Username or Password");
-    //     } else if (err.response.status === 401) {
-    //       setErrMsg("Unauthorized");
-    //     } else {
-    //       setErrMsg("Login Failed");
-    //     }
-    //     } else {
-    //       setErrMsg("Unexpected Error");
-    //     }
+    console.log(user, pwd);
+    try {
+      const person: user = { 'username': user, 'password': pwd };
+      const response = await checkLogin(person);
+      console.log(JSON.stringify(response?.data)); //chat
+      const accessToken = response?.data?.accessToken;
+      const roles = response?.data?.roles; //chat
+      setAuth({ user, pwd, roles, accessToken });      
+      setUser('');
+      setPwd('');
+      setSuccess(true);
+    } catch (err) {
+        if (axios.isAxiosError(err)) {
+            const status = err.response?.status;
 
-    //     errRef.current?.focus();
-    // }
-  }
+            const data = err.response?.data;
+
+            console.log("backend error:", data);
+
+            if (status === 400) {
+                setErrMsg(
+                    typeof data === "string"
+                        ? data
+                        : data?.detail ||
+                        data?.message ||
+                        JSON.stringify(data)
+                );
+            }
+            else if (status === 401) {
+              setErrMsg("Unauthorized");
+            } 
+            else if (status === 400) {
+                setErrMsg("Missing Username or Password");
+            } 
+            else {
+                setErrMsg("Login Failed");
+            }
+
+            errRef.current?.focus();
+        } 
+        else {
+            setErrMsg("Unexpected Error");
+        }
+    
+      }
+    }
 
   //error message
   return (

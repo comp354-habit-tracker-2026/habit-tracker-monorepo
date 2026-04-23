@@ -11,11 +11,12 @@ import { paths } from '@/config/paths';
 import {useRef, useState, useEffect } from 'react';
 import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useRegistration } from '@/features/authentication/api/get-authentification';
+import { checkRegistration } from '@/features/authentication/api/get-authentification';
 import * as emailValidator from 'email-validator';
 
-const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/; //recheck
-const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/; //recheck, min 8 length + 1 character
+//chat
+const USER_REGEX = /^[A-Za-z0-9_-]{3,23}$/;
+const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*(\d|[!@#$%])).{8,24}$/;
 type user = {
   'username': string;
   'email': string;
@@ -28,57 +29,33 @@ export function Registration() {
     const errRef = useRef<HTMLInputElement | null>(null);
 
     const [user, setUser] = useState('');
-    // const [validName, setValidName] = useState(false);
-    const [validName] = useState(false);
     const [userFocus, setUserFocus] = useState(false);
+    const validName = USER_REGEX.test(user);
 
     const [email, setEmail] = useState('');
     const [emailFocus, setEmailFocus] = useState(false);
     const validEmail = emailValidator.validate(email);
 
     const [pwd, setPwd] = useState('');
-    // const [validPwd, setValidPwd] = useState(false);
-    const [validPwd] = useState(false);
     const [pwdFocus, setPwdFocus] = useState(false);
 
     const [matchPwd, setMatchPwd] = useState('');
-    // const [validMatch, setValidMatch] = useState(false);
-    const [validMatch] = useState(false);
     const [matchFocus, setMatchFocus] = useState(false);
+
+    const validMatch = pwd === matchPwd;
+    const validPwd = PWD_REGEX.test(pwd);
 
     const [errMsg, setErrMsg] = useState('');
     const [success, setSuccess] = useState(false);
+    
     useEffect(() => {
         userRef.current?.focus();
     }, [])
 
-    useEffect(() => {
-        const result = USER_REGEX.test(user);
-        console.log("user regex = ", result);
-        console.log("user = ", user);
-        //setValidName(USER_REGEX.test(user));
-        //setValidName(user);
-    }, [user])
-
-    useEffect(() => {
-        const resultPwd = PWD_REGEX.test(pwd);
-        console.log("pwd regex = ", resultPwd);
-        console.log("pwd = ", pwd);
-        console.log("matchpwd = ", matchPwd);
-        // setValidPwd(PWD_REGEX.test(pwd));
-        // setValidMatch(pwd === matchPwd);
-    }, [pwd, matchPwd])
-
-    // useEffect(() => {
-    //     setErrMsg('');
-    // }, [user, pwd, matchPwd])
-
-    const person: user = { 'username': user, 'email': '456', 'password': pwd, 'password2': matchPwd };
-    const response = useRegistration(person);
     //(e): chat + suggestion to submit
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // if button enabled with JS hack
+        //if button enabled with JS hack
         const v1 = USER_REGEX.test(user);
         const v2 = PWD_REGEX.test(pwd);
         if (!v1 || !v2) {
@@ -86,20 +63,23 @@ export function Registration() {
             return;
         }
 
-        if ((await response).status === 201){
-            setSuccess(true); //check
+        const person: user = { 'username': user, 'email': email, 'password': pwd, 'password2': matchPwd };
+        const response = await checkRegistration(person);
+
+        if (!response?.ok) {
+
+            let message = "Username is already taken.";
+
+            if (response.status === 400) {
+                message = "Registration failed.";
+            }
+
+            setErrMsg(message);
+            return;
         }
-        else if ((await response).status === 400) {
-            //username taken, password too short: >= 8 characters & too common & entirely numeric 
-            setErrMsg((await response).statusText);
-        }
-        else if ((await response).status === 409) {
-            setErrMsg("Username already taken.");
-        }
-        else {
-            setErrMsg('Registration Failed.')
-        }
-        //errRef.current.focus();
+
+        // success path
+        setSuccess(true);
     }
 
     return (
@@ -128,21 +108,22 @@ export function Registration() {
                     <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
                     <form onSubmit={handleSubmit}>
                         <label htmlFor="username">
+                            < br/>
                             Username:
-                            <span className= {validName ? "valid" : "hide"}>
-                                <FontAwesomeIcon icon={faCheck} className={validName ? "valid" : "hide"} />
-                            </span>
-                            <span className = {validName || !user ? "hide" : "invalid"}>
-                                <FontAwesomeIcon icon={faTimes} className={validName || !user ? "hide" : "invalid"} />
-                            </span>
-                            
+                            <FontAwesomeIcon icon={faCheck} className={validName ? 'valid' : 'hide'} />
+                            <FontAwesomeIcon icon={faTimes} className={validName || !user? 'hide' : 'invalid'} />
+                            < br/>
                         </label>
                         <input
                             type="text"
                             id="username"
                             ref={userRef}
                             autoComplete="off"
-                            onChange={(e) => setUser(e.target.value)}
+                            //chat+suggestion
+                            onChange={(e) => {
+                                setUser(e.target.value);
+                                setErrMsg('');
+                            }}
                             value={user}
                             required
                             aria-invalid={validName ? "false" : "true"}
@@ -150,67 +131,83 @@ export function Registration() {
                             onFocus={() => setUserFocus(true)}
                             onBlur={() => setUserFocus(false)}
                         />
-                        <p id="uidnote" className={userFocus && user && !validName ? "instructions" : "offscreen"}>
+                        <p id="uidnote" className={userFocus && user && !validName ? "instructions" : "offscreen"} style={{fontSize: "14px"}}>
                             <FontAwesomeIcon icon={faInfoCircle} />
                             4 to 24 characters.<br />
-                            Must begin with a letter.<br />
                             Letters, numbers, underscores, hyphens allowed.
                         </p>
 
                         <label htmlFor='email'>
+                            < br/>
                             Email:
                             <FontAwesomeIcon icon={faCheck} className={validEmail ? "valid" : "hide"} />
                             <FontAwesomeIcon icon={faTimes} className={validEmail || !email ? "hide" : "invalid"} />
+                            < br/>
                         </label>
                         <input
                             type="email"
                             id="email"
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                                setErrMsg('');
+                            }}
                             value={email}
                             required
-                            aria-invalid={validEmail ? "false" : "true"}
+                            aria-invalid={email ? (validEmail ? "false" : "true") : "false"}
                             aria-describedby="emailnote"
                             onFocus={() => setEmailFocus(true)}
                             onBlur={() => setEmailFocus(false)}
                         />
-                        <p id="emailnote" className={emailFocus && !validEmail ? "instructions" : "offscreen"}>
+                        <p id="emailnote" className={emailFocus && email && !validEmail ? "instructions" : "offscreen"} style={{fontSize: "14px"}}>
                             <FontAwesomeIcon icon={faInfoCircle} />
-                            The email entered is not valid or does not exist.< br/>                            
+                            The email entered is not valid or it does not exist.                           
                         </p>
 
                         <label htmlFor="password">
+                            < br/>
                             Password:
                             <FontAwesomeIcon icon={faCheck} className={validPwd ? "valid" : "hide"} />
                             <FontAwesomeIcon icon={faTimes} className={validPwd || !pwd ? "hide" : "invalid"} />
+                            < br/>
                         </label>
                         <input
                             type="password"
                             id="password"
-                            onChange={(e) => setPwd(e.target.value)}
+                            onChange={(e) => {
+                                setPwd(e.target.value);
+                                setErrMsg('');
+                            }}
                             value={pwd}
                             required
-                            aria-invalid={validPwd ? "false" : "true"}
+                            aria-invalid={pwd ? (validPwd ? "false" : "true") : "false"}
                             aria-describedby="pwdnote"
                             onFocus={() => setPwdFocus(true)}
                             onBlur={() => setPwdFocus(false)}
                         />
-                        <p id="pwdnote" className={pwdFocus && !validPwd ? "instructions" : "offscreen"}>
+                        <p id="pwdnote" className={pwdFocus && pwd && !validPwd ? "instructions" : "offscreen"} style={{fontSize: "14px"}}>
                             <FontAwesomeIcon icon={faInfoCircle} />
-                            8 to 24 characters.<br />
-                            Must include uppercase and lowercase letters, a number and a special character.<br />
-                            Allowed special characters: <span aria-label="exclamation mark">!</span> <span aria-label="at symbol">@</span> <span aria-label="hashtag">#</span> <span aria-label="dollar sign">$</span> <span aria-label="percent">%</span>
-                        </p>
+                            Must have 8 characters minimum.<br />
+                            Must not be common nor numeric only, use at least: <br />
+                            _1 uppercase letter, <br />
+                            _1 lowercase letters, <br />
+                            _1 number or 1 special character.
+                            </p>
 
 
                         <label htmlFor="confirm_pwd">
+                            < br/>
                             Confirm Password:
-                            <FontAwesomeIcon icon={faCheck} className={validMatch && matchPwd ? "valid" : "hide"} />
-                            <FontAwesomeIcon icon={faTimes} className={validMatch || !matchPwd ? "hide" : "invalid"} />
+                            <FontAwesomeIcon icon={faCheck} className={validPwd ? "valid" : "hide"} />
+                            <FontAwesomeIcon icon={faTimes} className={validPwd || !pwd ? "hide" : "invalid"} />
+                            < br/>
                         </label>
                         <input
                             type="password"
                             id="confirm_pwd"
-                            onChange={(e) => setMatchPwd(e.target.value)}
+                            onChange={(e) => {
+                                setMatchPwd(e.target.value);
+                                setErrMsg('');
+                            }}
                             value={matchPwd}
                             required
                             aria-invalid={validMatch ? "false" : "true"}
@@ -223,7 +220,7 @@ export function Registration() {
                             Must match the first password input field.
                         </p>
                         <br />
-                        <button disabled={!validName || !validPwd || !validMatch ? true : false}>Sign Up</button>
+                        <button disabled={!validName || !validPwd ? true : false}>Sign Up</button>
                     </form>
                     <p>
                         Already registered?<br />

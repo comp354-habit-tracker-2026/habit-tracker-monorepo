@@ -15,5 +15,8 @@ export default defineConfig(() => {
       target: 'esnext',
       assetsDir: 'assets',
     },
+    server: {
+    port: 3000
+  },
   };
 });
