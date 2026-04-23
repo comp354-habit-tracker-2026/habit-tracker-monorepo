@@ -1,21 +1,18 @@
 from django.contrib.auth import get_user_model
-from rest_framework import generics
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.views import APIView
-from users.business.services import UserDeletionService
-
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import generics, status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .repositories import UserRepository
+
 from users.serializers import (
     RegisterSerializer,
-    UserSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
     CustomTokenObtainPairSerializer,
@@ -29,14 +26,6 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer
 
-class UserDeleteView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def delete(self, request, *args, **kwargs):
-        service = UserDeletionService()
-        service.execute(request.user)
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class PasswordResetRequestView(APIView):
     permission_classes = (AllowAny,)
@@ -99,14 +88,25 @@ class PasswordResetConfirmView(APIView):
         )
 
 
-class MeView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class LoginView(TokenObtainPairView):
     permission_classes = (AllowAny,)
     serializer_class = CustomTokenObtainPairSerializer
+
+
+user_repo = UserRepository()
+@api_view(['PATCH'])
+def update_user_profile(request, user_id):
+    try:
+        user = user_repo.update_user(user_id, **request.data)
+        return Response({
+            "id": user.id,
+            "name": user.name,
+            "height": user.height,
+            "weight": user.weight,
+            "avatar": user.avatar.url if user.avatar else None
+        })
+    except Exception:
+        return Response(
+            {"error": "Unable to update user profile."},
+            status=status.HTTP_400_BAD_REQUEST
+        )

@@ -30,10 +30,6 @@ function createAppRouter() {
       lazy: () => lazyRoute(() => import('./routes/landing')),
     },
     {
-      path: paths.auth.login.path,
-      lazy: () => lazyRoute(() => import('./routes/login')),
-    },
-    {
       path: paths.app.root.path,
       lazy: () => lazyRoute(() => import('./routes/app/root')),
       children: [
@@ -54,12 +50,8 @@ function createAppRouter() {
         lazy: () => lazyRoute(() => import('./routes/app/activities')),
         },
         {
-        path: paths.app.goals.path,//added for goals
-        lazy: () => lazyRoute(()=> import('./routes/app/goals')),
-        },
-        {
-          path: paths.app.health.path,
-          lazy: () => lazyRoute(() => import('./routes/app/health')),
+          path: paths.app.goals.path,
+          lazy: () => lazyRoute(() => import('./routes/app/goals')),
         },
         {
           path: paths.app.profile.path,
