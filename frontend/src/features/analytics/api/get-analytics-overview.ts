@@ -5,7 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { type AnalyticsOverview } from '../types/analytics';
 
 async function getAnalyticsOverview(): Promise<AnalyticsOverview> {
-  const response = await apiClient.get<AnalyticsOverview>('/analytics/overview');
+  const response = await apiClient.get<AnalyticsOverview>('/api/v1/analytics/overview/');
   return response as unknown as AnalyticsOverview;
 }
 
