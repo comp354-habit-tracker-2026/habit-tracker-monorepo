@@ -1,20 +1,23 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from decimal import Decimal
-from typing import Any, Iterable
 from math import ceil
+from typing import Any, Iterable, Iterator
 from .models import ProgressPoint, ProgressSeries, PaginationMeta
 
 
+from .cache import goal_progress_cache
+from .models import PaginationMeta, ProgressPoint, ProgressSeries
 
 class ProgressSeriesError(Exception):
     """Base error for progress-series generation failures."""
 
+
 class InvalidGranularityError(ProgressSeriesError):
     """Raised when a caller requests an unsupported bucket size."""
+
 
 class UnsupportedGoalTypeError(ProgressSeriesError):
     """Raised when the goal metric cannot be derived from an activity."""
@@ -46,6 +49,38 @@ def paginate_points(points: list[ProgressPoint], page: int, page_size: int):
     )
     return paginated_points, pagination
 
+class InvalidPaginationError(ProgressSeriesError):
+    """Raised when page or page_size is invalid."""
+
+
+def paginate_points(
+    points: list[ProgressPoint],
+    page: int,
+    page_size: int,
+) -> tuple[list[ProgressPoint], PaginationMeta]:
+    if page < 1:
+        raise InvalidPaginationError("Page must be >= 1.")
+    if page_size < 1:
+        raise InvalidPaginationError("Page size must be >= 1.")
+
+    total_items = len(points)
+    total_pages = ceil(total_items / page_size) if total_items > 0 else 1
+
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated_points = points[start:end]
+
+    pagination = PaginationMeta(
+        page=page,
+        page_size=page_size,
+        total_items=total_items,
+        total_pages=total_pages,
+        has_next=page < total_pages,
+        has_previous=page > 1,
+    )
+    return paginated_points, pagination
+
+
 def _to_date(value: Any) -> date:
     """Normalize supported date-like values to a ``date`` instance."""
     if isinstance(value, date) and not isinstance(value, datetime):
@@ -71,7 +106,7 @@ def _start_of_week(d: date) -> date:
     return d - timedelta(days=d.weekday())
 
 
-def _daterange(start: date, end: date):
+def _daterange(start: date, end: date) -> Iterator[date]:
     """Yield each calendar day in the inclusive range [start, end]."""
     current = start
     while current <= end:
@@ -79,7 +114,7 @@ def _daterange(start: date, end: date):
         current += timedelta(days=1)
 
 
-def _weekrange(start: date, end: date):
+def _weekrange(start: date, end: date) -> Iterator[date]:
     """Yield each week bucket start date covering [start, end]."""
     current = _start_of_week(start)
     last = _start_of_week(end)
@@ -135,10 +170,10 @@ def generate_progress_series(
 
         # Ignore records that belong to a different user. This keeps the
         # service safe even if the queryset passed in is broader than expected.
-        if getattr(activity, 'account_id', None):
+        if getattr(activity, "account_id", None):
             activity_user_id = activity.account.user_id
         else:
-            activity_user_id = getattr(activity, 'user_id', None)
+            activity_user_id = getattr(activity, "user_id", None)
         if activity_user_id != goal.user_id:
             continue
 
@@ -201,4 +236,25 @@ def generate_progress_series(
         percent_complete=percent_complete,
         no_data=actual_value == 0,
         points=points,
+    )
+
+
+def get_cached_progress_series(
+    goal: Any,
+    activities: Iterable[Any],
+    granularity: str = "daily",
+    provider: str | None = None,
+) -> ProgressSeries:
+    """Wrap the existing progress calculation in a lightweight in-memory cache."""
+
+    return goal_progress_cache.get_or_compute(
+        goal_id=goal.id,
+        user_id=goal.user_id,
+        granularity=granularity.strip().lower(),
+        provider=provider,
+        producer=lambda: generate_progress_series(
+            goal=goal,
+            activities=activities,
+            granularity=granularity,
+        ),
     )

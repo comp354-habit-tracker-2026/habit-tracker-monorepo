@@ -20,7 +20,7 @@ from analytics.progress_series.service import (
     InvalidPaginationError,
     ProgressSeriesError,
     UnsupportedGoalTypeError,
-    generate_progress_series,
+    get_cached_progress_series,
     paginate_points,
 )
 
@@ -60,6 +60,7 @@ class GoalProgressSeriesView(APIView):
 
     def get(self, request, goal_id: int, *args, **kwargs):
         granularity = request.GET.get("granularity", "daily")
+        provider = request.GET.get("provider") or None
         use_demo = request.GET.get("demo", "false").lower() == "true"
 
         try:
@@ -100,15 +101,18 @@ class GoalProgressSeriesView(APIView):
                 # goal progress data.
                 goal = Goal.objects.get(id=goal_id)
                 activities = Activity.objects.filter(
-                    user=goal.user,
+                    account__user=goal.user,
                     date__gte=goal.start_date,
                     date__lte=goal.end_date,
                 ).order_by("date")
+                if provider:
+                    activities = activities.filter(account__provider=provider)
 
-            result = generate_progress_series(
+            result = get_cached_progress_series(
                 goal=goal,
                 activities=activities,
                 granularity=granularity,
+                provider=provider,
             )
 
             paginated_points, pagination = paginate_points(
