@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import './activities-list.css';
 
 import { ActivityListSkeleton } from './activity-list-skeleton';
 import { ActivityCard } from './activity-card';
