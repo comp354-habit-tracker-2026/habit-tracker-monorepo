@@ -17,9 +17,11 @@ from analytics.progress_series.service import (
     InvalidGranularityError,
     ProgressSeriesError,
     UnsupportedGoalTypeError,
+    paginate_points, InvalidPaginationError
 )
 from analytics.views import GoalProgressSeriesView
 from analytics.progress_series.models import ProgressPoint
+
 
 def _mock_result_with_points(count=65):
     mock_result = MagicMock()
@@ -404,3 +406,35 @@ class GoalProgressSeriesViewTests(SimpleTestCase):
         self.assertEqual(payload["pagination"]["total_pages"], 2)
         self.assertFalse(payload["pagination"]["has_next"])
         self.assertTrue(payload["pagination"]["has_previous"])
+
+
+class PaginatePointsUnitTests(SimpleTestCase):
+    def test_paginate_points_returns_expected_metadata_and_slice(self):
+        points = [
+            ProgressPoint(label=f"p{i}", value=1.0, cumulative=float(i))
+            for i in range(1, 16)
+        ]
+
+        paginated_points, pagination = paginate_points(points, page=2, page_size=10)
+
+        self.assertEqual(len(paginated_points), 5)
+        self.assertEqual(paginated_points[0].label, "p11")
+        self.assertEqual(paginated_points[-1].label, "p15")
+
+        self.assertEqual(pagination.page, 2)
+        self.assertEqual(pagination.page_size, 10)
+        self.assertEqual(pagination.total_items, 15)
+        self.assertEqual(pagination.total_pages, 2)
+        self.assertFalse(pagination.has_next)
+        self.assertTrue(pagination.has_previous)
+
+    def test_paginate_points_raises_for_invalid_page(self):
+        with self.assertRaisesMessage(InvalidPaginationError, "Page must be >= 1."):
+            paginate_points([], page=0, page_size=10)
+
+    def test_paginate_points_raises_for_invalid_page_size(self):
+        with self.assertRaisesMessage(
+            InvalidPaginationError,
+            "Page size must be >= 1.",
+        ):
+            paginate_points([], page=1, page_size=0)
