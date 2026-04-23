@@ -29,3 +29,14 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+
+        indexes = [
+            # Notifications
+            models.Index(fields=['user', 'created_at'], name='idx_notification_user_created'),
+            # Unread notifications
+            models.Index(fields=['user', 'is_read'], name='idx_notification_user_is_read'),
+            # Filter by notification type
+            models.Index(fields=['notification_type'], name='idx_notification_type'),
+            # Notifications by goal
+            models.Index(fields=['goal', 'created_at'], name='idx_notification_goal_created'),
+        ]

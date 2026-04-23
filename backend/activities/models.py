@@ -35,6 +35,13 @@ class ConnectedAccount(models.Model):
             models.UniqueConstraint(fields=['provider', 'external_user_id'], name='unique_provider_external_user'),
         ]
 
+        indexes = [
+            # Filter by User
+            models.Index(fields=['user'], name='idx_connected_account_user'),
+            # Filter by Provider
+            models.Index(fields=['provider'], name='idx_connected_account_provider'),
+        ]
+
     def __str__(self):
         return f"{self.user} via {self.provider}"
 
@@ -75,6 +82,16 @@ class Activity(models.Model):
                 name='unique_account_external_id',
                 condition=models.Q(external_id__isnull=False) & ~models.Q(external_id=''),
             )
+        ]
+
+        indexes = [
+            # Filter by account and date
+            models.Index(fields=['account', 'date'], name='idx_activity_account_date'),
+            models.Index(fields=['account', 'created_at'], name='idx_activity_account_created'),
+            # Filter by activity and date
+            models.Index(fields=['date'], name='idx_activity_date'),
+            # Filter by date and created_at
+            models.Index(fields=['-date', '-created_at'], name='idx_activity_date_created_desc'),
         ]
 
     def save(self, *args, **kwargs):
