@@ -16,7 +16,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from notifications.business.services import NotificationService
+from notifications.business.services import NotificationService, UserPreferencesService
+from notifications.models import NotificationType, NotificationChannel
 
 
 def make_goal(title="Run 5km", pk=1, current_value=100, target_value=100):
@@ -26,6 +27,7 @@ def make_goal(title="Run 5km", pk=1, current_value=100, target_value=100):
     goal.current_value = current_value
     goal.target_value = target_value
     goal.user = MagicMock()
+    goal.user.id = 1
     return goal
 
 
@@ -79,16 +81,26 @@ class TestCreateGoalProgressNotification:
         self.repo = MagicMock()
         self.service = NotificationService(repository=self.repo)
         self.computed_at = datetime(2026, 4, 1, tzinfo=timezone.utc)
+        self.recipient = MagicMock()
+        self.preferences = MagicMock(
+            email_enabled=True,
+            in_app_enabled=False,
+            achievement_notifs=True,
+            inactivity_reminders=True,
+            goal_notifs=True,
+        )
+        self.service.user_preferences_service = MagicMock(get_user_preferences=MagicMock(return_value=self.preferences))
 
     def _call(self, new_state, previous_state="ON_TRACK"):
         goal = make_goal()
-        return self.service.create_goal_progress_notification(
-            goal=goal,
-            previous_state=previous_state,
-            new_state=new_state,
-            progress_summary={"percentComplete": 100.0},
-            computed_at=self.computed_at,
-        ), goal
+        with patch("notifications.business.services.User.objects.get", return_value=self.recipient):
+            return self.service.create_goal_progress_notification(
+                goal=goal,
+                previous_state=previous_state,
+                new_state=new_state,
+                progress_summary={"percentComplete": 100.0},
+                computed_at=self.computed_at,
+            ), goal
 
     def test_achieved_creates_notification(self):
         result, goal = self._call("ACHIEVED")
@@ -114,13 +126,14 @@ class TestCreateGoalProgressNotification:
 
     def test_payload_contains_expected_fields(self):
         goal = make_goal(pk=42)
-        self.service.create_goal_progress_notification(
-            goal=goal,
-            previous_state="ON_TRACK",
-            new_state="ACHIEVED",
-            progress_summary={"percentComplete": 100.0},
-            computed_at=self.computed_at,
-        )
+        with patch("notifications.business.services.User.objects.get", return_value=self.recipient):
+            self.service.create_goal_progress_notification(
+                goal=goal,
+                previous_state="ON_TRACK",
+                new_state="ACHIEVED",
+                progress_summary={"percentComplete": 100.0},
+                computed_at=self.computed_at,
+            )
         call_kwargs = self.repo.create_notification.call_args.kwargs
         payload = call_kwargs["payload"]
         assert payload["goalId"] == 42
@@ -133,6 +146,281 @@ class TestListRecent:
         repo = MagicMock()
         service = NotificationService(repository=repo)
         user = MagicMock()
-        result = service.list_recent(user)
+        with patch("notifications.business.services.User.objects.get", return_value=user):
+            result = service.list_recent(1)
         repo.list_recent.assert_called_once_with(user)
         assert result == repo.list_recent.return_value
+
+
+class TestNotify:
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.user = MagicMock()
+        self.preferences = MagicMock(
+            email_enabled=True,
+            in_app_enabled=False,
+            achievement_notifs=True,
+            inactivity_reminders=True,
+            goal_notifs=True,
+        )
+        self.preference_service = MagicMock(get_user_preferences=MagicMock(return_value=self.preferences))
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+
+    def test_notify_returns_none_when_all_channels_disabled(self):
+        self.preferences.email_enabled = False
+        self.preferences.in_app_enabled = False
+
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.MILESTONE_ACHIEVED)
+
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
+    def test_notify_creates_notification_for_achievement(self):
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.MILESTONE_ACHIEVED)
+
+        self.repo.create_notification.assert_called_once()
+        assert result == self.repo.create_notification.return_value
+
+    def test_mark_all_as_read_delegates_with_loaded_user(self):
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            self.service.mark_all_as_read(1)
+
+        self.repo.mark_all_as_read.assert_called_once_with(self.user)
+
+
+class TestUserPreferencesService:
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.service = UserPreferencesService(repository=self.repo)
+        self.user = MagicMock()
+
+    def test_create_default_user_preferences_delegates(self):
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.create_default_user_preferences(1)
+
+        self.repo.create_user_preferences.assert_called_once_with(self.user)
+        assert result == self.repo.create_user_preferences.return_value
+
+    def test_update_user_preferences_delegates(self):
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.update_user_preferences(1, email_enabled=False, goal_notifs=False)
+
+        self.repo.update_user_preferences.assert_called_once_with(self.user, email_enabled=False, goal_notifs=False)
+        assert result == self.repo.update_user_preferences.return_value
+
+    def test_get_user_preferences_delegates(self):
+        result = self.service.get_user_preferences(self.user)
+
+        self.repo.get_user_preferences.assert_called_once_with(self.user)
+        assert result == self.repo.get_user_preferences.return_value
+
+
+# ============================================================================
+# Coverage tests for uncovered branches in notify() and related methods
+# ============================================================================
+
+class TestNotifyWithBothChannels:
+    """Test notify() with email_enabled and in_app_enabled combinations"""
+    
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.user = MagicMock()
+        self.preferences = MagicMock(
+            email_enabled=True,
+            in_app_enabled=True,
+            achievement_notifs=True,
+            inactivity_reminders=True,
+            goal_notifs=True,
+        )
+        self.preference_service = MagicMock(get_user_preferences=MagicMock(return_value=self.preferences))
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+
+    def test_notify_with_both_email_and_in_app_enabled(self):
+        """Covers both email and in_app enabled (service prioritizes email first)"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
+        
+        # Service returns early after first channel, so only email is called
+        self.repo.create_notification.assert_called_once()
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['channel'] == NotificationChannel.EMAIL
+
+    def test_notify_with_only_email_enabled(self):
+        """Covers email_enabled=True, in_app_enabled=False"""
+        self.preferences.in_app_enabled = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
+        
+        # Should be called once (email only)
+        assert self.repo.create_notification.call_count == 1
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['channel'] == NotificationChannel.EMAIL
+
+    def test_notify_with_only_in_app_enabled(self):
+        """Covers email_enabled=False, in_app_enabled=True"""
+        self.preferences.email_enabled = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"a": 1}, 1, NotificationType.GOAL_ACHIEVED)
+        
+        # Should be called once (in_app only)
+        assert self.repo.create_notification.call_count == 1
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['channel'] == NotificationChannel.IN_APP
+
+    def test_notify_inactivity_reminder_when_enabled(self):
+        """Covers INACTIVITY_REMINDER preference enabled branch"""
+        self.preferences.inactivity_reminders = True
+        self.preferences.email_enabled = True
+        self.preferences.in_app_enabled = False
+        
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"days": 7}, 1, NotificationType.INACTIVITY_REMINDER)
+        
+        self.repo.create_notification.assert_called_once()
+
+    def test_notify_inactivity_reminder_when_disabled(self):
+        """Covers INACTIVITY_REMINDER preference disabled branch"""
+        self.preferences.inactivity_reminders = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"days": 7}, 1, NotificationType.INACTIVITY_REMINDER)
+        
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
+    def test_notify_achievement_when_enabled(self):
+        """Covers MILESTONE_ACHIEVED preference enabled branch"""
+        self.preferences.achievement_notifs = True
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"badge": 1}, 1, NotificationType.MILESTONE_ACHIEVED)
+        
+        self.repo.create_notification.assert_called_once()
+
+    def test_notify_achievement_when_disabled(self):
+        """Covers MILESTONE_ACHIEVED preference disabled branch"""
+        self.preferences.achievement_notifs = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"badge": 1}, 1, NotificationType.MILESTONE_ACHIEVED)
+        
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
+    def test_notify_goal_notifs_when_disabled(self):
+        """Covers goal_notifs disabled branch"""
+        self.preferences.goal_notifs = False
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.notify("title", "desc", {"goal": 1}, 1, NotificationType.GOAL_AT_RISK)
+        
+        assert result is None
+        self.repo.create_notification.assert_not_called()
+
+
+class TestNotificationServiceGetMethods:
+    """Test coverage for get_all_notifications, get, list_recent, delete, mark_as_read"""
+    
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.user = MagicMock()
+        self.preference_service = MagicMock()
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+
+    def test_get_all_notifications_delegates_to_repo(self):
+        """Covers get_all_notifications method"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.get_all_notifications(1)
+        
+        self.repo.get_all.assert_called_once_with(self.user)
+        assert result == self.repo.get_all.return_value
+
+    def test_get_delegates_to_repo(self):
+        """Covers get method"""
+        result = self.service.get(42)
+        
+        self.repo.get.assert_called_once_with(42)
+        assert result == self.repo.get.return_value
+
+    def test_list_recent_delegates_to_repo(self):
+        """Covers list_recent method"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.list_recent(1)
+        
+        self.repo.list_recent.assert_called_once_with(self.user)
+        assert result == self.repo.list_recent.return_value
+
+    def test_delete_delegates_to_repo(self):
+        """Covers delete method success path"""
+        self.service.delete(42)
+        self.repo.delete.assert_called_once_with(42)
+
+    def test_mark_as_read_delegates_to_repo(self):
+        """Covers mark_as_read method success path"""
+        result = self.service.mark_as_read(42)
+        
+        self.repo.mark_as_read.assert_called_once_with(42)
+        assert result == self.repo.mark_as_read.return_value
+
+    def test_mark_all_as_read_delegates_to_repo(self):
+        """Covers mark_all_as_read method"""
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            self.service.mark_all_as_read(1)
+        
+        self.repo.mark_all_as_read.assert_called_once_with(self.user)
+
+
+class TestCreateGoalProgressNotificationCoverage:
+    """Test coverage for create_goal_progress_notification"""
+    
+    def setup_method(self):
+        self.repo = MagicMock()
+        self.preference_service = MagicMock()
+        self.service = NotificationService(repository=self.repo, user_preferences_service=self.preference_service)
+        self.user = MagicMock()
+        self.user.id = 1
+        self.goal = MagicMock()
+        self.goal.pk = 42
+        self.goal.title = "Test Goal"
+        self.goal.user = self.user
+        self.computed_at = datetime(2026, 4, 1, tzinfo=timezone.utc)
+
+    def test_create_goal_progress_notification_with_goal(self):
+        """Covers create_goal_progress_notification with goal parameter"""
+        self.preference_service.get_user_preferences.return_value = MagicMock(
+            email_enabled=True,
+            in_app_enabled=False,
+            goal_notifs=True,
+        )
+        
+        with patch("notifications.business.services.User.objects.get", return_value=self.user):
+            result = self.service.create_goal_progress_notification(
+                goal=self.goal,
+                previous_state="ON_TRACK",
+                new_state="ACHIEVED",
+                progress_summary={"percentComplete": 100},
+                computed_at=self.computed_at,
+            )
+        
+        # Should have called notify with goal parameter
+        self.repo.create_notification.assert_called_once()
+        call_kwargs = self.repo.create_notification.call_args.kwargs
+        assert call_kwargs['goal'] == self.goal
+
+    def test_build_goal_progress_content_achieved(self):
+        """Covers _build_goal_progress_content ACHIEVED state"""
+        title, message = NotificationService._build_goal_progress_content("My Goal", "ACHIEVED")
+        assert "achieved" in title.lower()
+        assert "My Goal" in title
+        assert "reached" in message.lower()
+
+    def test_build_goal_progress_content_at_risk(self):
+        """Covers _build_goal_progress_content AT_RISK state"""
+        title, message = NotificationService._build_goal_progress_content("My Goal", "AT_RISK")
+        assert "at risk" in title.lower()
+        assert "attention" in message.lower()
+
+    def test_build_goal_progress_content_missed(self):
+        """Covers _build_goal_progress_content MISSED state"""
+        title, message = NotificationService._build_goal_progress_content("My Goal", "MISSED")
+        assert "missed" in title.lower()
+        assert "ended" in message.lower()
+

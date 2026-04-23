@@ -1006,3 +1006,77 @@ class ServiceProgressTest(TestCase):
         self.assertIn('total_points', summary)
         self.assertIn('streak', summary)
         self.assertEqual(summary['total_points'], 0)
+
+
+# ============================================================================
+# Gamification signals coverage tests
+# ============================================================================
+
+class AchievementEventSignalsTest(TestCase):
+    """Test signal handling and notification integration in gamification"""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.user = User.objects.create_user(
+            username='signal-user',
+            email='signal@test.com',
+            password='TestPass123!'
+        )
+
+    def test_send_achievement_notification_success(self):
+        """Covers _send_achievement_event function with successful NotificationService call"""
+        from gamification.signals import _send_achievement_event
+        from notifications.models import NotificationType
+        
+        with patch('notifications.business.services.NotificationService') as mock_service_class:
+            mock_service = MagicMock()
+            mock_service_class.return_value = mock_service
+            
+            _send_achievement_event(self.user, 'badge_earned', {
+                'badge_id': 1,
+                'badge_name': 'First Badge',
+                'points': 50,
+            })
+            
+            # Verify service was instantiated
+            mock_service_class.assert_called_once()
+            # Verify notify was called with MILESTONE_ACHIEVED type
+            mock_service.notify.assert_called_once()
+            call_args = mock_service.notify.call_args
+            # notify signature: notify(title, description, payload, recipient_id, event_type, goal=None)
+            assert call_args[0][3] == self.user.id
+            assert call_args[0][4] == NotificationType.MILESTONE_ACHIEVED
+
+    def test_send_achievement_notification_fallback_logging(self):
+        """Covers _send_achievement_event function exception handling and logging"""
+        from gamification.signals import _send_achievement_event
+        
+        with patch('notifications.business.services.NotificationService', side_effect=ImportError("NotificationService not available")):
+            with patch('gamification.signals.logger.info') as mock_logger:
+                _send_achievement_event(self.user, 'milestone_reached', {
+                    'milestone_id': 1,
+                    'milestone_name': 'Distance Milestone',
+                    'points': 100,
+                })
+                
+                # Verify fallback logging occurred
+                mock_logger.assert_called_once()
+                logged_message = mock_logger.call_args[0][0]
+                assert 'Achievement event' in logged_message
+                assert 'pending notification integration' in logged_message
+
+    def test_send_achievement_event_with_streak_milestone(self):
+        """Covers _send_achievement_event with streak_milestone event type"""
+        from gamification.signals import _send_achievement_event
+        
+        with patch('notifications.business.services.NotificationService') as mock_service_class:
+            mock_service = MagicMock()
+            mock_service_class.return_value = mock_service
+            
+            _send_achievement_event(self.user, 'streak_milestone', {
+                'streak_days': 30,
+            })
+            
+            mock_service.notify.assert_called_once()
+

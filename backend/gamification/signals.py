@@ -3,6 +3,8 @@ import logging
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from notifications.models import NotificationType
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,7 +62,7 @@ def _send_achievement_event(user, event_type, payload):
     try:
         from notifications.business.services import NotificationService
         service = NotificationService()
-        service.send_achievement_notification(user, event_type, payload)
+        service.notify(None, "Milestone reached!", payload, user.id, NotificationType.MILESTONE_ACHIEVED)
     except (ImportError, AttributeError):
         # Group 23 hasn't implemented this yet -- just log it
         logger.info(

@@ -21,7 +21,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from analytics.business import GoalProgressService
 from goals.models import Goal
-from notifications.models import Notification
+from notifications.models import Notification, NotificationType
 
 User = get_user_model()
 
@@ -145,7 +145,7 @@ class TestGoalProgressService:
         assert result["state"] == Goal.ProgressState.ACHIEVED
         assert result["notification_created"] is True
         assert goal.progress_state == Goal.ProgressState.ACHIEVED
-        assert notification.notification_type == Notification.NotificationType.GOAL_ACHIEVED
+        assert notification.type == NotificationType.GOAL_ACHIEVED
         assert notification.payload["previousState"] == Goal.ProgressState.ON_TRACK
         assert notification.payload["newState"] == Goal.ProgressState.ACHIEVED
         assert notification.payload["goalTitle"] == GOAL_INPUT["title"]
@@ -178,7 +178,7 @@ class TestGoalProgressService:
                 "notification": notification.payload,
             },
         )
-        assert notification.notification_type == Notification.NotificationType.GOAL_AT_RISK
+        assert notification.type == NotificationType.GOAL_AT_RISK
         assert notification.payload["progressSummary"]["actual"] == 7.5
 
     def test_external_activity_payload_creates_missed_notification_after_deadline(self):
@@ -202,7 +202,7 @@ class TestGoalProgressService:
             },
         )
         assert result["state"] == Goal.ProgressState.MISSED
-        assert notification.notification_type == Notification.NotificationType.GOAL_MISSED
+        assert notification.type == NotificationType.GOAL_MISSED
         assert notification.payload["previousState"] == Goal.ProgressState.ON_TRACK
         assert notification.payload["newState"] == Goal.ProgressState.MISSED
 
@@ -286,9 +286,10 @@ class TestNotificationsAPI:
             },
         )
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]["title"] == "Goal at risk: Run 50km"
-        assert response.data[0]["notification_type"] == Notification.NotificationType.GOAL_AT_RISK
+        notifications = response.data["notifications"]
+        assert len(notifications) == 1
+        assert notifications[0]["message"] == "Your goal \"Run 50km\" is at risk and may need attention."
+        assert notifications[0]["type"] == NotificationType.GOAL_AT_RISK
 
     def test_notifications_list_orders_newest_first(self):
         user = User.objects.create_user(
@@ -330,5 +331,6 @@ class TestNotificationsAPI:
             },
         )
         assert response.status_code == status.HTTP_200_OK
-        assert response.data[0]["title"] == "Goal achieved: Cycle 30km"
-        assert response.data[1]["title"] == "Goal at risk: Run 50km"
+        notifications = response.data["notifications"]
+        assert notifications[0]["message"] == "You reached your goal \"Cycle 30km\"."
+        assert notifications[1]["message"] == "Your goal \"Run 50km\" is at risk and may need attention."
