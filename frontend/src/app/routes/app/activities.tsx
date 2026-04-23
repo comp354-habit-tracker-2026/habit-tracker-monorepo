@@ -5,13 +5,17 @@ import { ActivityBarChart } from '@/components/charts/activity-bar-chart';
 import { ActivityPieChart } from '@/components/charts/activity-pie-chart';
 import { ActivityTimeSeriesChart } from '@/components/charts/activity-time-series-chart';
 import { ContentLayout } from '@/components/layouts/content-layout';
+import { useActivities } from '@/features/activities/api/get-activities';
+import type { Activity as BackendActivity } from '@/features/activities/types/activity';
 import {
   ActivitySource,
+  ActivitySourceFormat,
   ActivityType,
 } from '@/mocks/activity-types';
 import type {
   ActivityBreakdownItem,
   ActivityListItem,
+  ActivitySummary,
   ActivityTimeSeriesPoint,
 } from '@/mocks/activity-types';
 import { mockActivities } from '@/mocks/mock-activities';
@@ -73,6 +77,113 @@ const myWhooshDetail = {
   powerZones: mockMyWhooshPowerZones,
   speedZones: mockMyWhooshSpeedZones,
 };
+
+function mapBackendActivityType(activityType: string): ActivityType {
+  const normalizedType = activityType.trim().toLowerCase();
+
+  if (normalizedType.includes('snowboard')) {
+    return ActivityType.Snowboarding;
+  }
+  if (normalizedType.includes('ski')) {
+    return ActivityType.Ski;
+  }
+  if (normalizedType.includes('bike')) {
+    return ActivityType.BikeRide;
+  }
+  if (normalizedType.includes('run')) {
+    return ActivityType.Run;
+  }
+  if (normalizedType.includes('walk')) {
+    return ActivityType.Walking;
+  }
+  if (normalizedType.includes('cycle') || normalizedType.includes('ride')) {
+    return ActivityType.Cycling;
+  }
+
+  return ActivityType.Cycling;
+}
+
+function mapBackendSource(provider: BackendActivity['provider']): ActivitySource {
+  switch (provider) {
+    case 'weski':
+      return ActivitySource.WeSki;
+    case 'mywhoosh':
+      return ActivitySource.MyWhoosh;
+    case 'mapmyrun':
+    case 'strava':
+    default:
+      return ActivitySource.MapMyRun;
+  }
+}
+
+function mapSourceFormat(source: ActivitySource): ActivitySourceFormat {
+  switch (source) {
+    case ActivitySource.WeSki:
+      return ActivitySourceFormat.Gpx;
+    case ActivitySource.MyWhoosh:
+      return ActivitySourceFormat.Fit;
+    case ActivitySource.MapMyRun:
+    default:
+      return ActivitySourceFormat.Xlsx;
+  }
+}
+
+function buildBackendExternalUrl(activity: BackendActivity, source: ActivitySource) {
+  if (!activity.external_id) {
+    return undefined;
+  }
+
+  switch (source) {
+    case ActivitySource.MapMyRun:
+      return `https://www.mapmyfitness.com/workout/${activity.external_id}`;
+    default:
+      return undefined;
+  }
+}
+
+function toDashboardActivity(activity: BackendActivity): ActivityListItem {
+  const activityType = mapBackendActivityType(activity.activity_type);
+  const source = mapBackendSource(activity.provider);
+  const durationSeconds = Math.max(0, Math.round(activity.duration * 60));
+  const startedAt = new Date(`${activity.date}T00:00:00Z`);
+  const endedAt = new Date(startedAt.getTime() + durationSeconds * 1000);
+  const distanceKm =
+    activity.distance === null || activity.distance === undefined
+      ? undefined
+      : Number(activity.distance);
+  const summary: ActivitySummary = {
+    durationSeconds,
+    distanceKm: Number.isFinite(distanceKm) ? distanceKm : undefined,
+    calories:
+      activity.calories === null || activity.calories === undefined
+        ? undefined
+        : Number(activity.calories),
+  };
+
+  if (summary.distanceKm !== undefined && summary.distanceKm > 0) {
+    summary.avgSpeedKmh = summary.distanceKm / (activity.duration / 60);
+    if (activityType === ActivityType.Run) {
+      summary.avgPaceMinPerKm = activity.duration / summary.distanceKm;
+    }
+  }
+
+  return {
+    id: activity.id,
+    activityKey: activityType,
+    source,
+    sourceFormat: mapSourceFormat(source),
+    activityType,
+    title: activity.activity_type,
+    startedAt: startedAt.toISOString(),
+    endedAt: endedAt.toISOString(),
+    summary,
+    externalUrl: buildBackendExternalUrl(activity, source),
+  };
+}
+
+function toDashboardActivities(activities: BackendActivity[]): ActivityListItem[] {
+  return activities.map(toDashboardActivity).sort(sortActivitiesByDateDescending);
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('en-US').format(value);
@@ -225,13 +336,23 @@ function getDateRange(activities: ActivityListItem[]) {
 }
 
 export default function ActivitiesRoute() {
+  const activitiesQuery = useActivities();
   const [selectedSource, setSelectedSource] = useState<ActivitySourceFilter>('all');
   const [selectedType, setSelectedType] = useState<ActivityTypeFilter>('all');
 
-  const activitiesForSource = filterActivities(mockActivities, selectedSource, 'all');
-  const activitiesForType = filterActivities(mockActivities, 'all', selectedType);
+  const dashboardActivities = activitiesQuery.isSuccess
+    ? toDashboardActivities(activitiesQuery.data ?? [])
+    : mockActivities;
+  const isUsingMockData = !activitiesQuery.isSuccess;
+
+  const activitiesForSource = filterActivities(
+    dashboardActivities,
+    selectedSource,
+    'all',
+  );
+  const activitiesForType = filterActivities(dashboardActivities, 'all', selectedType);
   const visibleActivities = filterActivities(
-    mockActivities,
+    dashboardActivities,
     selectedSource,
     selectedType,
   );
@@ -271,6 +392,12 @@ export default function ActivitiesRoute() {
               The overview, charts, and activity cards stay synchronized so you can
               narrow the view without losing the bigger picture.
             </p>
+            {activitiesQuery.isError ? (
+              <p className="activities-route__hero-note" role="status">
+                Live activities could not be loaded right now. Demo data is showing
+                instead.
+              </p>
+            ) : null}
             <p className="activities-route__hero-scope">
               {visibleActivities.length > 0 ? (
                 <>
@@ -510,9 +637,9 @@ export default function ActivitiesRoute() {
             <div className="activities-route__list">
               {visibleActivities.map((activity) => {
                 const activityProps =
-                  activity.source === ActivitySource.WeSki
+                  isUsingMockData && activity.source === ActivitySource.WeSki
                     ? { weSkiRoutePoints: mockWeSkiRouteMapPoints }
-                    : activity.source === ActivitySource.MyWhoosh
+                    : isUsingMockData && activity.source === ActivitySource.MyWhoosh
                       ? { myWhooshDetail }
                       : {};
 

@@ -1,5 +1,18 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 
+const mockActivitiesQuery = {
+  data: undefined,
+  isError: true,
+  isLoading: false,
+  isRefetching: false,
+  isSuccess: false,
+  refetch: jest.fn(),
+};
+
+jest.mock("@/features/activities/api/get-activities", () => ({
+  useActivities: () => mockActivitiesQuery,
+}));
+
 jest.mock("@/components/activities/activity-card", () => ({
   ActivityCard: ({ activity }: { activity: { title: string } }) => (
     <div>{activity.title}</div>
@@ -27,6 +40,9 @@ describe("Activities page", () => {
       screen.getByRole("heading", {
         name: /slice your training by source, discipline, and date/i,
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/demo data is showing instead/i),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/showing 9 of 9 activities/i),

@@ -45,6 +45,17 @@
   font-size: 0.96rem;
 }
 
+.activities-route__hero-note {
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid rgba(47, 136, 174, 0.22);
+  border-radius: 14px;
+  background: rgba(47, 136, 174, 0.08);
+  color: #1f6185;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .activities-route__hero-scope {
   margin: 0;
   color: #16324f;
