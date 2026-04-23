@@ -93,4 +93,4 @@ class DemoActivity:
     duration: float = 0.0
     calories: float = 0.0
     user_id: int = 1
-    account_id: int = None
+    account_id: int | None = None
