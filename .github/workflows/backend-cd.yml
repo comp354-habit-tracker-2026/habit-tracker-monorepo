@@ -45,3 +45,5 @@ jobs:
           imageToBuild: habitregistry.azurecr.io/backend:${{ github.sha }}
           _buildArgumentsKey_: |
             _buildArgumentsValues_
+
+
