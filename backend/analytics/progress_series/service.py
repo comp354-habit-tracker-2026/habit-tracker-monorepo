@@ -5,6 +5,8 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from math import ceil
 from typing import Any, Iterable, Iterator
+from .models import ProgressPoint, ProgressSeries, PaginationMeta
+
 
 from .cache import goal_progress_cache
 from .models import PaginationMeta, ProgressPoint, ProgressSeries
@@ -20,6 +22,32 @@ class InvalidGranularityError(ProgressSeriesError):
 class UnsupportedGoalTypeError(ProgressSeriesError):
     """Raised when the goal metric cannot be derived from an activity."""
 
+class InvalidPaginationError(ProgressSeriesError):
+    """Raised when page or page_size is invalid."""
+
+
+def paginate_points(points: list[ProgressPoint], page: int, page_size: int):
+    if page < 1:
+        raise InvalidPaginationError("Page must be >= 1.")
+    if page_size < 1:
+        raise InvalidPaginationError("Page size must be >= 1.")
+
+    total_items = len(points)
+    total_pages = ceil(total_items / page_size) if total_items > 0 else 1
+
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated_points = points[start:end]
+
+    pagination = PaginationMeta(
+        page=page,
+        page_size=page_size,
+        total_items=total_items,
+        total_pages=total_pages,
+        has_next=page < total_pages,
+        has_previous=page > 1,
+    )
+    return paginated_points, pagination
 
 class InvalidPaginationError(ProgressSeriesError):
     """Raised when page or page_size is invalid."""

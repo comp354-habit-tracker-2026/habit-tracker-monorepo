@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -62,6 +65,11 @@ INSTALLED_APPS = [
     
     # third-party apps
     'rest_framework',
+    # SimpleJWT blacklist support creates OutstandingToken/BlacklistedToken tables.
+    # Ensure deployments run migrations for this app and schedule
+    # `python manage.py flushexpiredtokens` periodically so expired tokens
+    # are removed and the database does not grow indefinitely.
+    'rest_framework_simplejwt.token_blacklist',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
