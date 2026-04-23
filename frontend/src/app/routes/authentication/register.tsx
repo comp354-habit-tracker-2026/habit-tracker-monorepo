@@ -17,7 +17,7 @@ function RegisterRoute() {
         gap: '1rem',
       }}
     >
-      <h1>Sign Up</h1>
+      
       <Registration />
     </div>
   );

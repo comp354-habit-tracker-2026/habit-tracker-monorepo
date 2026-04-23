@@ -105,6 +105,7 @@ export function Registration() {
                 </div>
             ) : (
                 <section>
+                    <h1>Sign Up</h1>
                     <p ref={errRef} className={errMsg ? "errmsg" : "offscreen"} aria-live="assertive">{errMsg}</p>
                     <form onSubmit={handleSubmit}>
                         <label htmlFor="username">

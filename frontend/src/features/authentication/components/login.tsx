@@ -17,7 +17,11 @@ type user = {
 }
 
 export function Login () {
-  const { setAuth } = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
+  if (!authContext) {
+    throw new Error("AuthContext missing");
+  }
+  const { setAuth } = authContext;
   const userRef = useRef<HTMLInputElement | null>(null);
   const errRef = useRef<HTMLParagraphElement | null>(null);
   
@@ -33,17 +37,14 @@ export function Login () {
   //chat
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setUser('');
-    setPwd('');
-    setSuccess(true);
-    console.log(user, pwd);
+
     try {
       const person: user = { 'username': user, 'password': pwd };
       const response = await checkLogin(person);
       console.log(JSON.stringify(response?.data)); //chat
       const accessToken = response?.data?.accessToken;
       const roles = response?.data?.roles; //chat
-      setAuth({ user, pwd, roles, accessToken });      
+      setAuth({ user, roles, accessToken });      
       setUser('');
       setPwd('');
       setSuccess(true);
@@ -66,10 +67,7 @@ export function Login () {
             }
             else if (status === 401) {
               setErrMsg("Unauthorized");
-            } 
-            else if (status === 400) {
-                setErrMsg("Missing Username or Password");
-            } 
+            }
             else {
                 setErrMsg("Login Failed");
             }
@@ -112,6 +110,7 @@ export function Login () {
         }}
       >
       <section> 
+        <h1>Sign In</h1>
         <p ref = {errRef} 
         className = {errMsg ? "errmsg" : "offscreen"} 
         aria-live = "assertive"

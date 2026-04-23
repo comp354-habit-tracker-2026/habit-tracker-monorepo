@@ -15,7 +15,6 @@ function LoginRoute() {
         gap: '1rem',
       }}
     >
-      <h1>Sign In</h1>
       <Login />
     </div>
   );
