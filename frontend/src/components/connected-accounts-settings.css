@@ -1,0 +1,141 @@
+/* Connected Accounts Settings Component */
+.connected-accounts-settings {
+  width: 100%;
+  max-width: 600px;
+}
+
+.connected-accounts-settings__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.connected-accounts-settings__empty {
+  padding: 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+.connected-accounts-settings__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.connected-accounts-settings__loading,
+.connected-accounts-settings__error {
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.connected-accounts-settings__loading {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.connected-accounts-settings__error {
+  background-color: rgba(255, 0, 0, 0.1);
+  color: rgba(255, 100, 100, 0.9);
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+/* Individual Connected Account Item */
+.connected-account-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.connected-account-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.connected-account-item__info {
+  flex: 1;
+  text-align: left;
+}
+
+.connected-account-item__provider {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: rgba(255, 255, 255, 0.87);
+}
+
+.connected-account-item__user-id {
+  margin: 0.25rem 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.connected-account-item__connected-at {
+  margin: 0.25rem 0 0 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.connected-account-item__disconnect-btn {
+  margin-left: 1.5rem;
+  padding: 0.5em 1em;
+  background-color: #d32f2f;
+  color: white;
+  border: 1px solid #d32f2f;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.connected-account-item__disconnect-btn:hover {
+  background-color: #b71c1c;
+  border-color: #b71c1c;
+}
+
+.connected-account-item__disconnect-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (prefers-color-scheme: light) {
+  .connected-accounts-settings__title {
+    color: #213547;
+  }
+
+  .connected-accounts-settings__empty {
+    color: rgba(0, 0, 0, 0.6);
+    border: 1px dashed rgba(0, 0, 0, 0.2);
+  }
+
+  .connected-account-item {
+    border-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .connected-account-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+
+  .connected-account-item__provider {
+    color: #213547;
+  }
+
+  .connected-account-item__user-id {
+    color: rgba(0, 0, 0, 0.7);
+  }
+
+  .connected-account-item__connected-at {
+    color: rgba(0, 0, 0, 0.5);
+  }
+}
