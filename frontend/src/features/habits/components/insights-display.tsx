@@ -2,8 +2,8 @@ import { useState} from 'react';
 import { mockActivities } from '@/app/routes/app/mock-activities';
  export function InsightsDisplay() {
     const [show, setShow] = useState(false);
-    const [start, setStart] = useState('');
-    const [end, setEnd] = useState('')
+    const [start, setStart] = useState('2025-01-01');
+    const [end, setEnd] = useState('2026-04-22')
 
 
     const currMonth = new Date();
@@ -173,16 +173,22 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
         return (
         <div
         style={{
+          position: 'relative',
           padding: '16px',
           border: '1px solid #ddd',
           borderRadius: '12px',
           backgroundColor: '#f9fafb',
-          maxWidth: '700px',
+          width: '100%',
           marginTop: '12px',
         }}
         >
+          <h2 style = {{margin: 0, fontSize: '28px', fontWeight: '600px', textAlign: 'center'}}>
+            Insights
+          </h2>
              <button onClick={() => setShow(false)}
               style={{
+                position: 'absolute',
+                right: '20px',
                 padding: '10px 20px',
                 borderRadius: '10px',
                 border: '1px solid #ccc',
@@ -192,7 +198,7 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
               }}>
                 Hide Insights
                  </button>
-                 <div style={{ marginTop: '12px', marginBottom: '16px' }}>
+                 <div style={{ marginTop: '12px', marginBottom: '16px'}}>
                    <label style={{ marginRight: '12px', fontSize: '15px' }}>
                     From: <input type="date" value={start} onChange={e => setStart(e.target.value)} 
                     style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #ccc'}}/></label>
@@ -201,7 +207,6 @@ import { mockActivities } from '@/app/routes/app/mock-activities';
                    style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #ccc'}}/></label>
                  </div>
                  <div>
-                    <h2>Insights</h2>
                     <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Most active day:</strong> {mostActiveDay} ({mostActivities} activities)</p>
                     <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Least active day:</strong> {leastActiveDay} ({leastActivities} activities)</p>
                     <p style={{padding: '10px 20px', borderRadius: '10px', border: '1px solid #ccc', backgroundColor: '#f3f4f6', cursor: 'pointer', fontWeight: 500}}><strong>Highest calories in one day:</strong> {highestCalorieDay} ({highestCalories} calories)</p>
