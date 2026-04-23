@@ -1,4 +1,5 @@
-.activity-card {
+.activity-detail-card {
+  display: block;
   border: 1px solid #e9edf3;
   border-radius: 16px;
   overflow: hidden;
@@ -6,15 +7,15 @@
   transition: box-shadow 150ms ease;
 }
 
-.activity-card:hover {
+.activity-detail-card:hover {
   box-shadow: 0 4px 16px rgba(26, 54, 93, 0.07);
 }
 
-.activity-card--open {
+.activity-detail-card--open {
   box-shadow: 0 8px 28px rgba(26, 54, 93, 0.1);
 }
 
-.activity-card__trigger {
+.activity-detail-card__trigger {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   align-items: center;
@@ -27,12 +28,12 @@
   text-align: left;
 }
 
-.activity-card__trigger:focus-visible {
+.activity-detail-card__trigger:focus-visible {
   outline: 2px solid #2f88ae;
   outline-offset: -2px;
 }
 
-.activity-card__badge {
+.activity-detail-card__badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.7rem;
@@ -45,13 +46,13 @@
   flex-shrink: 0;
 }
 
-.activity-card__info {
+.activity-detail-card__info {
   display: grid;
   gap: 0.2rem;
   min-width: 0;
 }
 
-.activity-card__title {
+.activity-detail-card__title {
   font-size: 1rem;
   font-weight: 600;
   color: #0a1b2c;
@@ -60,19 +61,19 @@
   text-overflow: ellipsis;
 }
 
-.activity-card__compact-stats {
+.activity-detail-card__compact-stats {
   font-size: 0.85rem;
   color: #6b7a8a;
 }
 
-.activity-card__date {
+.activity-detail-card__date {
   font-size: 0.85rem;
   color: #6b7a8a;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.activity-card__chevron {
+.activity-detail-card__chevron {
   width: 8px;
   height: 8px;
   border-right: 2px solid #94a3b8;
@@ -83,18 +84,18 @@
   margin-right: 2px;
 }
 
-.activity-card--open .activity-card__chevron {
+.activity-detail-card--open .activity-detail-card__chevron {
   transform: rotate(45deg);
 }
 
-.activity-card__detail {
+.activity-detail-card__detail {
   padding: 1.25rem;
   border-top: 1px solid #e9edf3;
   display: grid;
   gap: 1.25rem;
 }
 
-.activity-card__stat-row {
+.activity-detail-card__stat-row {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem 0;
@@ -105,7 +106,7 @@
   border-bottom: 1px solid #e9edf3;
 }
 
-.activity-card__stat {
+.activity-detail-card__stat {
   display: grid;
   gap: 0.4rem;
   padding: 0 1.5rem;
@@ -114,12 +115,12 @@
   min-width: 130px;
 }
 
-.activity-card__stat:first-child {
+.activity-detail-card__stat:first-child {
   border-left: none;
   padding-left: 0;
 }
 
-.activity-card__stat-value {
+.activity-detail-card__stat-value {
   display: inline-flex;
   align-items: baseline;
   gap: 0.25rem;
@@ -130,13 +131,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-.activity-card__stat-unit {
+.activity-detail-card__stat-unit {
   font-size: 0.85rem;
   font-weight: 500;
   color: #6b7a8a;
 }
 
-.activity-card__stat-label {
+.activity-detail-card__stat-label {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -144,12 +145,12 @@
   color: #6b7a8a;
 }
 
-.activity-card__map {
+.activity-detail-card__map {
   border-radius: 12px;
   overflow: hidden;
 }
 
-.activity-card__external-link {
+.activity-detail-card__external-link {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 1rem;
@@ -162,27 +163,27 @@
   transition: background-color 120ms ease;
 }
 
-.activity-card__external-link:hover {
+.activity-detail-card__external-link:hover {
   background-color: #f3f8fc;
 }
 
 @media (max-width: 640px) {
-  .activity-card__trigger {
+  .activity-detail-card__trigger {
     grid-template-columns: auto 1fr auto;
     gap: 0.75rem;
   }
 
-  .activity-card__date {
+  .activity-detail-card__date {
     display: none;
   }
 
-  .activity-card__stat {
+  .activity-detail-card__stat {
     flex: 1 1 calc(50% - 1rem);
     border-left: none;
     padding: 0;
   }
 
-  .activity-card__stat-value {
+  .activity-detail-card__stat-value {
     font-size: 1.35rem;
   }
 }

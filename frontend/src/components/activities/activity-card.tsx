@@ -136,16 +136,16 @@ function StatRow({ summary }: { summary: ActivitySummary }) {
     return null;
   }
   return (
-    <ul className="activity-card__stat-row" aria-label="Activity stats">
+    <ul className="activity-detail-card__stat-row" aria-label="Activity stats">
       {stats.map((stat) => (
-        <li key={stat.label} className="activity-card__stat">
-          <span className="activity-card__stat-value">
+        <li key={stat.label} className="activity-detail-card__stat">
+          <span className="activity-detail-card__stat-value">
             {stat.number}
             {stat.unit ? (
-              <span className="activity-card__stat-unit">{stat.unit}</span>
+              <span className="activity-detail-card__stat-unit">{stat.unit}</span>
             ) : null}
           </span>
-          <span className="activity-card__stat-label">{stat.label}</span>
+          <span className="activity-detail-card__stat-label">{stat.label}</span>
         </li>
       ))}
     </ul>
@@ -166,7 +166,7 @@ export function ActivityCard({ activity, weSkiRoutePoints, myWhooshDetail }: Act
       return (
         <>
           <StatRow summary={activity.summary} />
-          <div className="activity-card__map">
+          <div className="activity-detail-card__map">
             <WeSkiRouteMapChart data={weSkiRoutePoints} height={340} />
           </div>
         </>
@@ -192,7 +192,7 @@ export function ActivityCard({ activity, weSkiRoutePoints, myWhooshDetail }: Act
             href={activity.externalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="activity-card__external-link"
+            className="activity-detail-card__external-link"
           >
             View on source ↗
           </a>
@@ -204,39 +204,39 @@ export function ActivityCard({ activity, weSkiRoutePoints, myWhooshDetail }: Act
   return (
     <article
       className={[
-        'activity-card',
-        isOpen ? 'activity-card--open' : '',
+        'activity-detail-card',
+        isOpen ? 'activity-detail-card--open' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
       <button
         type="button"
-        className="activity-card__trigger"
+        className="activity-detail-card__trigger"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
         aria-label={`${isOpen ? 'Collapse' : 'Expand'} ${activity.title}`}
       >
         <span
-          className="activity-card__badge"
+          className="activity-detail-card__badge"
           style={{ backgroundColor: typeMeta.color }}
         >
           {typeMeta.label}
         </span>
-        <div className="activity-card__info">
-          <span className="activity-card__title">{activity.title}</span>
-          <span className="activity-card__compact-stats">
+        <div className="activity-detail-card__info">
+          <span className="activity-detail-card__title">{activity.title}</span>
+          <span className="activity-detail-card__compact-stats">
             {buildCompactStats(activity.summary)}
           </span>
         </div>
-        <span className="activity-card__date">
+        <span className="activity-detail-card__date">
           {formatActivityDate(activity.startedAt)}
         </span>
-        <span className="activity-card__chevron" aria-hidden="true" />
+        <span className="activity-detail-card__chevron" aria-hidden="true" />
       </button>
 
       {isOpen ? (
-        <div className="activity-card__detail">{renderDetail()}</div>
+        <div className="activity-detail-card__detail">{renderDetail()}</div>
       ) : null}
     </article>
   );

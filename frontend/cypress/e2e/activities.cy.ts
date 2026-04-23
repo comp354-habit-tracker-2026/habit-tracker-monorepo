@@ -39,33 +39,38 @@ describe('Activities page', () => {
   });
 
   it('renders the three mock activity cards with summary content', () => {
-    cy.get('.activity-card').should('have.length', 3);
+    cy.get('.activity-detail-card').should('have.length', 3);
 
-    cy.contains('.activity-card__title', 'Sommet Saint-Sauveur').should(
+    cy.contains('.activity-detail-card__title', 'Sommet Saint-Sauveur').should(
       'be.visible',
     );
     cy.contains(
-      '.activity-card__compact-stats',
+      '.activity-detail-card__compact-stats',
       '1h 38m · 18.6 km · 11.4 km/h avg',
     ).should('be.visible');
 
-    cy.contains('.activity-card__title', 'Bike Ride').should('be.visible');
+    cy.contains('.activity-detail-card__title', 'Bike Ride').should(
+      'be.visible',
+    );
     cy.contains(
-      '.activity-card__compact-stats',
+      '.activity-detail-card__compact-stats',
       '2h 28m · 61.7 km · 25.0 km/h avg',
     ).should('be.visible');
 
-    cy.contains('.activity-card__title', 'Indoor Ride').should('be.visible');
+    cy.contains('.activity-detail-card__title', 'Indoor Ride').should(
+      'be.visible',
+    );
     cy.contains(
-      '.activity-card__compact-stats',
+      '.activity-detail-card__compact-stats',
       '1h 12m · 34.8 km · 214 W avg',
     ).should('be.visible');
   });
 
   it('expands the WeSki activity card to show detailed stats', () => {
-    cy.contains('button.activity-card__trigger', 'Sommet Saint-Sauveur').as(
-      'weskiTrigger',
-    );
+    cy.contains(
+      'button.activity-detail-card__trigger',
+      'Sommet Saint-Sauveur',
+    ).as('weskiTrigger');
 
     cy.get('@weskiTrigger')
       .should('have.attr', 'aria-expanded', 'false')
@@ -73,7 +78,7 @@ describe('Activities page', () => {
       .should('have.attr', 'aria-expanded', 'true');
 
     cy.get('@weskiTrigger')
-      .closest('.activity-card')
+      .closest('.activity-detail-card')
       .within(() => {
         cy.get('[aria-label="Activity stats"]').should('be.visible');
         cy.contains('Distance').should('be.visible');
@@ -86,14 +91,14 @@ describe('Activities page', () => {
   });
 
   it('shows the external source link for the MapMyRun activity', () => {
-    cy.contains('button.activity-card__trigger', 'Bike Ride').as(
+    cy.contains('button.activity-detail-card__trigger', 'Bike Ride').as(
       'bikeRideTrigger',
     );
 
     cy.get('@bikeRideTrigger').click();
 
     cy.get('@bikeRideTrigger')
-      .closest('.activity-card')
+      .closest('.activity-detail-card')
       .within(() => {
         cy.contains('a', 'View on source')
           .should(
@@ -106,7 +111,7 @@ describe('Activities page', () => {
   });
 
   it('shows the embedded MyWhoosh dashboard when the indoor ride is expanded', () => {
-    cy.contains('button.activity-card__trigger', 'Indoor Ride').as(
+    cy.contains('button.activity-detail-card__trigger', 'Indoor Ride').as(
       'indoorRideTrigger',
     );
 
@@ -115,7 +120,7 @@ describe('Activities page', () => {
       .should('have.attr', 'aria-expanded', 'true');
 
     cy.get('@indoorRideTrigger')
-      .closest('.activity-card')
+      .closest('.activity-detail-card')
       .within(() => {
         cy.get('[aria-label="Session headline stats"]').should('be.visible');
         cy.contains('Moving Time').should('be.visible');
